@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Welcome";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Fine O Dine!</title>
+
+    <link rel="stylesheet" href="~/css/welcome.css" />
+</head>
+<body>
+    <div class="welcome-screen">
+        <header class="header">
+            <h1>🍴 Fine O Dine!</h1>
+        </header>
+
+        <div class="food-images">
+            <img src="~/pics/salad.jpg" alt="Salad">
+            <img src="~/pics/pizza.jpg" alt="Pizza">
+            <img src="~/pics/pasta.jpg" alt="Pasta">
+            <img src="~/pics/burger.jpg" alt="Burger">
+        </div>
+
+        <div class="welcome-text">
+            <h3>Welcome!</h3>
+            <p>Your go-to app for booking the best dining experiences in your city.</p>
+            <div class="mt-4">
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-lg btn-primary mx-2">Register</a>
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-lg btn-secondary mx-2">Login</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

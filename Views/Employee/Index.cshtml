@@ -1,0 +1,17 @@
+﻿@model FYP.Models.Employee
+@{
+    ViewData["Title"] = "Employee Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <h2>Welcome to your Dashboard, @Model.FirstName!</h2>
+    <p class="lead">This is your employee dashboard page.</p>
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to Home</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Log out</a>
+
+@*         <a asp-area="Identity" asp-page="/Account/Logout" class="btn btn-danger ms-2">Log out</a>
+ *@    </div>
+</div>

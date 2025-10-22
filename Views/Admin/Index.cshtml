@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="content-container">
+    <h1 class="gold-heading">Admin Dashboard</h1>
+    <hr class="gold-hr" />
+    <p>Welcome, Admin!</p>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <h3>Pending Employees</h3>
+                <p>Review and approve employee registrations</p>
+                <a asp-action="PendingEmployees" class="btn btn-secondary">View Pending</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a class="btn btn-primary" href="@Url.Action("Index", "Home")">
+           Back to Home
+        </a>
+    </div>
+</div>

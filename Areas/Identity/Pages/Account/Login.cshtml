@@ -1,0 +1,69 @@
+﻿@page
+@model FYP.Areas.Identity.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="center-container">
+    <div>
+        <h2 class="gold-heading">@ViewData["Title"]</h2>
+        <hr class="gold-hr" />
+
+        <form id="account" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-info mb-3">
+                    @TempData["Message"]
+                </div>
+            }
+
+            <!-- Email -->
+            <div class="form-group mb-3">
+                <label class="form-label" asp-for="Input.Email">Email</label>
+                <input class="form-control" asp-for="Input.Email" autocomplete="username" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group mb-3">
+                <label class="form-label" asp-for="Input.Password">Password</label>
+                <input class="form-control" asp-for="Input.Password" type="password" autocomplete="current-password" />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            <!-- Remember Me -->
+            <div class="form-group mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    <label class="form-check-label" asp-for="Input.RememberMe">
+                        @Html.DisplayNameFor(m => m.Input.RememberMe)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button id="loginSubmit" type="submit" class="btn btn-confirm">Login</button>
+            </div>
+
+            <!-- Register Link -->
+            <div class="text-center mt-3">
+                <a asp-page="./Register" class="gold-link">Don’t have an account? Register here</a>
+            </div>
+
+            <!-- Forgot Password Link -->
+            <div class="text-center mt-2">
+                <a asp-page="./ForgotPassword" class="gold-link">Forgot your password?</a>
+            </div>         
+            <div class="text-center mt-2">
+                <a asp-page="./ResendEmailConfirmation" class="gold-link">Resend confirmation mail</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
