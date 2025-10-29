@@ -22,11 +22,10 @@
                 </div>
                 <div class="card-body">
                     <form asp-action="CreateTable" method="post">
-                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
                         
                         <div class="mb-3">
                             <label asp-for="TableNumber" class="form-label">Table Number</label>
-                            <input asp-for="TableNumber" class="form-control" />
+                            <input asp-for="TableNumber" class="form-control" type="number" min="1" />
                             <span asp-validation-for="TableNumber" class="text-danger"></span>
                         </div>
 

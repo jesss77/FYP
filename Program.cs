@@ -105,6 +105,9 @@ using (var scope = app.Services.CreateScope())
         
         // Then seed users
         await UserSeeder.SeedUsersAsync(serviceProvider);
+
+            // Ensure a dedicated Guest customer exists for guest reservations
+            await GuestCustomerSeeder.EnsureGuestCustomerAsync(serviceProvider);
     }
     catch (Exception ex)
     {

@@ -4,6 +4,7 @@ using FYP.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FYP.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251029123408_AddReservationStatusesSeed")]
+    partial class AddReservationStatusesSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -323,6 +326,9 @@ namespace FYP.Migrations
                     b.Property<int>("CustomerID")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CustomerID1")
+                        .HasColumnType("int");
+
                     b.Property<int>("Duration")
                         .HasColumnType("int");
 
@@ -358,6 +364,8 @@ namespace FYP.Migrations
                     b.HasKey("ReservationID");
 
                     b.HasIndex("CustomerID");
+
+                    b.HasIndex("CustomerID1");
 
                     b.HasIndex("ReservationStatusID");
 
@@ -520,6 +528,9 @@ namespace FYP.Migrations
                     b.Property<int>("TableID")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TableID1")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -533,6 +544,8 @@ namespace FYP.Migrations
                     b.HasIndex("ReservationID");
 
                     b.HasIndex("TableID");
+
+                    b.HasIndex("TableID1");
 
                     b.ToTable("ReservationTables");
                 });
@@ -681,8 +694,7 @@ namespace FYP.Migrations
 
                     b.HasKey("TableID");
 
-                    b.HasIndex("RestaurantID", "TableNumber")
-                        .IsUnique();
+                    b.HasIndex("RestaurantID");
 
                     b.ToTable("Tables");
                 });
@@ -898,10 +910,14 @@ namespace FYP.Migrations
             modelBuilder.Entity("FYP.Models.Reservation", b =>
                 {
                     b.HasOne("FYP.Models.Customer", "Customer")
-                        .WithMany("Reservations")
+                        .WithMany()
                         .HasForeignKey("CustomerID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("FYP.Models.Customer", null)
+                        .WithMany("Reservations")
+                        .HasForeignKey("CustomerID1");
 
                     b.HasOne("FYP.Models.ReservationStatus", "ReservationStatus")
                         .WithMany()
@@ -950,10 +966,14 @@ namespace FYP.Migrations
                         .IsRequired();
 
                     b.HasOne("FYP.Models.Table", "Table")
-                        .WithMany("ReservationTables")
+                        .WithMany()
                         .HasForeignKey("TableID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("FYP.Models.Table", null)
+                        .WithMany("ReservationTables")
+                        .HasForeignKey("TableID1");
 
                     b.Navigation("Reservation");
 

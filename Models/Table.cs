@@ -8,6 +8,7 @@ namespace FYP.Models
     public int TableID { get; set; }
 
     [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Table number must be at least 1.")]
     public int TableNumber { get; set; }
 
     [Required]

@@ -66,7 +66,7 @@ namespace FYP.Data
 
             modelBuilder.Entity<ReservationTables>()
                 .HasOne(rt => rt.Table)
-                .WithMany()
+                .WithMany(t => t.ReservationTables)
                 .HasForeignKey(rt => rt.TableID)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -90,7 +90,7 @@ namespace FYP.Data
 
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.Customer)
-                .WithMany()
+                .WithMany(c => c.Reservations)
                 .HasForeignKey(r => r.CustomerID)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -109,6 +109,12 @@ namespace FYP.Data
             modelBuilder.Entity<Restaurant>().HasKey(r => r.RestaurantID);
             modelBuilder.Entity<AuditLog>().HasKey(al => al.EntityID);
             modelBuilder.Entity<ActionType>().HasKey(a => a.ActionTypeID);
+
+            // ---------------- Indexes/Constraints ----------------
+            // Ensure table numbers are unique per restaurant
+            modelBuilder.Entity<Table>()
+                .HasIndex(t => new { t.RestaurantID, t.TableNumber })
+                .IsUnique();
 
             // ---------------- Seed Data ----------------
             modelBuilder.Entity<Settings>().HasData(
@@ -139,6 +145,59 @@ namespace FYP.Data
                 {
                     RestaurantID = 1,
                     SettingsID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                }
+            );
+            
+            modelBuilder.Entity<ReservationStatus>().HasData(
+                new ReservationStatus
+                {
+                    ReservationStatusID = 1,
+                    StatusName = "Pending",
+                    Description = "Awaiting confirmation",
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new ReservationStatus
+                {
+                    ReservationStatusID = 2,
+                    StatusName = "Confirmed",
+                    Description = "Confirmed by staff/system",
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new ReservationStatus
+                {
+                    ReservationStatusID = 3,
+                    StatusName = "Seated",
+                    Description = "Customer seated",
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new ReservationStatus
+                {
+                    ReservationStatusID = 4,
+                    StatusName = "Completed",
+                    Description = "Reservation completed",
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new ReservationStatus
+                {
+                    ReservationStatusID = 5,
+                    StatusName = "Cancelled",
+                    Description = "Cancelled by customer/staff",
                     CreatedBy = "system",
                     UpdatedBy = "system",
                     CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),

@@ -1,16 +1,22 @@
 ﻿@model FYP.Models.Employee
 @{
-    ViewData["Title"] = "Guest Dashboard";
+    ViewData["Title"] = "Make a Reservation";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@{
+    ViewData["ShowGuestName"] = true;
+    ViewData["FormController"] = "Guest";
+}
+
 <div class="container mt-5">
-    <h2>Welcome Guest!</h2>
-    <p class="lead">This is your guest dashboard page.</p>
-
-    <div class="mt-4">
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to Home</a>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Log out</a>
-
-   </div>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @await Html.PartialAsync("_ReservationForm")
 </div>
