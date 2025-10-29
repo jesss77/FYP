@@ -1,57 +1,35 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using System.Globalization
+
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Fine O Dine</title>
+    <title>@ViewData["Title"] - Fine’O Dine</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/FYP.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
+    @* This calls the updated header file below *@
+    @await Html.PartialAsync("_Header")
 
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold text-light" asp-area="" asp-controller="Home" asp-action="Index">
-                    🍽 Fine O Dine
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="mainNavbar">
-                    <ul class="navbar-nav ms-auto">
-@*                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li> *@
-                    </ul> 
-                </div>
-            </div>
-        </nav>
-    </header>
-
-    <div>
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-@* 
-    <footer class="footer text-center text-light mt-5">
-        <div class="container">
-            &copy; @DateTime.Now.Year - Fine O Dine
-            • <a class="text-light text-decoration-underline" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer> *@
+    <main role="main" class="main-content container py-5">
+        @RenderBody()
+    </main>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+<footer class="site-footer footer">
+    @* Added 'footer' class to apply your styles *@
+    <div class="container">
+        <p>“Where flavors meet elegance, and time slows down.”</p>
+        <p>Mon - Sun : 9 am - 12 am</p>
+        <p style="color: red">@@ 2025 Fine’O Dine. All Rights Reserved</p>
+    </div>
+</footer>
 </html>

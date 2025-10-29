@@ -1,0 +1,104 @@
+﻿<link rel="stylesheet" href="~/css/Header-Footer.css" asp-append-version="true" />
+
+<header class="site-header">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+        <div class="container-fluid">
+
+            <a class="navbar-brand fw-bold text-light" asp-area="" asp-controller="Home" asp-action="Index">
+                🍽 Fine O Dine
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                    aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav ms-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="@Url.Action("Index", "Home")">@L["Home"]</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="@Url.Action("AboutUs", "Home")">@L["About Us"]</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="@Url.Action("ContactUs", "Home")">@L["Contact Us"]</a>
+                    </li>
+
+                    <li class="nav-item d-lg-none">
+                        <label class="lang-switch nav-link">
+                            <span class="sr-only">@L["Language"]</span>
+                            <select id="langSwitchMobile" aria-label="Language" class="form-select form-select-sm">
+                                <option value="en" selected>English</option>
+                                <option value="fr">Français</option>
+                            </select>
+                        </label>
+                    </li>
+                </ul>
+
+                <label class="lang-switch ms-3 d-none d-lg-block">
+                    <span class="sr-only">@L["Language"]</span>
+                    <select id="langSwitch" aria-label="Language" class="form-select form-select-sm">
+                        <option value="en" selected>English</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<script>
+    (function () {
+        const setLangValue = (iso) => {
+            const desktopSwitch = document.getElementById('langSwitch');
+            const mobileSwitch = document.getElementById('langSwitchMobile');
+            if (desktopSwitch) desktopSwitch.value = iso;
+            if (mobileSwitch) mobileSwitch.value = iso;
+        };
+
+        const addChangeListener = (elementId) => {
+            const langSwitch = document.getElementById(elementId);
+            if (langSwitch) {
+                langSwitch.addEventListener('change', function () {
+                    const lang = this.value;
+                    const returnUrl = '@Context.Request.Path@Context.Request.QueryString';
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '@Url.Action("ChangeLanguage", "Home")';
+
+                    const langInput = document.createElement('input');
+                    langInput.type = 'hidden';
+                    langInput.name = 'lang';
+                    langInput.value = lang;
+
+                    const returnUrlInput = document.createElement('input');
+                    returnUrlInput.type = 'hidden';
+                    returnUrlInput.name = 'returnUrl';
+                    returnUrlInput.value = returnUrl;
+
+                    form.appendChild(langInput);
+                    form.appendChild(returnUrlInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+            }
+        };
+
+        // Initialize and setup language detection
+        const cookieName = '.AspNetCore.Culture';
+        const cookie = document.cookie.split('; ').find(x => x.startsWith(cookieName + '='));
+        const current = cookie ? decodeURIComponent(cookie.split('=')[1]) : '';
+        const match = /c=([a-z]{2})\|uic=([a-z]{2})/i.exec(current);
+        const iso = match ? match[1] : 'en'; // Default to 'en'
+
+        setLangValue(iso);
+
+        // Add event listeners to both desktop and mobile switches
+        addChangeListener('langSwitch');
+        addChangeListener('langSwitchMobile');
+
+    })();
+</script>

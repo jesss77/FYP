@@ -64,7 +64,7 @@ namespace FYP.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            // Add user to role
+            // Add user to Customer role
             await _userManager.AddToRoleAsync(user, Input.Role);
 
             // Generate email confirmation token
@@ -83,22 +83,10 @@ namespace FYP.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            // Create Customer or Employee record based on role
-            if (Input.Role.Equals("Customer", StringComparison.OrdinalIgnoreCase))
-            {
-                TempData["UserId"] = user.Id;
-                TempData["Email"] = user.Email;
-                return RedirectToAction("Create", "Customer");
-            }
-            else if (Input.Role.Equals("Employee", StringComparison.OrdinalIgnoreCase))
-            {
-                TempData["UserId"] = user.Id;
-                TempData["Email"] = user.Email;
-                return RedirectToAction("Create", "Employee");
-            }
-
-            // Redirect to confirmation page for other roles
-            return RedirectToPage("./ConfirmEmail", new { email = user.Email });
+            // Create Customer record
+            TempData["UserId"] = user.Id;
+            TempData["Email"] = user.Email;
+            return RedirectToAction("Create", "Customer");
         }
     }
 }

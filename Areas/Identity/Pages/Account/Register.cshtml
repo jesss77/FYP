@@ -34,21 +34,8 @@
                     <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                 </div>
 
-                <!-- Role Selection -->
-                <div class="form-group mb-4">
-                    <label class="form-label fw-semibold">Register as:</label>
-                    <div class="form-radio-group">
-                        <label class="form-radio">
-                            <input class="form-check-input" type="radio" asp-for="Input.Role" value="Customer" checked />
-                            Customer
-                        </label>
-                        <label class="form-radio">
-                            <input class="form-check-input" type="radio" asp-for="Input.Role" value="Employee" />
-                            Employee
-                        </label>
-                    </div>
-                    <span asp-validation-for="Input.Role" class="text-danger"></span>
-                </div>
+                <!-- Hidden role field - only Customer registration allowed -->
+                <input type="hidden" asp-for="Input.Role" value="Customer" />
 
                 <!-- Submit Button -->
                 <div class="form-actions">

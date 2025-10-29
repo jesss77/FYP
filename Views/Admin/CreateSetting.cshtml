@@ -1,0 +1,43 @@
+﻿@model FYP.Models.Settings
+@{
+    ViewData["Title"] = "Add New Setting";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-dark text-warning">
+            <h3 class="mb-0">@ViewData["Title"]</h3>
+        </div>
+
+        <div class="card-body bg-dark text-light">
+            <form asp-action="CreateSetting" asp-controller="Admin" method="post">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                
+                <div class="mb-3">
+                    <label asp-for="Key" class="form-label fw-semibold"></label>
+                    <input asp-for="Key" class="form-control bg-transparent text-light border-warning" />
+                    <span asp-validation-for="Key" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Value" class="form-label fw-semibold"></label>
+                    <input asp-for="Value" class="form-control bg-transparent text-light border-warning" />
+                    <span asp-validation-for="Value" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a class="btn btn-secondary" href="@Url.Action("Settings", "Admin")">
+                        <i class="bi bi-arrow-left-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success" onclick="console.log('Button clicked'); return true;">
+                        <i class="bi bi-plus-circle"></i> Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -108,12 +108,7 @@ namespace FYP.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            // Check if user's email is confirmed
             var user = await _userManager.GetUserAsync(User);
-            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
-            {
-                return RedirectToPage("/Account/ConfirmEmail", new { area = "Identity", email = user?.Email });
-            }
 
             // Get the employee record for the current user
             var employee = await _context.Employees
@@ -129,12 +124,7 @@ namespace FYP.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Check if user's email is confirmed
             var user = await _userManager.GetUserAsync(User);
-            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
-            {
-                return RedirectToPage("/Account/ConfirmEmail", new { area = "Identity", email = user?.Email });
-            }
 
             // Get the employee record for the current user
             var employee = await _context.Employees

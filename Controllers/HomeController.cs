@@ -1,6 +1,7 @@
-using System.Diagnostics;
 using FYP.Models;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace FYP.Controllers
 {
@@ -16,6 +17,40 @@ namespace FYP.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+
+        [HttpGet] // Optional, but good practice for simple page views
+        public IActionResult AboutUs()
+        {
+            // This method returns the view file associated with the action name.
+            // It will look for /Views/Home/AboutUs.cshtml by default.
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ContactUs()
+        {
+            return View();
+        }
+
+        [HttpPost] // Best practice for actions that change state/settings
+        public IActionResult ChangeLanguage(string lang, string returnUrl)
+        {
+            if (string.IsNullOrEmpty(lang))
+            {
+                return LocalRedirect(returnUrl ?? "/"); // Redirect back if no language is provided
+            }
+
+            // Set the cookie
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(lang)),
+                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+            );
+
+            // Redirect the user back to the page they were on
+            return LocalRedirect(returnUrl ?? "/");
         }
 
         public IActionResult Privacy()

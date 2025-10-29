@@ -4,6 +4,7 @@ using FYP.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FYP.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251022134120_RemoveSettingsSeed")]
+    partial class RemoveSettingsSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -575,28 +578,6 @@ namespace FYP.Migrations
                     b.HasKey("SettingsID");
 
                     b.ToTable("Settings");
-
-                    b.HasData(
-                        new
-                        {
-                            SettingsID = 1,
-                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "system",
-                            Key = "Name",
-                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
-                            UpdatedBy = "system",
-                            Value = "Fine O Dine"
-                        },
-                        new
-                        {
-                            SettingsID = 2,
-                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "system",
-                            Key = "Opening Hours",
-                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
-                            UpdatedBy = "system",
-                            Value = "10 AM - 10 PM"
-                        });
                 });
 
             modelBuilder.Entity("FYP.Models.TablesJoin", b =>

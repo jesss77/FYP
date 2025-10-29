@@ -1,7 +1,8 @@
-﻿using FYP.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class Table
+namespace FYP.Models
+{
+    public class Table
 {
     [Key]
     public int TableID { get; set; }
@@ -30,4 +31,5 @@ public class Table
 
     [Required]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
 }

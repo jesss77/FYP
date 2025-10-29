@@ -8,8 +8,7 @@ public static class UserSeeder
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         // Admin
-        //var adminEmail = "admin@mail.com";
-        var adminEmail = "jynehego@forexzig.com";
+        var adminEmail = "admin@mail.com";
         var adminUser = new ApplicationUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
         if (await userManager.FindByEmailAsync(adminEmail) == null)
         {

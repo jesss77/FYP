@@ -72,25 +72,27 @@ namespace FYP.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            // Step 2: Check email confirmation status BEFORE attempting sign-in
-            if (!await _userManager.IsEmailConfirmedAsync(user))
+            // Step 2: Check if user is an employee
+            bool isEmployee = await _userManager.IsInRoleAsync(user, "employee");
+
+            // Step 3: Check email confirmation status BEFORE attempting sign-in (skip for employees)
+            if (!isEmployee && !await _userManager.IsEmailConfirmedAsync(user))
             {
-                ModelState.AddModelError(string.Empty, "You must confirm your email before logging in. Please check your email for a confirmation link.");
                 return RedirectToPage("./ConfirmEmail", new { email = Input.Email });
             }
 
-            // Step 3: Check for Employee specific approval status
-            if (await _userManager.IsInRoleAsync(user, "employee"))
+            // Step 4: Check for Employee specific approval status
+            if (isEmployee)
             {
                 var employee = await _context.Employees.FirstOrDefaultAsync(e => e.ApplicationUserId == user.Id);
                 if (employee == null || !employee.IsActive)
                 {
-                    ModelState.AddModelError(string.Empty, "Your account is pending admin approval.");
-                    return RedirectToPage("./PendingConfirmation");
+                    ModelState.AddModelError(string.Empty, "Your account is inactive. Please contact an administrator.");
+                    return Page();
                 }
             }
 
-            // Step 4: Attempt to sign the user in (now that we know email is confirmed)
+            // Step 5: Attempt to sign the user in (now that we know email is confirmed)
             var result = await _signInManager.PasswordSignInAsync(
                 user.UserName,
                 Input.Password,

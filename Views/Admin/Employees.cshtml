@@ -1,0 +1,77 @@
+@model IEnumerable<FYP.Models.Employee>
+@{
+    ViewData["Title"] = "Employees";
+}
+
+<div class="container mt-5 table-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info">@TempData["Info"]</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
+        <a class="btn btn-primary" href="@Url.Action("CreateEmployee", "Admin")">
+            <i class="bi bi-plus-circle"></i> Add New Employee
+        </a>
+    </div>
+
+    <table class="table table-dark table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emp in Model)
+            {
+                <tr>
+                    <td>@emp.FirstName @emp.LastName</td>
+                    <td>@emp.Email</td>
+                    <td>@(emp.PhoneNumber ?? "-")</td>
+                    <td>
+                        @if (emp.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Inactive</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <a class="btn btn-sm btn-warning me-1" href="@Url.Action("EditEmployee", "Admin", new { id = emp.EmployeeID })">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </a>
+                        @if (emp.IsActive)
+                        {
+                            <a class="btn btn-sm btn-secondary me-1" href="@Url.Action("ToggleActivateEmployee", "Admin", new { id = emp.EmployeeID })">
+                                <i class="bi bi-pause-circle"></i> Deactivate
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-sm btn-success me-1" href="@Url.Action("ToggleActivateEmployee", "Admin", new { id = emp.EmployeeID })">
+                                <i class="bi bi-play-circle"></i> Activate
+                            </a>
+                        }
+                        <a class="btn btn-sm btn-danger" href="@Url.Action("DeleteEmployee", "Admin", new { id = emp.EmployeeID })"
+                           onclick="return confirm('Are you sure you want to delete @emp.FirstName @emp.LastName? This action cannot be undone.');">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

@@ -1,4 +1,4 @@
-﻿using FYP.Models;
+using FYP.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,7 +28,6 @@ namespace FYP.Data
             base.OnModelCreating(modelBuilder);
 
             // ---------------- Relationships ----------------
-
             modelBuilder.Entity<ApplicationUser>()
                 .HasOne(u => u.Customer)
                 .WithOne(c => c.ApplicationUser)
@@ -111,8 +110,7 @@ namespace FYP.Data
             modelBuilder.Entity<AuditLog>().HasKey(al => al.EntityID);
             modelBuilder.Entity<ActionType>().HasKey(a => a.ActionTypeID);
 
-            // ---------------- Default Seed Data ----------------
-
+            // ---------------- Seed Data ----------------
             modelBuilder.Entity<Settings>().HasData(
                 new Settings
                 {
@@ -120,9 +118,9 @@ namespace FYP.Data
                     Key = "Name",
                     Value = "Fine O Dine",
                     CreatedBy = "system",
-                    UpdatedBy = "system",
-                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0), // fixed
-                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)  // fixed
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedBy = "system"
                 },
                 new Settings
                 {
@@ -130,9 +128,9 @@ namespace FYP.Data
                     Key = "Opening Hours",
                     Value = "10 AM - 10 PM",
                     CreatedBy = "system",
-                    UpdatedBy = "system",
-                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0), // fixed
-                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)  // fixed
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedBy = "system"
                 }
             );
 
@@ -147,8 +145,6 @@ namespace FYP.Data
                     UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
                 }
             );
-
-
         }
     }
 

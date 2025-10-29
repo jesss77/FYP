@@ -1,28 +1,34 @@
-﻿@{
-    ViewData["Title"] = "Admin Dashboard";
-}
-
-<div class="content-container">
-    <h1 class="gold-heading">Admin Dashboard</h1>
-    <hr class="gold-hr" />
-    <p>Welcome, Admin!</p>
-
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <div class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-user-clock"></i>
-                </div>
-                <h3>Pending Employees</h3>
-                <p>Review and approve employee registrations</p>
-                <a asp-action="PendingEmployees" class="btn btn-secondary">View Pending</a>
+﻿<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-users"></i>
             </div>
+            <h3>Employees</h3>
+            <p>View and manage all employee accounts</p>
+            <a asp-action="Employees" class="btn btn-secondary">View Employees</a>
         </div>
     </div>
 
-    <div class="text-center mt-4">
-        <a class="btn btn-primary" href="@Url.Action("Index", "Home")">
-           Back to Home
-        </a>
+    <div class="col-md-4">
+        <div class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <h3>Restaurant Settings</h3>
+            <p>Manage key-value settings for the restaurant</p>
+            <a asp-action="Settings" class="btn btn-secondary">Manage Settings</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="action-card">
+            <div class="action-icon">
+                <i class="fas fa-table"></i>
+            </div>
+            <h3>Table Management</h3>
+            <p>View and manage restaurant tables</p>
+            <a asp-action="Tables" class="btn btn-secondary">Manage Tables</a>
+        </div>
     </div>
 </div>

@@ -1,0 +1,61 @@
+@model FYP.Models.Table
+@{
+    ViewData["Title"] = "Edit Table";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="EditTable" method="post">
+                        <input asp-for="TableID" type="hidden" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="TableNumber" class="form-label">Table Number</label>
+                            <input asp-for="TableNumber" class="form-control" />
+                            <span asp-validation-for="TableNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Capacity" class="form-label">Capacity</label>
+                            <input asp-for="Capacity" class="form-control" type="number" min="1" />
+                            <span asp-validation-for="Capacity" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsJoinable" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsJoinable" class="form-check-label">
+                                Can be joined with other tables
+                            </label>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsAvailable" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsAvailable" class="form-check-label">
+                                Available for reservations
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Update Table
+                            </button>
+                            <a asp-action="Tables" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Tables
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
