@@ -420,4 +420,46 @@
   <data name="For local debugging, enable the {0} environment by setting the {1} environment variable to {0} and restarting the app." xml:space="preserve">
     <value>For local debugging, enable the {0} environment by setting the {1} environment variable to {0} and restarting the app.</value>
   </data>
+  <data name="Make a Reservation" xml:space="preserve">
+    <value>Make a Reservation</value>
+  </data>
+  <data name="Party Size" xml:space="preserve">
+    <value>Party Size</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Name for Reservation" xml:space="preserve">
+    <value>Name for Reservation</value>
+  </data>
+  <data name="Notes (optional)" xml:space="preserve">
+    <value>Notes (optional)</value>
+  </data>
+  <data name="More Options" xml:space="preserve">
+    <value>More Options</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Default (auto)" xml:space="preserve">
+    <value>Default (auto)</value>
+  </data>
+  <data name="45 minutes" xml:space="preserve">
+    <value>45 minutes</value>
+  </data>
+  <data name="1 hour" xml:space="preserve">
+    <value>1 hour</value>
+  </data>
+  <data name="1 hour 30 minutes" xml:space="preserve">
+    <value>1 hour 30 minutes</value>
+  </data>
+  <data name="2 hours" xml:space="preserve">
+    <value>2 hours</value>
+  </data>
+  <data name="Confirm Reservation" xml:space="preserve">
+    <value>Confirm Reservation</value>
+  </data>
 </root>

@@ -4,24 +4,24 @@
 }
 
 <div class="content-container">
-    <h2 class="gold-heading">Make a Reservation</h2>
+    <h2 class="gold-heading">@L["Make a Reservation"]</h2>
     <hr class="gold-hr" />
 
     <form asp-controller="@formController" asp-action="Reserve" method="post">
         @Html.AntiForgeryToken()
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label">Party Size</label>
+                <label class="form-label">@L["Party Size"]</label>
                 <input name="PartySize" type="number" min="1" max="20" step="1" class="form-control" placeholder="e.g. 2" required />
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Date</label>
+                <label class="form-label">@L["Date"]</label>
                 <input name="ReservationDate" type="date" class="form-control" required min="@DateTime.UtcNow.ToString("yyyy-MM-dd")" />
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Time</label>
+                <label class="form-label">@L["Time"]</label>
                 <input name="ReservationTime" type="time" class="form-control" required />
             </div>
         </div>
@@ -29,39 +29,39 @@
         @if (showGuestName)
         {
             <div class="mt-3">
-                <label class="form-label">Name for Reservation</label>
+                <label class="form-label">@L["Name for Reservation"]</label>
                 <input name="ReservationName" type="text" class="form-control" placeholder="Your name" required />
             </div>
         }
 
         <div class="mt-3">
-            <label class="form-label">Notes (optional)</label>
+            <label class="form-label">@L["Notes (optional)"]</label>
             <textarea name="Notes" class="form-control" rows="3" placeholder="Allergies, seating preference, occasion..."></textarea>
         </div>
 
         <div class="mt-3">
             <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#moreOptions" aria-expanded="false" aria-controls="moreOptions">
-                More Options
+                @L["More Options"]
             </button>
         </div>
 
         <div class="collapse mt-3" id="moreOptions">
             <div class="row">
                 <div class="col-md-6">
-                    <label class="form-label">Duration</label>
+                    <label class="form-label">@L["Duration"]</label>
                     <select name="Duration" class="form-select">
-                        <option value="">Default (auto)</option>
-                        <option value="45">45 minutes</option>
-                        <option value="60">1 hour</option>
-                        <option value="90">1 hour 30 minutes</option>
-                        <option value="120">2 hours</option>
+                        <option value="">@L["Default (auto)"]</option>
+                        <option value="45">@L["45 minutes"]</option>
+                        <option value="60">@L["1 hour"]</option>
+                        <option value="90">@L["1 hour 30 minutes"]</option>
+                        <option value="120">@L["2 hours"]</option>
                     </select>
                 </div>
             </div>
         </div>
 
         <div class="mt-4">
-            <button type="submit" class="btn btn-confirm">Confirm Reservation</button>
+            <button type="submit" class="btn btn-confirm">@L["Confirm Reservation"]</button>
         </div>
     </form>
 </div>
