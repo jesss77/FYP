@@ -108,6 +108,8 @@ using (var scope = app.Services.CreateScope())
 
             // Ensure a dedicated Guest customer exists for guest reservations
             await GuestCustomerSeeder.EnsureGuestCustomerAsync(serviceProvider);
+            // Ensure a dedicated Walk-in customer exists for staff walk-ins
+            await WalkInCustomerSeeder.EnsureWalkInCustomerAsync(serviceProvider);
     }
     catch (Exception ex)
     {

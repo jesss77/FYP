@@ -18,6 +18,16 @@ namespace FYP.Models
         [Required, Range(60, int.MaxValue)]
         public int Duration { get; set; } // Duration in minutes
         public string? Notes { get; set; }
+
+        // Guest flow fields
+        public bool IsGuest { get; set; } = false;
+        [StringLength(200)]
+        public string? GuestName { get; set; }
+        [EmailAddress, StringLength(255)]
+        public string? GuestEmail { get; set; }
+        [Phone, StringLength(20)]
+        public string? GuestPhone { get; set; }
+
         [Required]
         public int ReservationStatusID { get; set; }
         public ReservationStatus ReservationStatus { get; set; }
