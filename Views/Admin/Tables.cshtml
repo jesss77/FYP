@@ -1,6 +1,6 @@
 @model IEnumerable<FYP.Models.Table>
 @{
-    ViewData["Title"] = "Tables";
+    ViewData["Title"] = L["Tables"];
 }
 
 <div class="container mt-5 table-container">
@@ -17,18 +17,18 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
         <a class="btn btn-primary" href="@Url.Action("CreateTable", "Admin")">
-            <i class="bi bi-plus-circle"></i> Add New Table
+            <i class="bi bi-plus-circle"></i> @L["Add New Table"]
         </a>
     </div>
 
     <table class="table table-dark table-hover align-middle">
         <thead>
             <tr>
-                <th>Table Number</th>
-                <th>Capacity</th>
-                <th>Joinable</th>
-                <th>Status</th>
-                <th class="text-center">Actions</th>
+                <th>@L["Table Number"]</th>
+                <th>@L["Capacity"]</th>
+                <th>@L["Joinable"]</th>
+                <th>@L["Status"]</th>
+                <th class="text-center">@L["Actions"]</th>
             </tr>
         </thead>
         <tbody>
@@ -40,42 +40,42 @@
                     <td>
                         @if (table.IsJoinable)
                         {
-                            <span class="badge bg-info">Yes</span>
+                            <span class="badge bg-info">@L["Yes"]</span>
                         }
                         else
                         {
-                            <span class="badge bg-secondary">No</span>
+                            <span class="badge bg-secondary">@L["No"]</span>
                         }
                     </td>
                     <td>
                         @if (table.IsAvailable)
                         {
-                            <span class="badge bg-success">Available</span>
+                            <span class="badge bg-success">@L["Available"]</span>
                         }
                         else
                         {
-                            <span class="badge bg-warning text-dark">Unavailable</span>
+                            <span class="badge bg-warning text-dark">@L["Unavailable"]</span>
                         }
                     </td>
                     <td class="text-center">
                         <a class="btn btn-sm btn-warning me-1" href="@Url.Action("EditTable", "Admin", new { id = table.TableID })">
-                            <i class="bi bi-pencil-square"></i> Edit
+                            <i class="bi bi-pencil-square"></i> @L["Edit"]
                         </a>
                         @if (table.IsAvailable)
                         {
                             <a class="btn btn-sm btn-secondary me-1" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
-                                <i class="bi bi-pause-circle"></i> Make Unavailable
+                                <i class="bi bi-pause-circle"></i> @L["Make Unavailable"]
                             </a>
                         }
                         else
                         {
                             <a class="btn btn-sm btn-success me-1" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
-                                <i class="bi bi-play-circle"></i> Make Available
+                                <i class="bi bi-play-circle"></i> @L["Make Available"]
                             </a>
                         }
                         <a class="btn btn-sm btn-danger" href="@Url.Action("DeleteTable", "Admin", new { id = table.TableID })"
-                           onclick="return confirm('Are you sure you want to delete Table @table.TableNumber? This action cannot be undone.');">
-                            <i class="bi bi-trash"></i> Delete
+                           onclick="return confirm('@L["Are you sure you want to delete Table {0}? This action cannot be undone.", table.TableNumber]');">
+                            <i class="bi bi-trash"></i> @L["Delete"]
                         </a>
                     </td>
                 </tr>

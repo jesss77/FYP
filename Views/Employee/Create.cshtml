@@ -1,6 +1,6 @@
 ﻿@model FYP.Models.Employee
 @{
-    ViewData["Title"] = "Employee Registration";
+    ViewData["Title"] = L["Employee Registration"];
 }
 
 <div class="center-container">
@@ -36,7 +36,7 @@
             <input type="hidden" asp-for="CreatedAt" />
             <input type="hidden" asp-for="UpdatedBy" />
             <input type="hidden" asp-for="UpdatedAt" />
-            <button type="submit" class="btn btn-primary">Register Employee</button>
+            <button type="submit" class="btn btn-primary">@L["Register Employee"]</button>
         </form>
     </div>
 </div>

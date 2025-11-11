@@ -1,24 +1,24 @@
 ﻿@model IEnumerable<FYP.Models.Settings>
 @{
-    ViewData["Title"] = "Settings";
+    ViewData["Title"] = L["Settings"];
 }
 
 <div class="container mt-5 table-container">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
         <a class="btn btn-primary" href="@Url.Action("CreateSetting", "Admin")">
-            <i class="bi bi-plus-circle"></i> Add New Setting
+            <i class="bi bi-plus-circle"></i> @L["Add New Setting"]
         </a>
     </div>
 
     <table class="table table-dark table-hover align-middle">
         <thead>
             <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Created By</th>
-                <th>Updated By</th>
-                <th class="text-center">Actions</th>
+                <th>@L["Key"]</th>
+                <th>@L["Value"]</th>
+                <th>@L["Created By"]</th>
+                <th>@L["Updated By"]</th>
+                <th class="text-center">@L["Actions"]</th>
             </tr>
         </thead>
         <tbody>
@@ -31,10 +31,10 @@
                     <td>@setting.UpdatedBy</td>
                     <td class="text-center">
                         <a class="btn btn-sm btn-warning me-1" href="@Url.Action("EditSetting", "Admin", new { id = setting.SettingsID })">
-                            <i class="bi bi-pencil-square"></i> Edit
+                            <i class="bi bi-pencil-square"></i> @L["Edit"]
                         </a>
                         <a class="btn btn-sm btn-danger" href="@Url.Action("DeleteSetting", "Admin", new { id = setting.SettingsID })">
-                            <i class="bi bi-trash"></i> Delete
+                            <i class="bi bi-trash"></i> @L["Delete"]
                         </a>
                     </td>
                 </tr>

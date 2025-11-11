@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Header-Footer.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
@@ -22,14 +23,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @await Html.PartialAsync("_Footer")
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-<footer class="site-footer footer">
-    @* Added 'footer' class to apply your styles *@
-    <div class="container">
-        <p>“Where flavors meet elegance, and time slows down.”</p>
-        <p>Mon - Sun : 9 am - 12 am</p>
-        <p style="color: red">@@ 2025 Fine’O Dine. All Rights Reserved</p>
-    </div>
-</footer>
+
 </html>

@@ -1,11 +1,9 @@
-﻿<link rel="stylesheet" href="~/css/Header-Footer.css" asp-append-version="true" />
-
-<header class="site-header">
+﻿<header class="site-header">
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
-        <div class="container-fluid">
+        <div class="container">
 
             <a class="navbar-brand fw-bold text-light" asp-area="" asp-controller="Home" asp-action="Index">
-                🍽 Fine O Dine
+                🍽 @L["BrandName"]
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -29,9 +27,9 @@
                     <li class="nav-item d-lg-none">
                         <label class="lang-switch nav-link">
                             <span class="sr-only">@L["Language"]</span>
-                            <select id="langSwitchMobile" aria-label="Language" class="form-select form-select-sm">
-                                <option value="en" selected>English</option>
-                                <option value="fr">Français</option>
+                            <select id="langSwitchMobile" aria-label="@L["Language"]" class="form-select form-select-sm">
+                                <option value="en" selected>@L["English"]</option>
+                                <option value="fr">@L["French"]</option>
                             </select>
                         </label>
                     </li>
@@ -39,9 +37,9 @@
 
                 <label class="lang-switch ms-3 d-none d-lg-block">
                     <span class="sr-only">@L["Language"]</span>
-                    <select id="langSwitch" aria-label="Language" class="form-select form-select-sm">
-                        <option value="en" selected>English</option>
-                        <option value="fr">Français</option>
+                    <select id="langSwitch" aria-label="@L["Language"]" class="form-select form-select-sm">
+                        <option value="en" selected>@L["English"]</option>
+                        <option value="fr">@L["French"]</option>
                     </select>
                 </label>
             </div>
@@ -99,6 +97,8 @@
         // Add event listeners to both desktop and mobile switches
         addChangeListener('langSwitch');
         addChangeListener('langSwitchMobile');
+
+        // Use themed native select only; no custom dropdown wrapper
 
     })();
 </script>

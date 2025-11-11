@@ -4,14 +4,28 @@
     overflow-y: auto;
 }
 
+/* ====== Design tokens ====== */
+:root {
+    --color-text: #ffffff;
+    --color-accent: #d4af37;
+    --color-primary: #b33b3b;
+    --color-primary-hover: #992f2f;
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-bg-strong: rgba(255, 255, 255, 0.15);
+    --gold-border: rgba(212, 175, 55, 0.3);
+    --radius-lg: 15px;
+    --radius-md: 10px;
+    --shadow-1: 0 6px 18px rgba(0, 0, 0, 0.4);
+    --header-height: 10vh;
+}
+
 body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     position: relative;
-    color: #fff;
+    color: var(--color-text);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /*    background: linear-gradient(120deg, #2b2b2b 0%, #3a3a3a 100%);*/
     background: url("../pics/test.png");
     background-size: cover;
     z-index: 0;
@@ -31,44 +45,14 @@ body {
     z-index: -1;
 }
 
-.navbar {
-    background: linear-gradient(120deg, #2b2b2b 0%, #3a3a3a 100%);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(212, 175, 55, 0.3);
-    padding: 1rem 2rem;
-    min-height: 10vh;
-    z-index: 1030;
-}
-
-.navbar-brand {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #d4af37 !important;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.navbar .nav-link {
-    font-size: 1.2rem;
-    transition: color 0.2s ease;
-    color: #fff;
-    margin: 0 0.8rem;
-    font-weight: 500;
-}
-
-    .navbar .nav-link:hover {
-        color: #d4af37;
-    }
-
 .main-content {
-    padding-top: 12vh !important;
+    padding-top: calc(var(--header-height) + 2rem) !important;
     flex-grow: 1;
 }
 
 .content-container {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    /* ADDED: Gold border */
     border: 2px solid rgba(212, 175, 55, 0.3);
     border-radius: 15px;
     padding: 3rem;
@@ -78,44 +62,24 @@ body {
     font-size: 1.15rem;
 }
 
-.footer {
-    padding: 2rem 0;
-    background: rgba(0, 0, 0, 0.6);
-    margin-top: 0;
-    backdrop-filter: blur(8px);
-    font-size: 1.05rem;
-    border-top: 2px solid rgba(212, 175, 55, 0.3);
-    width: 100%;
-}
-
-    .footer a {
-        color: #d4af37;
-        text-decoration: none;
-        transition: color 0.2s ease;
-    }
-
-        .footer a:hover {
-            color: #ffd369;
-        }
-
 .welcome-screen {
-    /* Centering preserved */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    /* Kept existing styles from content-container */
-    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(120deg, rgba(43, 43, 43, 0.3) 0%, rgba(58, 58, 58, 0.3) 80%);
     backdrop-filter: blur(10px);
     border-radius: 15px;
-    padding: 3rem;
-    margin-top: 3rem;
+    padding: 1rem;
     color: #fff;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
     font-size: 1.15rem;
-    /* ADDED: Gold border to match theme */
     border: 2px solid rgba(212, 175, 55, 0.3);
+    max-width: 80%;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
 }
 
     .welcome-screen body {
@@ -124,7 +88,7 @@ body {
 
 .header h1 {
     font-size: 3rem;
-    margin-bottom: 1rem;
+    margin: 1rem;
     color: #d4af37;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
@@ -173,6 +137,7 @@ body {
     font-weight: 600;
     letter-spacing: 0.3px;
     margin-top: 10px;
+    color:#fff;
 }
 
 .btn-primary {
@@ -190,7 +155,6 @@ body {
 .btn-secondary {
     background-color: #d4af37;
     border: none;
-    color: #2b2b2b;
 }
 
     .btn-secondary:hover {
@@ -694,74 +658,12 @@ input[type="file"].form-control::file-selector-button {
 }
 
 
-/* ----------------------------------------------------- */
-/* --- THEMED BOOTSTRAP DROPDOWN OVERRIDES (Language) ---*/
-/* ----------------------------------------------------- */
-
-/* Style the button that toggles the language dropdown */
-.lang-btn {
-    color: #fff !important;
-    font-weight: 500;
-    background: rgba(212, 175, 55, 0.15);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    border-radius: 12px;
-    padding: 0.4rem 0.9rem;
-    transition: all 0.25s ease;
-    margin-left: 1rem;
-}
-
-    .lang-btn:hover,
-    .lang-btn:focus {
-        background: rgba(212, 175, 55, 0.3);
-        color: #d4af37 !important;
-        border-color: #d4af37;
-        box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-    }
-
-/* Apply to the main dropdown menu container */
-.dropdown-menu {
-    background-color: #2b2b2b; /* Darkest background */
-    border: 1px solid rgba(212, 175, 55, 0.4); /* Gold border */
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    padding: 0; /* Remove default padding */
-    width: 80%; /* CHANGED: SIZES TO THE WIDTH OF THE BUTTON'S CONTAINER */
-    z-index: 1050;
-}
-
-/* Style the individual link items */
-.dropdown-item {
-    border-radius: 10px;
-    color: #fff; /* White text */
-    font-weight: 500;
-    padding: 0.75rem 1.25rem;
-    transition: all 0.25s ease;
-    background-color: transparent;
-    /* Optional: Ensure text wraps or ellipsis is used if the button is too narrow */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-    /* Style for link items on hover and focus */
-    .dropdown-item:hover,
-    .dropdown-item:focus {
-        background-color: #3a3a3a; /* Slightly lighter dark background on hover */
-        color: #d4af37; /* Gold text on hover */
-    }
-
-    /* Style the active/current language link (if applicable) */
-    .dropdown-item.active,
-    .dropdown-item:active {
-        background-color: #d4af37 !important; /* Solid gold background */
-        color: #2b2b2b !important; /* Dark text on gold */
-    }
-
-/* --- Media Query Styles (Kept) --- */
+/* --- Media Query Styles --- */
 
 @media (max-width: 576px) {
+    :root { --header-height: 14vh; }
     .main-content {
-        padding-top: 20vh !important;
+        padding-top: calc(var(--header-height) + 1.5rem) !important;
     }
 
     html, body {
@@ -788,60 +690,10 @@ input[type="file"].form-control::file-selector-button {
     .table-container {
         padding: 1rem;
     }
-
-    /* Mobile specific language button styling (using .lang-btn from above) */
-    .lang-btn {
-        margin-left: 1rem;
-    }
-
-    /* Mobile specific language dropdown (re-using .dropdown-menu styles) */
-    .lang-dropdown { /* This specific class may be redundant if using .dropdown-menu, but is kept for compatibility */
-        background: #2b2b2b;
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        border-radius: 12px;
-        overflow: hidden;
-        padding: 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-
-    .lang-option { /* This specific class is replaced by .dropdown-item, but is kept for compatibility */
-        color: #fff !important;
-        font-weight: 500;
-        padding: 0.6rem 1rem;
-        transition: all 0.25s ease;
-    }
-
-        .lang-option:hover {
-            background-color: #3a3a3a;
-            color: #d4af37 !important;
-        }
 }
-    }
 
-    /* Mobile specific language button styling (using .lang-btn from above) */
-    .lang-btn {
-        margin-left: 1rem;
-    }
+/* Header/Footer rules are defined in Header-Footer.css */
 
-    /* Mobile specific language dropdown (re-using .dropdown-menu styles) */
-    .lang-dropdown { /* This specific class may be redundant if using .dropdown-menu, but is kept for compatibility */
-        background: #2b2b2b;
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        border-radius: 12px;
-        overflow: hidden;
-        padding: 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-
-    .lang-option { /* This specific class is replaced by .dropdown-item, but is kept for compatibility */
-        color: #fff !important;
-        font-weight: 500;
-        padding: 0.6rem 1rem;
-        transition: all 0.25s ease;
-    }
-
-        .lang-option:hover {
-            background-color: #3a3a3a;
-            color: #d4af37 !important;
-        }
+html {
+    scroll-behavior: smooth;
 }

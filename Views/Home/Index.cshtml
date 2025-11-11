@@ -1,13 +1,13 @@
 ﻿@{
-    ViewData["Title"] = "Welcome";
+    ViewData["Title"] = L["Welcome"];
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - Fine O Dine!</title>
+    <title>@ViewData["Title"] - @L["BrandName"]!</title>
 
     <link rel="stylesheet" href="~/css/welcome.css" />
 </head>
@@ -18,24 +18,24 @@
             <div class="alert alert-success w-100">@TempData["Message"]</div>
         }
         <header class="header">
-            <h1>🍴 Fine O Dine!</h1>
+            <h1>🍴 @L["BrandName"]!</h1>
         </header>
 
         <div class="food-images">
-            <img src="~/pics/salad.jpg" alt="Salad">
-            <img src="~/pics/pizza.jpg" alt="Pizza">
-            <img src="~/pics/pasta.jpg" alt="Pasta">
-            <img src="~/pics/burger.jpg" alt="Burger">
+            <img src="~/pics/salad.jpg" alt="@L["Salad"]">
+            <img src="~/pics/pizza.jpg" alt="@L["Pizza"]">
+            <img src="~/pics/pasta.jpg" alt="@L["Pasta"]">
+            <img src="~/pics/burger.jpg" alt="@L["Burger"]">
         </div>
 
         <div class="welcome-text">
-            <h3>Welcome!</h3>
-            <p>Your go-to app for booking the best dining experiences in your city.</p>
+            <h3>@L["Welcome!"]</h3>
+            <p>@L["WelcomeDescription"]</p>
             <div class="mt-4">
-                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-lg btn-secondary mx-2">Login</a>
-                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-lg btn-secondary mx-2">Register</a>
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-lg btn-secondary mx-2">@L["Login"]</a>
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-lg btn-secondary mx-2">@L["Register"]</a>
             </div>
-            <a asp-controller="Guest" asp-action="Index" class="btn btn-primary">Sign In as Guest</a>
+            <a asp-controller="Guest" asp-action="Index" class="btn btn-primary">@L["Sign In as Guest"]</a>
         </div>
     </div>
 </body>

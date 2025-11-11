@@ -1,6 +1,6 @@
 ﻿@model FYP.Models.Customer
 @{
-    ViewData["Title"] = "Customer Registration";
+    ViewData["Title"] = L["Customer Registration"];
 }
 
 <div class="center-container">
@@ -33,14 +33,14 @@
             <div class="mb-3">
                 <label asp-for="PreferredLanguage"></label>
                 <select asp-for="PreferredLanguage" class="form-control">
-                    <option value="English">English</option>
-                    <option value="French">French</option>
+                    <option value="English">@L["English"]</option>
+                    <option value="French">@L["French"]</option>
                 </select>
                 <span asp-validation-for="PreferredLanguage" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="PictureBytes">Profile Picture</label>
+                <label asp-for="PictureBytes">@L["Profile Picture"]</label>
                 <input asp-for="PictureBytes" type="file" class="form-control" />
                 <span asp-validation-for="PictureBytes" class="text-danger"></span>
             </div>
@@ -52,7 +52,7 @@
             <input type="hidden" asp-for="UpdatedBy" />
             <input type="hidden" asp-for="UpdatedAt" />
             <input type="hidden" asp-for="ApplicationUserId" />
-            <button type="submit" class="btn btn-primary">Register Customer</button>
+            <button type="submit" class="btn btn-primary">@L["Register Customer"]</button>
         </form>
     </div>
 </div>

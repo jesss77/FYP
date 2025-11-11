@@ -1,6 +1,6 @@
 @model IEnumerable<FYP.Models.Employee>
 @{
-    ViewData["Title"] = "Employees";
+    ViewData["Title"] = L["Employees"];
 }
 
 <div class="container mt-5 table-container">
@@ -17,18 +17,18 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
         <a class="btn btn-primary" href="@Url.Action("CreateEmployee", "Admin")">
-            <i class="bi bi-plus-circle"></i> Add New Employee
+            <i class="bi bi-plus-circle"></i> @L["Add New Employee"]
         </a>
     </div>
 
     <table class="table table-dark table-hover align-middle">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone Number</th>
-                <th>Status</th>
-                <th class="text-center">Actions</th>
+                <th>@L["Name"]</th>
+                <th>@L["Email"]</th>
+                <th>@L["Phone Number"]</th>
+                <th>@L["Status"]</th>
+                <th class="text-center">@L["Actions"]</th>
             </tr>
         </thead>
         <tbody>
@@ -41,32 +41,32 @@
                     <td>
                         @if (emp.IsActive)
                         {
-                            <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">@L["Active"]</span>
                         }
                         else
                         {
-                            <span class="badge bg-warning text-dark">Inactive</span>
+                            <span class="badge bg-warning text-dark">@L["Inactive"]</span>
                         }
                     </td>
                     <td class="text-center">
                         <a class="btn btn-sm btn-warning me-1" href="@Url.Action("EditEmployee", "Admin", new { id = emp.EmployeeID })">
-                            <i class="bi bi-pencil-square"></i> Edit
+                            <i class="bi bi-pencil-square"></i> @L["Edit"]
                         </a>
                         @if (emp.IsActive)
                         {
                             <a class="btn btn-sm btn-secondary me-1" href="@Url.Action("ToggleActivateEmployee", "Admin", new { id = emp.EmployeeID })">
-                                <i class="bi bi-pause-circle"></i> Deactivate
+                                <i class="bi bi-pause-circle"></i> @L["Deactivate"]
                             </a>
                         }
                         else
                         {
                             <a class="btn btn-sm btn-success me-1" href="@Url.Action("ToggleActivateEmployee", "Admin", new { id = emp.EmployeeID })">
-                                <i class="bi bi-play-circle"></i> Activate
+                                <i class="bi bi-play-circle"></i> @L["Activate"]
                             </a>
                         }
                         <a class="btn btn-sm btn-danger" href="@Url.Action("DeleteEmployee", "Admin", new { id = emp.EmployeeID })"
-                           onclick="return confirm('Are you sure you want to delete @emp.FirstName @emp.LastName? This action cannot be undone.');">
-                            <i class="bi bi-trash"></i> Delete
+                           onclick="return confirm('@L["Are you sure you want to delete {0} {1}? This action cannot be undone.", emp.FirstName, emp.LastName]');">
+                            <i class="bi bi-trash"></i> @L["Delete"]
                         </a>
                     </td>
                 </tr>

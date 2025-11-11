@@ -138,4 +138,286 @@
   <data name="Language" xml:space="preserve">
     <value>Langage</value>
   </data>
+  <data name="FooterQuote" xml:space="preserve">
+    <value>« Où les saveurs rencontrent l'élégance et le temps ralentit. »</value>
+  </data>
+  <data name="FooterHours" xml:space="preserve">
+    <value>Lun - Dim : 9 h - 0 h</value>
+  </data>
+  <data name="FooterRights" xml:space="preserve">
+    <value>© 2025 Fine’O Dine. Tous droits réservés</value>
+  </data>
+  <data name="BrandName" xml:space="preserve">
+    <value>Fine O Dine</value>
+  </data>
+  <data name="English" xml:space="preserve">
+    <value>Anglais</value>
+  </data>
+  <data name="French" xml:space="preserve">
+    <value>Français</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Bienvenue</value>
+  </data>
+  <data name="Welcome!" xml:space="preserve">
+    <value>Bienvenue !</value>
+  </data>
+  <data name="WelcomeDescription" xml:space="preserve">
+    <value>Votre application pour réserver les meilleures expériences culinaires dans votre ville.</value>
+  </data>
+  <data name="Salad" xml:space="preserve">
+    <value>Salade</value>
+  </data>
+  <data name="Pizza" xml:space="preserve">
+    <value>Pizza</value>
+  </data>
+  <data name="Pasta" xml:space="preserve">
+    <value>Pâtes</value>
+  </data>
+  <data name="Burger" xml:space="preserve">
+    <value>Burger</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Connexion</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Inscription</value>
+  </data>
+  <data name="Sign In as Guest" xml:space="preserve">
+    <value>Se connecter en tant qu'invité</value>
+  </data>
+  <data name="Follow us on Instagram" xml:space="preserve">
+    <value>Suivez-nous sur Instagram</value>
+  </data>
+  <data name="Follow us on Facebook" xml:space="preserve">
+    <value>Suivez-nous sur Facebook</value>
+  </data>
+  <data name="Call us on" xml:space="preserve">
+    <value>Appelez-nous au</value>
+  </data>
+  <data name="E-mail us at" xml:space="preserve">
+    <value>Envoyez-nous un e-mail à</value>
+  </data>
+  <data name="Privacy Policy" xml:space="preserve">
+    <value>Politique de confidentialité</value>
+  </data>
+  <data name="Privacy Policy Description" xml:space="preserve">
+    <value>Utilisez cette page pour détailler la politique de confidentialité de votre site.</value>
+  </data>
+  <data name="Employees" xml:space="preserve">
+    <value>Employés</value>
+  </data>
+  <data name="View and manage all employee accounts" xml:space="preserve">
+    <value>Afficher et gérer tous les comptes employés</value>
+  </data>
+  <data name="View Employees" xml:space="preserve">
+    <value>Voir les employés</value>
+  </data>
+  <data name="Restaurant Settings" xml:space="preserve">
+    <value>Paramètres du restaurant</value>
+  </data>
+  <data name="Manage key-value settings for the restaurant" xml:space="preserve">
+    <value>Gérer les paramètres clé-valeur du restaurant</value>
+  </data>
+  <data name="Manage Settings" xml:space="preserve">
+    <value>Gérer les paramètres</value>
+  </data>
+  <data name="Table Management" xml:space="preserve">
+    <value>Gestion des tables</value>
+  </data>
+  <data name="View and manage restaurant tables" xml:space="preserve">
+    <value>Afficher et gérer les tables du restaurant</value>
+  </data>
+  <data name="Manage Tables" xml:space="preserve">
+    <value>Gérer les tables</value>
+  </data>
+  <data name="Customer Registration" xml:space="preserve">
+    <value>Inscription client</value>
+  </data>
+  <data name="Profile Picture" xml:space="preserve">
+    <value>Photo de profil</value>
+  </data>
+  <data name="Register Customer" xml:space="preserve">
+    <value>Enregistrer le client</value>
+  </data>
+  <data name="Guest Dashboard" xml:space="preserve">
+    <value>Tableau de bord invité</value>
+  </data>
+  <data name="Welcome Guest!" xml:space="preserve">
+    <value>Bienvenue, invité !</value>
+  </data>
+  <data name="This is your guest dashboard page." xml:space="preserve">
+    <value>Voici la page de votre tableau de bord invité.</value>
+  </data>
+  <data name="Back to Home" xml:space="preserve">
+    <value>Retour à l'accueil</value>
+  </data>
+  <data name="Log out" xml:space="preserve">
+    <value>Se déconnecter</value>
+  </data>
+  <data name="Employee Dashboard" xml:space="preserve">
+    <value>Tableau de bord employé</value>
+  </data>
+  <data name="Welcome to your Dashboard, {0}!" xml:space="preserve">
+    <value>Bienvenue sur votre tableau de bord, {0} !</value>
+  </data>
+  <data name="This is your employee dashboard page." xml:space="preserve">
+    <value>Voici la page de votre tableau de bord employé.</value>
+  </data>
+  <data name="Tables" xml:space="preserve">
+    <value>Tables</value>
+  </data>
+  <data name="Add New Table" xml:space="preserve">
+    <value>Ajouter une table</value>
+  </data>
+  <data name="Table Number" xml:space="preserve">
+    <value>Numéro de table</value>
+  </data>
+  <data name="Capacity" xml:space="preserve">
+    <value>Capacité</value>
+  </data>
+  <data name="Joinable" xml:space="preserve">
+    <value>Assemblable</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Disponible</value>
+  </data>
+  <data name="Unavailable" xml:space="preserve">
+    <value>Indisponible</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifier</value>
+  </data>
+  <data name="Make Unavailable" xml:space="preserve">
+    <value>Rendre indisponible</value>
+  </data>
+  <data name="Make Available" xml:space="preserve">
+    <value>Rendre disponible</value>
+  </data>
+  <data name="Are you sure you want to delete Table {0}? This action cannot be undone." xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir supprimer la table {0} ? Cette action est irréversible.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Paramètres</value>
+  </data>
+  <data name="Add New Setting" xml:space="preserve">
+    <value>Ajouter un paramètre</value>
+  </data>
+  <data name="Key" xml:space="preserve">
+    <value>Clé</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Valeur</value>
+  </data>
+  <data name="Created By" xml:space="preserve">
+    <value>Créé par</value>
+  </data>
+  <data name="Updated By" xml:space="preserve">
+    <value>Mis à jour par</value>
+  </data>
+  <data name="Add New Employee" xml:space="preserve">
+    <value>Ajouter un employé</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="Phone Number" xml:space="preserve">
+    <value>Numéro de téléphone</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Actif</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactif</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Désactiver</value>
+  </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Activer</value>
+  </data>
+  <data name="Are you sure you want to delete {0} {1}? This action cannot be undone." xml:space="preserve">
+    <value>Êtes-vous sûr de vouloir supprimer {0} {1} ? Cette action est irréversible.</value>
+  </data>
+  <data name="Edit Table" xml:space="preserve">
+    <value>Modifier la table</value>
+  </data>
+  <data name="Can be joined with other tables" xml:space="preserve">
+    <value>Peut être assemblée avec d'autres tables</value>
+  </data>
+  <data name="Available for reservations" xml:space="preserve">
+    <value>Disponible à la réservation</value>
+  </data>
+  <data name="Update Table" xml:space="preserve">
+    <value>Mettre à jour la table</value>
+  </data>
+  <data name="Back to Tables" xml:space="preserve">
+    <value>Retour aux tables</value>
+  </data>
+  <data name="Create Table" xml:space="preserve">
+    <value>Créer une table</value>
+  </data>
+  <data name="Employee Registration" xml:space="preserve">
+    <value>Inscription employé</value>
+  </data>
+  <data name="Register Employee" xml:space="preserve">
+    <value>Enregistrer l'employé</value>
+  </data>
+  <data name="Customer Dashboard" xml:space="preserve">
+    <value>Tableau de bord client</value>
+  </data>
+  <data name="This is your customer dashboard page." xml:space="preserve">
+    <value>Voici la page de votre tableau de bord client.</value>
+  </data>
+  <data name="Manage" xml:space="preserve">
+    <value>Gérer</value>
+  </data>
+  <data name="Hello {0}!" xml:space="preserve">
+    <value>Bonjour {0} !</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Déconnexion</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Erreur</value>
+  </data>
+  <data name="An error occurred while processing your request." xml:space="preserve">
+    <value>Une erreur s'est produite lors du traitement de votre demande.</value>
+  </data>
+  <data name="Request ID:" xml:space="preserve">
+    <value>ID de requête :</value>
+  </data>
+  <data name="Development Mode" xml:space="preserve">
+    <value>Mode développement</value>
+  </data>
+  <data name="Swapping to {0} environment will display more detailed information about the error that occurred." xml:space="preserve">
+    <value>Passer à l'environnement {0} affichera des informations plus détaillées sur l'erreur survenue.</value>
+  </data>
+  <data name="The Development environment shouldn't be enabled for deployed applications." xml:space="preserve">
+    <value>L'environnement de développement ne doit pas être activé pour les applications déployées.</value>
+  </data>
+  <data name="It can result in displaying sensitive information from exceptions to end users." xml:space="preserve">
+    <value>Cela peut afficher des informations sensibles provenant des exceptions aux utilisateurs finaux.</value>
+  </data>
+  <data name="For local debugging, enable the {0} environment by setting the {1} environment variable to {0} and restarting the app." xml:space="preserve">
+    <value>Pour le débogage local, activez l'environnement {0} en définissant la variable d'environnement {1} sur {0} puis redémarrez l'application.</value>
+  </data>
 </root>
