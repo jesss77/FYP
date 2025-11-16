@@ -462,4 +462,55 @@
   <data name="Confirm Reservation" xml:space="preserve">
     <value>Confirm Reservation</value>
   </data>
+  <data name="Full Name" xml:space="preserve">
+    <value>Full Name</value>
+  </data>
+  <data name="Your name" xml:space="preserve">
+    <value>Your name</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Please select a valid party size, date and time." xml:space="preserve">
+    <value>Please select a valid party size, date and time.</value>
+  </data>
+  <data name="Please provide your name and email." xml:space="preserve">
+    <value>Please provide your name and email.</value>
+  </data>
+  <data name="Date and time cannot be in the past." xml:space="preserve">
+    <value>Date and time cannot be in the past.</value>
+  </data>
+  <data name="Selected time is outside business hours." xml:space="preserve">
+    <value>Selected time is outside business hours.</value>
+  </data>
+  <data name="No table can fit the selected party size." xml:space="preserve">
+    <value>No table can fit the selected party size.</value>
+  </data>
+  <data name="No tables are available for the selected time and duration." xml:space="preserve">
+    <value>No tables are available for the selected time and duration.</value>
+  </data>
+  <data name="Your reservation at {0} is confirmed" xml:space="preserve">
+    <value>Your reservation at {0} is confirmed</value>
+  </data>
+  <data name="Reservation Confirmed" xml:space="preserve">
+    <value>Reservation Confirmed</value>
+  </data>
+  <data name="Hello" xml:space="preserve">
+    <value>Hello</value>
+  </data>
+  <data name="Your reservation details are below:" xml:space="preserve">
+    <value>Your reservation details are below:</value>
+  </data>
+  <data name="Table" xml:space="preserve">
+    <value>Table</value>
+  </data>
+  <data name="Restaurant" xml:space="preserve">
+    <value>Restaurant</value>
+  </data>
+  <data name="We look forward to welcoming you." xml:space="preserve">
+    <value>We look forward to welcoming you.</value>
+  </data>
+  <data name="Thanks! Your reservation is confirmed. A confirmation email has been sent." xml:space="preserve">
+    <value>Thanks! Your reservation is confirmed. A confirmation email has been sent.</value>
+  </data>
 </root>

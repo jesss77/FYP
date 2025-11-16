@@ -26,13 +26,26 @@
             </div>
         </div>
 
-        @if (showGuestName)
-        {
-            <div class="mt-3">
-                <label class="form-label">@L["Name for Reservation"]</label>
-                <input name="ReservationName" type="text" class="form-control" placeholder="Your name" required />
-            </div>
-        }
+@if (showGuestName)
+{
+    <div class="row g-3 mt-1">
+        <div class="col-md-4">
+            <label class="form-label">@L["Full Name"]</label>
+            <input name="GuestName" type="text" class="form-control" placeholder="@L["Your name"]" required />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">@L["Email"]</label>
+            <input name="GuestEmail" type="email" class="form-control" placeholder="name@example.com" required />
+            <small class="form-text text-muted">
+                @L["We will use your email to send your reservation confirmation. See our {0} for details.", @Html.ActionLink(L["Privacy Policy"].Value, "Privacy", "Home")]
+            </small>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">@L["Phone"]</label>
+            <input name="GuestPhone" type="tel" class="form-control" placeholder="+1 555 123 4567" />
+        </div>
+    </div>
+}
 
         <div class="mt-3">
             <label class="form-label">@L["Notes (optional)"]</label>
