@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace FYP.Areas.Identity.Pages.Account
 {
-    // ... (Constructor and InputModel definitions are the same) ...
     public class LoginModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -35,6 +34,9 @@ namespace FYP.Areas.Identity.Pages.Account
         public InputModel Input { get; set; }
 
         public string ReturnUrl { get; set; }
+
+        [TempData]
+        public string ErrorMessage { get; set; }
 
         public class InputModel
         {

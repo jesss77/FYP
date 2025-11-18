@@ -16,6 +16,22 @@ namespace FYP.Controllers
 
         public IActionResult Index()
         {
+            // If user is authenticated, redirect to their appropriate dashboard
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                if (User.IsInRole("customer"))
+                {
+                    return RedirectToAction("Index", "Customer");
+                }
+                else if (User.IsInRole("employee") || User.IsInRole("manager"))
+                {
+                    return RedirectToAction("Index", "Employee");
+                }
+                // Don't auto-redirect admin - let them see the home page
+                // Admins can manually navigate to /Admin/Index
+            }
+
+            // If not authenticated or is admin, show welcome page
             return View();
         }
 

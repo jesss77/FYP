@@ -1,21 +1,660 @@
 ﻿@model FYP.Models.Customer
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
-    ViewData["Title"] = "Make a Reservation";
+    ViewData["Title"] = L["Customer Dashboard"];
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@{
-    ViewData["ShowGuestName"] = false;
-}
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1200px; margin: 0 auto;">
+    @if (TempData["Success"] != null)
+    {
+        { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
 
-<div class="container mt-5">
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger">@TempData["Error"]</div>
+        { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
     }
+
     @if (TempData["Message"] != null)
     {
-        <div class="alert alert-success">@TempData["Message"]</div>
+        { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Message"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
     }
-    @await Html.PartialAsync("_ReservationForm")
+
+    <!-- Header with Profile Picture in Top Right -->
+    <div class="dashboard-header-new">
+        <div>
+            <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">
+                @L["Welcome"], @Model.FirstName!
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.125rem;">
+                @L["Manage your reservations and book your next exceptional meal"]
+            </p>
+        </div>
+        <a asp-action="EditProfile" asp-controller="Customer" class="profile-picture-small">
+            @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
+            {
+                var cacheBuster = TempData["ProfileUpdated"] ?? DateTime.UtcNow.Ticks.ToString();
+                <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(Model.PictureBytes)}?v={cacheBuster}")" 
+                     alt="@Model.FirstName @Model.LastName" />
+            }
+            else
+            {
+                <span class="material-symbols-outlined">person</span>
+            }
+            <div class="profile-edit-badge">
+                <span class="material-symbols-outlined">edit</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Stats in One Row -->
+    <div class="stats-row-container">
+        @{
+            var upcoming = ViewBag.Reservations != null ? 
+                ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations)
+                .Count(r => r.ReservationDate >= DateTime.UtcNow.Date && 
+                           (r.ReservationStatus.StatusName == "Pending" || 
+                            r.ReservationStatus.StatusName == "Confirmed")) : 0;
+
+            var past = ViewBag.Reservations != null ? 
+                ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations)
+                .Count(r => r.ReservationDate < DateTime.UtcNow.Date || 
+                           r.ReservationStatus.StatusName == "Completed") : 0;
+        }
+
+        <div class="stat-cube-inline stat-cube-red">
+            <div class="stat-cube-icon">
+                <span class="material-symbols-outlined">event_available</span>
+            </div>
+            <div class="stat-cube-content">
+                <h3 class="stat-cube-number">@upcoming</h3>
+                <p class="stat-cube-label">@L["Upcoming"]</p>
+            </div>
+        </div>
+
+        <div class="stat-cube-inline stat-cube-gold">
+            <div class="stat-cube-icon">
+                <span class="material-symbols-outlined">history</span>
+            </div>
+            <div class="stat-cube-content">
+                <h3 class="stat-cube-number">@past</h3>
+                <p class="stat-cube-label">@L["Past Visits"]</p>
+            </div>
+        </div>
+
+        <a asp-action="MyReservations" asp-controller="Customer" class="stat-cube-inline stat-cube-blue stat-cube-clickable">
+            <div class="stat-cube-icon">
+                <span class="material-symbols-outlined">calendar_month</span>
+            </div>
+            <div class="stat-cube-content">
+                <p class="stat-cube-label-large">@L["View All"]</p>
+                <p class="stat-cube-sublabel">@L["Reservations"]</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Book Cube (Square like Admin) -->
+    <div class="book-cube-container">
+        <a asp-action="MakeReservation" asp-controller="Customer" class="book-cube">
+            <div class="book-cube-icon">
+                <span class="material-symbols-outlined">restaurant</span>
+            </div>
+            <h3 class="book-cube-title">@L["Make a Reservation"]</h3>
+            <p class="book-cube-description">@L["Reserve your table for an exceptional dining experience"]</p>
+            <div class="book-cube-link">
+                @L["Book Now"]
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Recent Reservations -->
+    <div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="gold-heading" style="font-size: 1.75rem;">@L["Recent Reservations"]</h2>
+            @if (ViewBag.Reservations != null && ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations).Any())
+            {
+                <a asp-action="MyReservations" class="btn btn-outline-primary">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">list</span>
+                    @L["View All"]
+                </a>
+            }
+        </div>
+
+        @if (ViewBag.Reservations == null || !((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations).Any())
+        {
+            <div class="empty-state" style="padding: var(--spacing-3xl);">
+                <span class="material-symbols-outlined empty-state-icon">event_busy</span>
+                <h3>@L["No Reservations Yet"]</h3>
+                <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">@L["You don't have any reservations yet. Make your first booking!"]</p>
+                <a asp-action="MakeReservation" class="btn btn-primary">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">restaurant</span>
+                    @L["Make Your First Reservation"]
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var reservation in ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations).OrderByDescending(r => r.ReservationDate).ThenByDescending(r => r.ReservationTime).Take(6))
+                {
+                    var isPastReservation = new DateTime(
+                        reservation.ReservationDate.Year,
+                        reservation.ReservationDate.Month,
+                        reservation.ReservationDate.Day,
+                        reservation.ReservationTime.Hours,
+                        reservation.ReservationTime.Minutes, 0) < DateTime.Now;
+
+                    var canCancel = !isPastReservation &&
+                                   (reservation.ReservationStatus.StatusName == "Pending" ||
+                                    reservation.ReservationStatus.StatusName == "Confirmed");
+
+                    var statusClass = reservation.ReservationStatus.StatusName switch
+                    {
+                        "Pending" => "status-pending",
+                        "Confirmed" => "status-confirmed",
+                        "Seated" => "status-seated",
+                        "Completed" => "status-completed",
+                        "Cancelled" => "status-cancelled",
+                        _ => "status-default"
+                    };
+
+                    <div class="col-md-6 col-lg-4">
+                        <div class="reservation-item-card">
+                            <div class="reservation-item-header">
+                                <div class="reservation-item-date">
+                                    <span class="material-symbols-outlined">event</span>
+                                    <strong>@reservation.ReservationDate.ToString("dd/MM/yyyy")</strong>
+                                </div>
+                                <span class="reservation-status-badge @statusClass">
+                                    @reservation.ReservationStatus.StatusName
+                                </span>
+                            </div>
+                            
+                            <div class="reservation-item-details">
+                                <div class="reservation-detail">
+                                    <span class="material-symbols-outlined">schedule</span>
+                                    <span>@reservation.ReservationTime.ToString(@"hh\:mm")</span>
+                                </div>
+                                <div class="reservation-detail">
+                                    <span class="material-symbols-outlined">groups</span>
+                                    <span>@reservation.PartySize @(reservation.PartySize == 1 ? L["Guest"] : L["Guests"])</span>
+                                </div>
+                                <div class="reservation-detail">
+                                    <span class="material-symbols-outlined">timer</span>
+                                    <span>@reservation.Duration @L["min"]</span>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(reservation.Notes))
+                            {
+                                <div class="reservation-item-notes">
+                                    <span class="material-symbols-outlined">notes</span>
+                                    <span>@reservation.Notes</span>
+                                </div>
+                            }
+
+                            @if (canCancel)
+                            {
+                                <div class="reservation-item-actions">
+                                    <form asp-action="CancelReservation" method="post" class="d-inline"
+                                          onsubmit="return confirm('@L["Are you sure you want to cancel this reservation?"]');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reservationId" value="@reservation.ReservationID" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">cancel</span>
+                                            @L["Cancel"]
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
+
+<style>
+/* Dashboard Header with Small Profile Picture */
+.dashboard-header-new {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-2xl);
+    gap: var(--spacing-lg);
+}
+
+.profile-picture-small {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--color-primary-red), var(--color-primary-gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 3px solid var(--bg-card);
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.profile-picture-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-picture-small .material-symbols-outlined {
+    font-size: 2rem;
+    color: white;
+}
+
+.profile-edit-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all var(--transition-base);
+    border: 2px solid var(--bg-card);
+}
+
+.profile-edit-badge .material-symbols-outlined {
+    font-size: 0.875rem;
+    color: white;
+}
+
+.profile-picture-small:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-xl);
+}
+
+.profile-picture-small:hover .profile-edit-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Stats Row Container */
+.stats-row-container {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-2xl);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.stat-cube-inline {
+    flex: 1;
+    min-width: 200px;
+    max-width: 280px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+    text-decoration: none;
+}
+
+[data-theme="dark"] .stat-cube-inline {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.stat-cube-inline:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-cube-clickable:hover {
+    border-color: var(--color-primary-gold);
+    cursor: pointer;
+}
+
+.stat-cube-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-cube-red .stat-cube-icon {
+    background: linear-gradient(135deg, #E63946, #C41E3A);
+}
+
+.stat-cube-gold .stat-cube-icon {
+    background: linear-gradient(135deg, #D4AF37, #B8941E);
+}
+
+.stat-cube-blue .stat-cube-icon {
+    background: linear-gradient(135deg, #3498DB, #2980B9);
+}
+
+.stat-cube-icon .material-symbols-outlined {
+    font-size: 1.75rem;
+    color: white;
+}
+
+.stat-cube-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-cube-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-cube-label {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-cube-label-large {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.stat-cube-sublabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Book Cube - Square like Admin */
+.book-cube-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.book-cube {
+    flex: 0 1 320px;
+    aspect-ratio: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-2xl);
+    transition: all var(--transition-base);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--spacing-lg);
+    text-decoration: none;
+}
+
+[data-theme="dark"] .book-cube {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.book-cube:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-2xl);
+    border-color: var(--color-primary-gold);
+}
+
+.book-cube-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #2ECC71, #27AE60);
+}
+
+.book-cube-icon .material-symbols-outlined {
+    font-size: 2.5rem;
+    color: white;
+}
+
+.book-cube-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    font-family: var(--font-display);
+    line-height: 1.3;
+}
+
+.book-cube-description {
+    color: var(--text-secondary);
+    margin: 0;
+    flex: 1;
+    line-height: 1.5;
+    font-size: 0.875rem;
+}
+
+.book-cube-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-primary-gold);
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all var(--transition-base);
+}
+
+.book-cube:hover .book-cube-link {
+    gap: var(--spacing-md);
+}
+
+.book-cube-link .material-symbols-outlined {
+    font-size: 1.125rem;
+    transition: transform var(--transition-base);
+}
+
+.book-cube:hover .book-cube-link .material-symbols-outlined {
+    transform: translateX(4px);
+}
+
+/* Reservation Cards */
+.reservation-item-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-base);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-theme="dark"] .reservation-item-card {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.reservation-item-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-gold);
+}
+
+.reservation-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.reservation-item-date {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1rem;
+}
+
+.reservation-item-date .material-symbols-outlined {
+    color: var(--color-primary-gold);
+    font-size: 1.25rem;
+}
+
+.reservation-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: #F57C00;
+    border: 1px solid #FFA000;
+}
+
+.status-confirmed {
+    background: rgba(46, 204, 113, 0.2);
+    color: #27AE60;
+    border: 1px solid #2ECC71;
+}
+
+.status-seated {
+    background: rgba(52, 152, 219, 0.2);
+    color: #2980B9;
+    border: 1px solid #3498DB;
+}
+
+.status-completed {
+    background: rgba(149, 165, 166, 0.2);
+    color: #7F8C8D;
+    border: 1px solid #95A5A6;
+}
+
+.status-cancelled {
+    background: rgba(230, 57, 70, 0.2);
+    color: #C0392B;
+    border: 1px solid #E63946;
+}
+
+.reservation-item-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.reservation-detail {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.reservation-detail .material-symbols-outlined {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.reservation-item-notes {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: rgba(212, 175, 55, 0.1);
+    border-left: 3px solid var(--color-primary-gold);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.reservation-item-notes .material-symbols-outlined {
+    color: var(--color-primary-gold);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.reservation-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-primary);
+    margin-top: auto;
+}
+
+.empty-state {
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+}
+
+[data-theme="dark"] .empty-state {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+/* Responsive */
+@@media (max-width: 991px) {
+    .stats-row-container {
+        flex-direction: column;
+    }
+    
+    .stat-cube-inline {
+        max-width: 100%;
+    }
+}
+
+@@media (max-width: 768px) {
+    .dashboard-header-new {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .book-cube {
+        aspect-ratio: auto;
+        min-height: 320px;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .reservation-item-details {
+        grid-template-columns: 1fr;
+    }
+}
+</style>

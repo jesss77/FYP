@@ -1,21 +1,71 @@
 ﻿@page
 @model ConfirmEmailModel
 @{
-    ViewData["Title"] = "Pending Email Confirmation";
+    ViewData["Title"] = "Email Confirmation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center mt-5">
-    <svg width="64" height="64" fill="orange" viewBox="0 0 16 16" class="mb-3">
-        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.93 4.588-3.29 5.597c-.07.12-.107.257-.107.397v.01c0 .434.352.786.786.786h6.002a.786.786 0 0 0 .708-1.188l-3.29-5.596a.786.786 0 0 0-1.788 0z" />
-    </svg>
+<div class="email-confirmation-container">
+    <div class="email-confirmation-card">
+        @if (!string.IsNullOrEmpty(Model.StatusMessage))
+        {
+            @if (Model.StatusMessage.StartsWith("Error"))
+            {
+                <span class="material-symbols-outlined email-confirmation-icon error">cancel</span>
+                <h1>Confirmation Failed</h1>
+                { ViewData["Type"] = "error"; ViewData["Message"] = Model.StatusMessage; }
+                <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+            }
+            else
+            {
+                <span class="material-symbols-outlined email-confirmation-icon success">check_circle</span>
+                <h1>Email Confirmed!</h1>
+                { ViewData["Type"] = "success"; ViewData["Message"] = Model.StatusMessage; }
+                <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+                <p>Your email has been successfully verified. You can now log in to your account.</p>
+            }
+        }
+        else if (ViewData["Email"] != null)
+        {
+            <span class="material-symbols-outlined email-confirmation-icon">mark_email_unread</span>
+            <h1>Confirm Your Email</h1>
+            <p class="lead">
+                We have sent a confirmation email to <strong>@ViewData["Email"]</strong>.
+            </p>
+            <p>
+                Please check your email and click the verification link to activate your account.
+                The link will expire in 24 hours.
+            </p>
+            <p style="margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-primary);">
+                Didn't receive the email? Check your spam folder or 
+                <a asp-page="/Account/ResendEmailConfirmation" class="link-amber">resend confirmation email</a>.
+            </p>
+        }
+        else
+        {
+            <span class="material-symbols-outlined email-confirmation-icon error">error</span>
+            <h1>Invalid Link</h1>
+            <p class="lead">The confirmation link is invalid or has expired.</p>
+            <p>Please request a new confirmation email.</p>
+        }
 
-    <h1 class="display-5">Confirm Your Email</h1>
-    <p class="lead">
-        We have sent a confirmation email to your inbox.
-        Please check your email and click the verification link to activate your account.
-    </p>
-
-    <p>If you did not receive the email, you can <a asp-page="/Account/ResendEmailConfirmation">resend it</a>.</p>
-
-    <a class="btn btn-link" asp-page="/Index">Return Home</a>
+        <div style="margin-top: var(--spacing-2xl); display: flex; gap: var(--spacing-md); justify-content: center; flex-wrap: wrap;">
+            @if (!string.IsNullOrEmpty(Model.StatusMessage) && !Model.StatusMessage.StartsWith("Error"))
+            {
+                <a class="btn btn-primary" asp-page="/Account/Login" asp-area="Identity">Go to Login</a>
+            }
+            else if (ViewData["Email"] == null)
+            {
+                <a class="btn btn-secondary" asp-page="/Account/ResendEmailConfirmation" asp-area="Identity">Resend Email</a>
+            }
+            <a class="btn btn-secondary" asp-controller="Home" asp-action="Index" asp-area="">Return Home</a>
+        </div>
+    </div>
 </div>
+
+<style>
+    .lead {
+        font-size: 1.125rem;
+        line-height: 1.6;
+    }
+</style>

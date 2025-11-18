@@ -1,0 +1,185 @@
+@* 
+    Reusable alert component for success, error, info, and warning messages
+    Usage: <partial name="_AlertMessage" model='new { Type = "success", Message = TempData["Success"] }' />
+*@
+@{
+    var type = ViewData["Type"]?.ToString()?.ToLower() ?? "info";
+    var message = ViewData["Message"]?.ToString();
+    
+    if (!string.IsNullOrEmpty(message))
+    {
+        var iconMap = new Dictionary<string, string> 
+        {
+            { "success", "check_circle" },
+            { "error", "error" },
+            { "danger", "error" },
+            { "warning", "warning" },
+            { "info", "info" }
+        };
+        
+        var icon = iconMap.ContainsKey(type) ? iconMap[type] : "info";
+        var alertClass = $"custom-alert custom-alert-{type}";
+        
+        <div class="@alertClass" role="alert">
+            <div class="custom-alert-content">
+                <span class="material-symbols-outlined custom-alert-icon">@icon</span>
+                <span class="custom-alert-message">@message</span>
+            </div>
+            <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none'">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+    }
+}
+
+<style>
+.custom-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-xl);
+    border: 2px solid;
+    animation: slideDown 0.3s ease-out;
+    box-shadow: var(--shadow-md);
+}
+
+@@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.custom-alert-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.custom-alert-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.custom-alert-message {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.custom-alert-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--spacing-md);
+}
+
+.custom-alert-close .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.custom-alert-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .custom-alert-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Success Alert (Green) */
+.custom-alert-success {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(39, 174, 96, 0.15));
+    border-color: #2ECC71;
+    color: #27AE60;
+}
+
+[data-theme="dark"] .custom-alert-success {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(39, 174, 96, 0.2));
+    color: #2ECC71;
+}
+
+.custom-alert-success .custom-alert-icon {
+    color: #2ECC71;
+}
+
+.custom-alert-success .custom-alert-close {
+    color: #27AE60;
+}
+
+/* Error/Danger Alert (Red) */
+.custom-alert-error,
+.custom-alert-danger {
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.1), rgba(196, 30, 58, 0.15));
+    border-color: var(--color-primary-red);
+    color: #C41E3A;
+}
+
+[data-theme="dark"] .custom-alert-error,
+[data-theme="dark"] .custom-alert-danger {
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.15), rgba(196, 30, 58, 0.2));
+    color: var(--color-primary-red);
+}
+
+.custom-alert-error .custom-alert-icon,
+.custom-alert-danger .custom-alert-icon {
+    color: var(--color-primary-red);
+}
+
+.custom-alert-error .custom-alert-close,
+.custom-alert-danger .custom-alert-close {
+    color: #C41E3A;
+}
+
+/* Info Alert (Blue) */
+.custom-alert-info {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.15));
+    border-color: #3498DB;
+    color: #2980B9;
+}
+
+[data-theme="dark"] .custom-alert-info {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.2));
+    color: #3498DB;
+}
+
+.custom-alert-info .custom-alert-icon {
+    color: #3498DB;
+}
+
+.custom-alert-info .custom-alert-close {
+    color: #2980B9;
+}
+
+/* Warning Alert (Orange) */
+.custom-alert-warning {
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(214, 137, 16, 0.15));
+    border-color: #F39C12;
+    color: #D68910;
+}
+
+[data-theme="dark"] .custom-alert-warning {
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(214, 137, 16, 0.2));
+    color: #F39C12;
+}
+
+.custom-alert-warning .custom-alert-icon {
+    color: #F39C12;
+}
+
+.custom-alert-warning .custom-alert-close {
+    color: #D68910;
+}
+</style>

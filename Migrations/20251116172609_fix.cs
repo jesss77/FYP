@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FYP.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateTables : Migration
+    public partial class fix : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,10 +20,10 @@ namespace FYP.Migrations
                     ActionTypeID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -88,6 +88,27 @@ namespace FYP.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Customers", x => x.CustomerID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Guests",
+                columns: table => new
+                {
+                    GuestID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Guests", x => x.GuestID);
                 });
 
             migrationBuilder.CreateTable(
@@ -180,7 +201,7 @@ namespace FYP.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     RestaurantID = table.Column<int>(type: "int", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     ApplicationUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
@@ -205,7 +226,9 @@ namespace FYP.Migrations
                 {
                     ReservationID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CustomerID = table.Column<int>(type: "int", nullable: false),
+                    CustomerID = table.Column<int>(type: "int", nullable: true),
+                    GuestID = table.Column<int>(type: "int", nullable: true),
+                    IsGuest = table.Column<bool>(type: "bit", nullable: false),
                     RestaurantID = table.Column<int>(type: "int", nullable: false),
                     ReservationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ReservationTime = table.Column<TimeSpan>(type: "time", nullable: false),
@@ -217,12 +240,12 @@ namespace FYP.Migrations
                     CreatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CustomerID1 = table.Column<int>(type: "int", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Reservations", x => x.ReservationID);
+                    table.CheckConstraint("CK_Reservation_CustomerOrGuest", "([IsGuest] = 0 AND [CustomerID] IS NOT NULL AND [GuestID] IS NULL) OR ([IsGuest] = 1 AND [GuestID] IS NOT NULL AND [CustomerID] IS NULL)");
                     table.ForeignKey(
                         name: "FK_Reservations_Customers_CustomerID",
                         column: x => x.CustomerID,
@@ -230,10 +253,11 @@ namespace FYP.Migrations
                         principalColumn: "CustomerID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Reservations_Customers_CustomerID1",
-                        column: x => x.CustomerID1,
-                        principalTable: "Customers",
-                        principalColumn: "CustomerID");
+                        name: "FK_Reservations_Guests_GuestID",
+                        column: x => x.GuestID,
+                        principalTable: "Guests",
+                        principalColumn: "GuestID",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Reservations_ReservationStatuses_ReservationStatusID",
                         column: x => x.ReservationStatusID,
@@ -356,8 +380,7 @@ namespace FYP.Migrations
                     CreatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedBy = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TableID1 = table.Column<int>(type: "int", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -374,11 +397,6 @@ namespace FYP.Migrations
                         principalTable: "Tables",
                         principalColumn: "TableID",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ReservationTables_Tables_TableID1",
-                        column: x => x.TableID1,
-                        principalTable: "Tables",
-                        principalColumn: "TableID");
                 });
 
             migrationBuilder.CreateTable(
@@ -504,6 +522,18 @@ namespace FYP.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "ReservationStatuses",
+                columns: new[] { "ReservationStatusID", "CreatedAt", "CreatedBy", "Description", "StatusName", "UpdatedAt", "UpdatedBy" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", "Awaiting confirmation", "Pending", new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 2, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", "Confirmed by staff/system", "Confirmed", new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 3, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", "Customer seated", "Seated", new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 4, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", "Reservation completed", "Completed", new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 5, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", "Cancelled by customer/staff", "Cancelled", new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Settings",
                 columns: new[] { "SettingsID", "CreatedAt", "CreatedBy", "Key", "UpdatedAt", "UpdatedBy", "Value" },
                 values: new object[,]
@@ -516,6 +546,25 @@ namespace FYP.Migrations
                 table: "Restaurants",
                 columns: new[] { "RestaurantID", "CreatedAt", "CreatedBy", "SettingsID", "UpdatedAt", "UpdatedBy" },
                 values: new object[] { 1, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", 1, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" });
+
+            migrationBuilder.InsertData(
+                table: "Tables",
+                columns: new[] { "TableID", "Capacity", "CreatedAt", "CreatedBy", "IsAvailable", "IsJoinable", "RestaurantID", "TableNumber", "UpdatedAt", "UpdatedBy" },
+                values: new object[,]
+                {
+                    { 1, 2, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 1, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 2, 2, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 2, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 3, 2, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 3, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 4, 4, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 4, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 5, 4, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 5, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 6, 4, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 6, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 7, 4, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 7, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 8, 6, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 8, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 9, 6, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 9, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 10, 6, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, true, 1, 10, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 11, 8, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, false, 1, 11, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" },
+                    { 12, 8, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system", true, false, 1, 12, new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified), "system" }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -576,6 +625,11 @@ namespace FYP.Migrations
                 column: "RestaurantID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Guests_Email",
+                table: "Guests",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ReservationLogs_ActionTypeID",
                 table: "ReservationLogs",
                 column: "ActionTypeID");
@@ -591,9 +645,9 @@ namespace FYP.Migrations
                 column: "CustomerID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_CustomerID1",
+                name: "IX_Reservations_GuestID",
                 table: "Reservations",
-                column: "CustomerID1");
+                column: "GuestID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_ReservationStatusID",
@@ -616,19 +670,15 @@ namespace FYP.Migrations
                 column: "TableID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReservationTables_TableID1",
-                table: "ReservationTables",
-                column: "TableID1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Restaurants_SettingsID",
                 table: "Restaurants",
                 column: "SettingsID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tables_RestaurantID",
+                name: "IX_Tables_RestaurantID_TableNumber",
                 table: "Tables",
-                column: "RestaurantID");
+                columns: new[] { "RestaurantID", "TableNumber" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TablesJoins_JoinedTableID",
@@ -696,6 +746,9 @@ namespace FYP.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
+
+            migrationBuilder.DropTable(
+                name: "Guests");
 
             migrationBuilder.DropTable(
                 name: "ReservationStatuses");

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FYP.Models
 {
@@ -6,15 +7,23 @@ namespace FYP.Models
     {
         [Key]
         public int ActionTypeID { get; set; }
+
         [Required, StringLength(100)]
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; } = string.Empty;
+        [Column("Name")]
+        public string ActionTypeName { get; set; }
+
+        [StringLength(300)]
+        public string? Description { get; set; }
+
         [Required, StringLength(450)]
         public string CreatedBy { get; set; }
+
         [Required]
         public DateTime CreatedAt { get; set; }
+
         [StringLength(450)]
-        public string UpdatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+
         [Required]
         public DateTime UpdatedAt { get; set; }
     }

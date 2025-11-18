@@ -1,0 +1,103 @@
+@model IEnumerable<FYP.Models.Employee>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
+
+<div class="user-section">
+    @if (Model != null && Model.Any())
+    {
+        <!-- Stats Row -->
+        <div class="stats-row-container" style="margin-bottom: var(--spacing-2xl);">
+            <a href="@Url.Action("ManageUsers", "Admin", new { category = "employees" })" class="stat-cube-inline stat-cube-blue stat-cube-clickable">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">badge</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Count()</h3>
+                    <p class="stat-cube-label">@L["Total Employees"]</p>
+                </div>
+            </a>
+
+            <a href="@Url.Action("CreateUser", "Admin", new { role = "employee" })" class="stat-cube-inline stat-cube-gold stat-cube-clickable">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">person_add</span>
+                </div>
+                <div class="stat-cube-content">
+                    <p class="stat-cube-label-large">@L["Add New"]</p>
+                    <p class="stat-cube-sublabel">@L["Employee"]</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Table -->
+        <div class="users-table-container" style="margin-top: var(--spacing-xl);">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Name"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Email"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Phone"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Joined"]</th>
+                        <th class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var employee in Model.OrderBy(e => e.FirstName))
+                    {
+                        <tr>
+                            <td class="user-name" style="padding: var(--spacing-lg) var(--spacing-xl);">@employee.FirstName @employee.LastName</td>
+                            <td class="user-email" style="padding: var(--spacing-lg) var(--spacing-xl);">@employee.Email</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@(employee.PhoneNumber ?? L["Not provided"])</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@employee.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">
+                                <div class="action-buttons">
+                                    <a class="action-btn action-edit" href="@Url.Action("EditUser", "Admin", new { id = employee.EmployeeID, role = "employee" })" title="@L["Edit"]">
+                                        <span class="material-symbols-outlined">edit</span>
+                                        @L["Edit"]
+                                    </a>
+                                    @if (employee.IsActive)
+                                    {
+                                        <a class="action-btn action-deactivate" href="@Url.Action("ToggleUserStatus", "Admin", new { id = employee.EmployeeID, role = "employee" })" title="@L["Deactivate"]">
+                                            <span class="material-symbols-outlined">block</span>
+                                            @L["Deactivate"]
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="action-btn action-activate" href="@Url.Action("ToggleUserStatus", "Admin", new { id = employee.EmployeeID, role = "employee" })" title="@L["Activate"]">
+                                            <span class="material-symbols-outlined">check_circle</span>
+                                            @L["Activate"]
+                                        </a>
+                                    }
+                                    <button class="action-btn action-delete" 
+                                            onclick="if(confirm('@L["Are you sure you want to delete {0} {1}? This action cannot be undone.", employee.FirstName, employee.LastName]')) window.location.href='@Url.Action("DeleteUser", "Admin", new { id = employee.EmployeeID, role = "employee" })'"
+                                            title="@L["Delete"]">
+                                        <span class="material-symbols-outlined">delete</span>
+                                        @L["Delete"]
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state" style="margin-top: var(--spacing-2xl); padding: var(--spacing-3xl) var(--spacing-2xl);">
+            <span class="material-symbols-outlined empty-state-icon">badge_off</span>
+            <h3 style="margin-top: var(--spacing-xl); margin-bottom: var(--spacing-md);">@L["No Employees Yet"]</h3>
+            <p style="margin-bottom: var(--spacing-xl);">@L["Add your first employee to get started"]</p>
+            <a class="btn btn-primary" href="@Url.Action("CreateUser", "Admin", new { role = "employee" })">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">person_add</span>
+                @L["Add New Employee"]
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+.user-section {
+    padding: var(--spacing-lg);
+}
+</style>

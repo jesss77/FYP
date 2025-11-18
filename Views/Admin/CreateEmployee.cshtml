@@ -1,54 +1,62 @@
 @model FYP.Controllers.AdminController.CreateEmployeeViewModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
-    ViewData["Title"] = "Add New Employee";
+    ViewData["Title"] = L["Add New Employee"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
-    <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-header bg-dark text-warning">
-            <h3 class="mb-0">@ViewData["Title"]</h3>
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 800px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Employees","Admin")" />
+
+    <div class="card shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-xl);">
+        <div class="card-header" style="border-bottom: 1px solid var(--border-primary); padding: var(--spacing-xl);">
+            <h3 class="mb-0 gold-heading" style="font-size: 1.75rem;">@ViewData["Title"]</h3>
         </div>
 
-        <div class="card-body bg-dark text-light">
+        <div class="card-body" style="padding: var(--spacing-2xl);">
             <form asp-action="CreateEmployee" asp-controller="Admin" method="post">
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
                 
                 <div class="mb-3">
                     <label asp-for="Email" class="form-label fw-semibold"></label>
-                    <input asp-for="Email" class="form-control bg-transparent text-light border-warning" type="email" />
+                    <input asp-for="Email" class="form-control" type="email" />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label fw-semibold"></label>
-                    <input asp-for="Password" class="form-control bg-transparent text-light border-warning" type="password" />
+                    <input asp-for="Password" class="form-control" type="password" />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="FirstName" class="form-label fw-semibold"></label>
-                    <input asp-for="FirstName" class="form-control bg-transparent text-light border-warning" />
-                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FirstName" class="form-label fw-semibold"></label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="LastName" class="form-label fw-semibold"></label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="LastName" class="form-label fw-semibold"></label>
-                    <input asp-for="LastName" class="form-control bg-transparent text-light border-warning" />
-                    <span asp-validation-for="LastName" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
+                <div class="mb-4 mt-3">
                     <label asp-for="PhoneNumber" class="form-label fw-semibold"></label>
-                    <input asp-for="PhoneNumber" class="form-control bg-transparent text-light border-warning" type="tel" />
+                    <input asp-for="PhoneNumber" class="form-control" type="tel" />
                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <a class="btn btn-secondary" href="@Url.Action("Employees", "Admin")">
-                        <i class="bi bi-arrow-left-circle"></i> Cancel
+                <div class="d-flex justify-content-between gap-3">
+                    <a class="btn btn-secondary flex-fill" href="@Url.Action("Employees", "Admin")">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">arrow_back</span>
+                        @L["Cancel"]
                     </a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Create
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">person_add</span>
+                        @L["Create Employee"]
                     </button>
                 </div>
             </form>

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FYP.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251029123408_AddReservationStatusesSeed")]
-    partial class AddReservationStatusesSeed
+    [Migration("20251118130811_FixEmployeeAuditFields")]
+    partial class FixEmployeeAuditFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,6 +33,12 @@ namespace FYP.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActionTypeID"));
 
+                    b.Property<string>("ActionTypeName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Name");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -42,18 +48,13 @@ namespace FYP.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
@@ -226,6 +227,7 @@ namespace FYP.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -263,7 +265,6 @@ namespace FYP.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
@@ -296,7 +297,6 @@ namespace FYP.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
@@ -305,6 +305,59 @@ namespace FYP.Migrations
                     b.HasIndex("RestaurantID");
 
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("FYP.Models.Guest", b =>
+                {
+                    b.Property<int>("GuestID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GuestID"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("GuestID");
+
+                    b.HasIndex("Email");
+
+                    b.ToTable("Guests");
                 });
 
             modelBuilder.Entity("FYP.Models.Reservation", b =>
@@ -323,14 +376,17 @@ namespace FYP.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("CustomerID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CustomerID1")
+                    b.Property<int?>("CustomerID")
                         .HasColumnType("int");
 
                     b.Property<int>("Duration")
                         .HasColumnType("int");
+
+                    b.Property<int?>("GuestID")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsGuest")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
@@ -365,13 +421,16 @@ namespace FYP.Migrations
 
                     b.HasIndex("CustomerID");
 
-                    b.HasIndex("CustomerID1");
+                    b.HasIndex("GuestID");
 
                     b.HasIndex("ReservationStatusID");
 
                     b.HasIndex("RestaurantID");
 
-                    b.ToTable("Reservations");
+                    b.ToTable("Reservations", t =>
+                        {
+                            t.HasCheckConstraint("CK_Reservation_CustomerOrGuest", "([IsGuest] = 0 AND [CustomerID] IS NOT NULL AND [GuestID] IS NULL) OR ([IsGuest] = 1 AND [GuestID] IS NOT NULL AND [CustomerID] IS NULL)");
+                        });
                 });
 
             modelBuilder.Entity("FYP.Models.ReservationLog", b =>
@@ -528,9 +587,6 @@ namespace FYP.Migrations
                     b.Property<int>("TableID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TableID1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -544,8 +600,6 @@ namespace FYP.Migrations
                     b.HasIndex("ReservationID");
 
                     b.HasIndex("TableID");
-
-                    b.HasIndex("TableID1");
 
                     b.ToTable("ReservationTables");
                 });
@@ -694,9 +748,168 @@ namespace FYP.Migrations
 
                     b.HasKey("TableID");
 
-                    b.HasIndex("RestaurantID");
+                    b.HasIndex("RestaurantID", "TableNumber")
+                        .IsUnique();
 
                     b.ToTable("Tables");
+
+                    b.HasData(
+                        new
+                        {
+                            TableID = 1,
+                            Capacity = 2,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 1,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 2,
+                            Capacity = 2,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 2,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 3,
+                            Capacity = 2,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 3,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 4,
+                            Capacity = 4,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 4,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 5,
+                            Capacity = 4,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 5,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 6,
+                            Capacity = 4,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 6,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 7,
+                            Capacity = 4,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 7,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 8,
+                            Capacity = 6,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 8,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 9,
+                            Capacity = 6,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 9,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 10,
+                            Capacity = 6,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = true,
+                            RestaurantID = 1,
+                            TableNumber = 10,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 11,
+                            Capacity = 8,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = false,
+                            RestaurantID = 1,
+                            TableNumber = 11,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        },
+                        new
+                        {
+                            TableID = 12,
+                            Capacity = 8,
+                            CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedBy = "system",
+                            IsAvailable = true,
+                            IsJoinable = false,
+                            RestaurantID = 1,
+                            TableNumber = 12,
+                            UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedBy = "system"
+                        });
                 });
 
             modelBuilder.Entity("FYP.Models.TablesJoin", b =>
@@ -910,14 +1123,14 @@ namespace FYP.Migrations
             modelBuilder.Entity("FYP.Models.Reservation", b =>
                 {
                     b.HasOne("FYP.Models.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FYP.Models.Customer", null)
                         .WithMany("Reservations")
-                        .HasForeignKey("CustomerID1");
+                        .HasForeignKey("CustomerID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FYP.Models.Guest", "Guest")
+                        .WithMany("Reservations")
+                        .HasForeignKey("GuestID")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("FYP.Models.ReservationStatus", "ReservationStatus")
                         .WithMany()
@@ -932,6 +1145,8 @@ namespace FYP.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
+
+                    b.Navigation("Guest");
 
                     b.Navigation("ReservationStatus");
 
@@ -966,14 +1181,10 @@ namespace FYP.Migrations
                         .IsRequired();
 
                     b.HasOne("FYP.Models.Table", "Table")
-                        .WithMany()
+                        .WithMany("ReservationTables")
                         .HasForeignKey("TableID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("FYP.Models.Table", null)
-                        .WithMany("ReservationTables")
-                        .HasForeignKey("TableID1");
 
                     b.Navigation("Reservation");
 
@@ -1085,8 +1296,12 @@ namespace FYP.Migrations
 
             modelBuilder.Entity("FYP.Models.Employee", b =>
                 {
-                    b.Navigation("ApplicationUser")
-                        .IsRequired();
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("FYP.Models.Guest", b =>
+                {
+                    b.Navigation("Reservations");
                 });
 
             modelBuilder.Entity("FYP.Models.Reservation", b =>

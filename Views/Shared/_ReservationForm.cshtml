@@ -9,11 +9,23 @@
 
     <form asp-controller="@formController" asp-action="Reserve" method="post">
         @Html.AntiForgeryToken()
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label">@L["Party Size"]</label>
-                <input name="PartySize" type="number" min="1" max="20" step="1" class="form-control" placeholder="e.g. 2" required />
+        <div class="form-group">
+            <label class="form-label">@L["Party Size"]</label>
+            <div class="party-size-buttons">
+                <button type="button" class="party-size-btn active" data-size="1">1</button>
+                <button type="button" class="party-size-btn" data-size="2">2</button>
+                <button type="button" class="party-size-btn" data-size="3">3</button>
+                <button type="button" class="party-size-btn" data-size="4">4</button>
+                <button type="button" class="party-size-btn" data-size="5">5</button>
+                <button type="button" class="party-size-btn" data-size="6">6</button>
+                <button type="button" class="party-size-btn" data-size="7">7</button>
+                <button type="button" class="party-size-btn" data-size="8">8</button>
+                <button type="button" class="party-size-btn" data-size="9">9+</button>
             </div>
+            <input name="PartySize" type="hidden" id="partySizeInput" value="1" required />
+        </div>
+        
+        <div class="row g-3">
 
             <div class="col-md-4">
                 <label class="form-label">@L["Date"]</label>
@@ -81,6 +93,20 @@
 
 <script>
     (function () {
+        // Party size buttons
+        const partySizeButtons = document.querySelectorAll('.party-size-btn');
+        const partySizeInput = document.getElementById('partySizeInput');
+        
+        partySizeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                partySizeButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const size = this.dataset.size;
+                partySizeInput.value = size === '9' ? '9' : size;
+            });
+        });
+
+        // Date and time validation
         const dateInput = document.querySelector('input[name="ReservationDate"]');
         const timeInput = document.querySelector('input[name="ReservationTime"]');
         if (!dateInput || !timeInput) return;

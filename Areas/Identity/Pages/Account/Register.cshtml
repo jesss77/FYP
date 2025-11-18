@@ -1,55 +1,201 @@
-﻿    @page
-    @model FYP.Areas.Identity.Pages.Account.RegisterModel
-    @{
-        ViewData["Title"] = "Register";
-    }
+﻿@page
+@model FYP.Areas.Identity.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 
-    <div class="center-container">
-        <div class="register-form">
-            <h2 class="gold-heading">@ViewData["Title"]</h2>
-            <hr class="gold-hr" />
-
-            <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                <!-- Validation Summary -->
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                <!-- Email -->
-                <div class="form-group mb-3">
-                    <label class="form-label" asp-for="Input.Email">Email</label>
-                    <input class="form-control" asp-for="Input.Email" autocomplete="username" />
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+<div class="auth-page register-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-card-top-border"></div>
+            <div class="auth-card-content">
+                <!-- Brand Header -->
+                <div class="auth-brand">
+                    <svg class="brand-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width: 3rem; height: 3rem;">
+                        <circle cx="32" cy="32" r="30" fill="currentColor" opacity="0.15" />
+                        <path d="M20 14c.6 0 1 .4 1 1v18.5c0 3.9 2.6 6.7 5.2 7.9V14.9c0-.5.4-.9.9-.9h.1c.5 0 .9.4.9.9v26.1c0 .5.4.9.9.9h.1c.5 0 .9-.4.9-.9V14.9c0-.5.4-.9.9-.9h.1c.5 0 .9.4.9.9v26.5c1.9-1.5 3.2-4.1 3.2-7.9V15c0-.6.4-1 1-1s1 .4 1 1v18.5c0 5.7-3.1 9.3-7.2 10.6v6.9c0 .6-.4 1-1 1h-2c-.6 0-1-.4-1-1v-6.9c-4.1-1.3-7.2-4.9-7.2-10.6V15c0-.6.4-1 1-1Zm24.1 6.2c-2.2 0-4 1.8-4 4v12.4c0 2.7 1.6 5.1 4 6.2v6.6c0 .6.4 1 1 1h2c.6 0 1-.4 1-1v-6.6c2.4-1.1 4-3.5 4-6.2V24.2c0-2.2-1.8-4-4-4-1.1 0-2 .4-2.8 1.2-.8-.8-1.7-1.2-2.8-1.2Z" fill="currentColor" />
+                    </svg>
+                    <span class="brand-text">Fine O Dine</span>
                 </div>
 
-                <!-- Password -->
-                <div class="form-group mb-3">
-                    <label class="form-label" asp-for="Input.Password">Password</label>
-                    <input class="form-control" asp-for="Input.Password" type="password" autocomplete="new-password" />
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
+                <h1 class="auth-title">Create Account</h1>
 
-                <!-- Confirm Password -->
-                <div class="form-group mb-4">
-                    <label class="form-label" asp-for="Input.ConfirmPassword">Confirm Password</label>
-                    <input class="form-control" asp-for="Input.ConfirmPassword" type="password" autocomplete="new-password" />
-                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-                </div>
+                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" novalidate>
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert" style="margin-bottom: var(--spacing-lg);"></div>
 
-                <!-- Hidden role field - only Customer registration allowed -->
-                <input type="hidden" asp-for="Input.Role" value="Customer" />
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Input.Email">Email Address <span style="color: var(--color-primary-red);">*</span></label>
+                        <input class="form-input" asp-for="Input.Email" autocomplete="username" 
+                               placeholder="Enter your email" aria-required="true" required />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
 
-                <!-- Submit Button -->
-                <div class="form-actions">
-                    <button id="registerSubmit" type="submit" class="btn btn-confirm">Register</button>
-                </div>
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Input.Password">Password <span style="color: var(--color-primary-red);">*</span></label>
+                        <div class="password-input-wrapper">
+                            <input class="form-input password-input" asp-for="Input.Password" type="password" 
+                                   autocomplete="new-password" placeholder="Create a password" 
+                                   id="Input_Password" aria-required="true" required />
+                            <button type="button" class="password-toggle-btn" onclick="toggleRegisterPassword()" aria-label="Toggle password visibility">
+                                <span class="material-symbols-outlined">visibility_off</span>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.75rem;">
+                            Must be at least 6 characters with uppercase, lowercase, number, and special character
+                        </small>
+                    </div>
 
-                <!-- Login Link -->
-                <div class="text-center mt-3">
-                    <a asp-page="./Login" class="gold-link">Already have an account? Log in</a>
-                </div>
-            </form>
+                    <!-- Confirm Password -->
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Input.ConfirmPassword">Confirm Password <span style="color: var(--color-primary-red);">*</span></label>
+                        <div class="password-input-wrapper">
+                            <input class="form-input password-input" asp-for="Input.ConfirmPassword" type="password" 
+                                   autocomplete="new-password" placeholder="Confirm your password" 
+                                   id="Input_ConfirmPassword" aria-required="true" required />
+                            <button type="button" class="password-toggle-btn" onclick="toggleConfirmPassword()" aria-label="Toggle password visibility">
+                                <span class="material-symbols-outlined">visibility_off</span>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <!-- Hidden role field - only Customer registration allowed -->
+                    <input type="hidden" asp-for="Input.Role" value="Customer" />
+
+                    <!-- Submit Button -->
+                    <button id="registerSubmit" type="submit" class="btn-submit">Create Account</button>
+
+                    <!-- Login Link -->
+                    <p class="auth-footer">
+                        Already have an account? <a asp-page="./Login" class="link-amber">Login</a>
+                    </p>
+                </form>
+            </div>
         </div>
     </div>
+</div>
 
-    @section Scripts {
-        <partial name="_ValidationScriptsPartial" />
+<script type="text/javascript">
+function toggleRegisterPassword() {
+    var input = document.getElementById('Input_Password');
+    var button = event.currentTarget;
+    var icon = button.querySelector('.material-symbols-outlined');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility_off';
     }
+}
+
+function toggleConfirmPassword() {
+    var input = document.getElementById('Input_ConfirmPassword');
+    var button = event.currentTarget;
+    var icon = button.querySelector('.material-symbols-outlined');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility_off';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('registerForm');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var isValid = true;
+            
+            var email = document.getElementById('Input_Email');
+            var emailError = document.querySelector('span[data-valmsg-for="Input.Email"]');
+            if (email && emailError) {
+                if (!email.value.trim()) {
+                    emailError.textContent = 'Email is required';
+                    isValid = false;
+                } else if (!isValidEmail(email.value.trim())) {
+                    emailError.textContent = 'Please enter a valid email address';
+                    isValid = false;
+                } else {
+                    emailError.textContent = '';
+                }
+            }
+            
+            var password = document.getElementById('Input_Password');
+            var passwordError = document.querySelector('span[data-valmsg-for="Input.Password"]');
+            if (password && passwordError) {
+                if (!password.value) {
+                    passwordError.textContent = 'Password is required';
+                    isValid = false;
+                } else if (password.value.length < 6) {
+                    passwordError.textContent = 'Password must be at least 6 characters';
+                    isValid = false;
+                } else {
+                    var passwordErrors = validatePassword(password.value);
+                    if (passwordErrors.length > 0) {
+                        passwordError.textContent = passwordErrors[0];
+                        isValid = false;
+                    } else {
+                        passwordError.textContent = '';
+                    }
+                }
+            }
+            
+            var confirmPassword = document.getElementById('Input_ConfirmPassword');
+            var confirmError = document.querySelector('span[data-valmsg-for="Input.ConfirmPassword"]');
+            if (confirmPassword && confirmError) {
+                if (!confirmPassword.value) {
+                    confirmError.textContent = 'Please confirm your password';
+                    isValid = false;
+                } else if (password && confirmPassword.value !== password.value) {
+                    confirmError.textContent = 'Passwords do not match';
+                    isValid = false;
+                } else {
+                    confirmError.textContent = '';
+                }
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
+function isValidEmail(email) {
+    var re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+    return re.test(email);
+}
+
+function validatePassword(password) {
+    var errors = [];
+    
+    if (!/[A-Z]/.test(password)) {
+        errors.push('Password must contain at least one uppercase letter');
+    }
+    if (!/[a-z]/.test(password)) {
+        errors.push('Password must contain at least one lowercase letter');
+    }
+    if (!/[0-9]/.test(password)) {
+        errors.push('Password must contain at least one number');
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        errors.push('Password must contain at least one special character');
+    }
+    
+    return errors;
+}
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

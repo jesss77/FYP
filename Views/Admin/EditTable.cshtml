@@ -1,61 +1,70 @@
 @model FYP.Models.Table
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
     ViewData["Title"] = L["Edit Table"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card bg-dark text-white">
-                <div class="card-header">
-                    <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 800px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Tables","Admin")" />
+
+    <div class="card shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-xl);">
+        <div class="card-header" style="border-bottom: 1px solid var(--border-primary); padding: var(--spacing-xl);">
+            <h3 class="mb-0 gold-heading" style="font-size: 1.75rem;">@ViewData["Title"]</h3>
+        </div>
+
+        <div class="card-body" style="padding: var(--spacing-2xl);">
+            <form asp-action="EditTable" method="post">
+                <input type="hidden" asp-for="TableID" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="TableNumber" class="form-label fw-semibold">@L["Table Number"]</label>
+                        <input asp-for="TableNumber" class="form-control" type="number" min="1" />
+                        <span asp-validation-for="TableNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Capacity" class="form-label fw-semibold">@L["Capacity"]</label>
+                        <input asp-for="Capacity" class="form-control" type="number" min="1" />
+                        <span asp-validation-for="Capacity" class="text-danger"></span>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form asp-action="EditTable" method="post">
-                        <input asp-for="TableID" type="hidden" />
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        
-                        <div class="mb-3">
-                            <label asp-for="TableNumber" class="form-label">@L["Table Number"]</label>
-                            <input asp-for="TableNumber" class="form-control" />
-                            <span asp-validation-for="TableNumber" class="text-danger"></span>
-                        </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Capacity" class="form-label">@L["Capacity"]</label>
-                            <input asp-for="Capacity" class="form-control" type="number" min="1" />
-                            <span asp-validation-for="Capacity" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input asp-for="IsJoinable" class="form-check-input" type="checkbox" />
-                            <label asp-for="IsJoinable" class="form-check-label">
-                                @L["Can be joined with other tables"]
-                            </label>
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input asp-for="IsAvailable" class="form-check-input" type="checkbox" />
-                            <label asp-for="IsAvailable" class="form-check-label">
-                                @L["Available for reservations"]
-                            </label>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> @L["Update Table"]
-                            </button>
-                            <a asp-action="Tables" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> @L["Back to Tables"]
-                            </a>
-                        </div>
-                    </form>
+                <div class="mb-3 mt-3">
+                    <div class="form-check">
+                        <input asp-for="IsJoinable" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsJoinable" class="form-check-label">
+                            @L["Can be joined with other tables"]
+                        </label>
+                    </div>
                 </div>
-            </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input asp-for="IsAvailable" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsAvailable" class="form-check-label">
+                            @L["Available for reservations"]
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3">
+                    <a class="btn btn-secondary flex-fill" href="@Url.Action("Tables", "Admin")">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">arrow_back</span>
+                        @L["Cancel"]
+                    </a>
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">save</span>
+                        @L["Save Changes"]
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }

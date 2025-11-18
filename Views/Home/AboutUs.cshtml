@@ -1,16 +1,92 @@
 ﻿@{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = L["About Us"];
 }
 
-<header>
-    <link rel="stylesheet" href="~/css/About-Us.css" asp-append-version="true" />
-</header>
-
-<body>
-    <div class="content-container contact-container">
-        <h1>@L["About Us Title"]</h1>
-        <p>
-            @L["About Us Description"]
-        </p>
+<!-- Hero Section -->
+<section class="about-hero-section">
+    <div class="about-hero-overlay"></div>
+    <div class="about-hero-content">
+        <h1 class="about-hero-title">@L["Our Story"]</h1>
+        <p class="about-hero-subtitle">@L["Discover the passion and philosophy behind our culinary excellence."]</p>
     </div>
-</body>
+</section>
+
+<!-- Story Section -->
+<section class="section">
+    <div class="container-custom">
+        <div class="story-grid">
+            <div class="story-content">
+                <h2 class="section-heading text-left">@L["A Legacy of Flavor"]</h2>
+                <div class="story-text">
+                    <p>@L["AboutUsParagraph1"]</p>
+                    <p>@L["AboutUsParagraph2"]</p>
+                </div>
+            </div>
+            <div class="story-quote">
+                <blockquote class="quote-block">
+                    <p class="quote-text">@L["Cuisine is a story. We tell ours with every plate we serve."]</p>
+                </blockquote>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Values Section -->
+<section class="section">
+    <div class="container-custom">
+        <div class="text-center mb-5">
+            <h2 class="section-heading">@L["Our Mission & Values"]</h2>
+            <p class="section-subheading">@L["The principles that guide every decision we make."]</p>
+        </div>
+        <div class="values-grid">
+            <div class="value-card">
+                <span class="material-symbols-outlined value-icon">restaurant_menu</span>
+                <h3 class="value-title">@L["Quality"]</h3>
+                <p class="value-description">@L["Sourcing only the finest, local, and sustainable ingredients to ensure peak freshness and flavor in every dish."]</p>
+            </div>
+            <div class="value-card">
+                <span class="material-symbols-outlined value-icon">volunteer_activism</span>
+                <h3 class="value-title">@L["Service"]</h3>
+                <p class="value-description">@L["Providing warm, intuitive, and impeccable service to make every guest feel welcomed and cherished."]</p>
+            </div>
+            <div class="value-card">
+                <span class="material-symbols-outlined value-icon">emoji_objects</span>
+                <h3 class="value-title">@L["Innovation"]</h3>
+                <p class="value-description">@L["Continuously pushing culinary boundaries and exploring new techniques to create a unique and modern dining experience."]</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Accolades & Awards Section -->
+<section class="section section-bg-secondary">
+    <div class="container-custom">
+        <div class="text-center mb-5">
+            <h2 class="section-heading">@L["Accolades & Awards"]</h2>
+            <p class="section-subheading">@L["We are honored to be recognized for our dedication to culinary excellence."]</p>
+        </div>
+        <div class="awards-grid">
+            <div class="award-card">
+                <span class="material-symbols-outlined award-icon">workspace_premium</span>
+                <h4 class="award-title">@L["Gourmet Guide"]</h4>
+                <p class="award-year">2023</p>
+            </div>
+            <div class="award-card">
+                <span class="material-symbols-outlined award-icon">military_tech</span>
+                <h4 class="award-title">@L["Epicurean Award"]</h4>
+                <p class="award-year">2022</p>
+            </div>
+            <div class="award-card">
+                <span class="material-symbols-outlined award-icon">stars</span>
+                <h4 class="award-title">@L["Five Star Alliance"]</h4>
+                <p class="award-year">2021, 2022</p>
+            </div>
+            <div class="award-card">
+                <span class="material-symbols-outlined award-icon">local_bar</span>
+                <h4 class="award-title">@L["Best Wine List"]</h4>
+                <p class="award-year">2020</p>
+            </div>
+        </div>
+    </div>
+</section>

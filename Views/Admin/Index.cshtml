@@ -1,34 +1,57 @@
-﻿<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="action-card">
-            <div class="action-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <h3>@L["Employees"]</h3>
-            <p>@L["View and manage all employee accounts"]</p>
-            <a asp-action="Employees" class="btn btn-secondary">@L["View Employees"]</a>
-        </div>
+﻿@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
+@{
+    ViewData["Title"] = L["Admin Dashboard"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="margin-bottom: var(--spacing-3xl); text-align: center;">
+        <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">
+            @L["Admin Dashboard"]
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.125rem;">
+            @L["Manage your restaurant operations"]
+        </p>
     </div>
 
-    <div class="col-md-4">
-        <div class="action-card">
-            <div class="action-icon">
-                <i class="fas fa-cogs"></i>
+    <!-- Action Cubes -->
+    <div class="admin-cubes-container">
+        <div class="admin-cube" onclick="location.href='@Url.Action("ManageUsers", "Admin")'" role="button" tabindex="0">
+            <div class="admin-cube-icon" style="background: linear-gradient(135deg, #3498DB, #2980B9);">
+                <span class="material-symbols-outlined">group</span>
             </div>
-            <h3>@L["Restaurant Settings"]</h3>
-            <p>@L["Manage key-value settings for the restaurant"]</p>
-            <a asp-action="Settings" class="btn btn-secondary">@L["Manage Settings"]</a>
+            <h3 class="admin-cube-title">@L["Manage Users"]</h3>
+            <p class="admin-cube-description">@L["Manage managers, employees, and customers"]</p>
+            <div class="admin-cube-link">
+                @L["Manage Users"]
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="action-card">
-            <div class="action-icon">
-                <i class="fas fa-table"></i>
+        <div class="admin-cube" onclick="location.href='@Url.Action("Tables", "Admin")'" role="button" tabindex="0">
+            <div class="admin-cube-icon" style="background: linear-gradient(135deg, #D4AF37, #B8941E);">
+                <span class="material-symbols-outlined">table_restaurant</span>
             </div>
-            <h3>@L["Table Management"]</h3>
-            <p>@L["View and manage restaurant tables"]</p>
-            <a asp-action="Tables" class="btn btn-secondary">@L["Manage Tables"]</a>
+            <h3 class="admin-cube-title">@L["Table Management"]</h3>
+            <p class="admin-cube-description">@L["View and manage restaurant tables"]</p>
+            <div class="admin-cube-link">
+                @L["Manage Tables"]
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </div>
+
+        <div class="admin-cube" onclick="location.href='@Url.Action("Settings", "Admin")'" role="button" tabindex="0">
+            <div class="admin-cube-icon" style="background: linear-gradient(135deg, #E63946, #C41E3A);">
+                <span class="material-symbols-outlined">settings</span>
+            </div>
+            <h3 class="admin-cube-title">@L["Restaurant Settings"]</h3>
+            <p class="admin-cube-description">@L["Manage key-value settings for the restaurant"]</p>
+            <div class="admin-cube-link">
+                @L["Manage Settings"]
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
         </div>
     </div>
 </div>

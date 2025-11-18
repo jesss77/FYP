@@ -1,30 +1,45 @@
 ﻿@using System.Globalization
 
 <!DOCTYPE html>
-<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" data-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - @L["BrandName"]</title>
 
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <!-- Theme CSS Files -->
+    <link rel="stylesheet" href="~/css/theme-variables.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/Header-Footer.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <!-- Load theme script immediately to prevent flash -->
+    <script src="~/js/theme-toggle.js" asp-append-version="true"></script>
 </head>
 <body>
-    @* This calls the updated header file below *@
+    @* Header *@
     @await Html.PartialAsync("_Header")
 
-    <main role="main" class="main-content container py-5">
+    @* Main Content *@
+    <main role="main" class="main-content">
         @RenderBody()
     </main>
 
+    @* Footer *@
+    @await Html.PartialAsync("_Footer")
+
+
+    @* Scripts *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await Html.PartialAsync("_Footer")
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-
 </html>

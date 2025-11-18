@@ -14,5 +14,6 @@ namespace FYP.Services
     {
         Task SendEmailAsync(string email, string subject, string htmlMessage);
         Task SendConfirmationEmailAsync(ApplicationUser user, string token);
+        Task SendTableAllocationEmailAsync(string email, string customerName, DateTime reservationDate, TimeSpan reservationTime, int partySize, string tableInfo);
     }
 }

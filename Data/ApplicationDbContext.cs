@@ -11,6 +11,7 @@ namespace FYP.Data
         { }
 
         public DbSet<Customer> Customers { get; set; }
+        public DbSet<Guest> Guests { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Table> Tables { get; set; }
         public DbSet<TablesJoin> TablesJoins { get; set; }
@@ -88,11 +89,21 @@ namespace FYP.Data
             modelBuilder.Entity<Reservation>()
                 .HasKey(r => r.ReservationID);
 
+            // Reservation to Customer relationship (optional)
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.Customer)
                 .WithMany(c => c.Reservations)
                 .HasForeignKey(r => r.CustomerID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            // Reservation to Guest relationship (optional)
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.Guest)
+                .WithMany(g => g.Reservations)
+                .HasForeignKey(r => r.GuestID)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
 
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.ReservationStatus)
@@ -100,8 +111,16 @@ namespace FYP.Data
                 .HasForeignKey(r => r.ReservationStatusID)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Add check constraint: either CustomerID or GuestID must be set, but not both
+            modelBuilder.Entity<Reservation>()
+                .ToTable(t => t.HasCheckConstraint(
+                    "CK_Reservation_CustomerOrGuest",
+                    "([IsGuest] = 0 AND [CustomerID] IS NOT NULL AND [GuestID] IS NULL) OR ([IsGuest] = 1 AND [GuestID] IS NOT NULL AND [CustomerID] IS NULL)"
+                ));
+
             // ---------------- Keys ----------------
             modelBuilder.Entity<Customer>().HasKey(c => c.CustomerID);
+            modelBuilder.Entity<Guest>().HasKey(g => g.GuestID);
             modelBuilder.Entity<Employee>().HasKey(e => e.EmployeeID);
             modelBuilder.Entity<Table>().HasKey(t => t.TableID);
             modelBuilder.Entity<ReservationStatus>().HasKey(rs => rs.ReservationStatusID);
@@ -115,6 +134,10 @@ namespace FYP.Data
             modelBuilder.Entity<Table>()
                 .HasIndex(t => new { t.RestaurantID, t.TableNumber })
                 .IsUnique();
+
+            // Index on guest email for lookups
+            modelBuilder.Entity<Guest>()
+                .HasIndex(g => g.Email);
 
             // ---------------- Seed Data ----------------
             modelBuilder.Entity<Settings>().HasData(
@@ -204,7 +227,170 @@ namespace FYP.Data
                     UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
                 }
             );
+
+            // ---------------- Seed Default Tables ----------------
+            modelBuilder.Entity<Table>().HasData(
+                // 2-person tables
+                new Table
+                {
+                    TableID = 1,
+                    TableNumber = 1,
+                    Capacity = 2,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 2,
+                    TableNumber = 2,
+                    Capacity = 2,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 3,
+                    TableNumber = 3,
+                    Capacity = 2,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                // 4-person tables
+                new Table
+                {
+                    TableID = 4,
+                    TableNumber = 4,
+                    Capacity = 4,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 5,
+                    TableNumber = 5,
+                    Capacity = 4,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 6,
+                    TableNumber = 6,
+                    Capacity = 4,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 7,
+                    TableNumber = 7,
+                    Capacity = 4,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                // 6-person tables
+                new Table
+                {
+                    TableID = 8,
+                    TableNumber = 8,
+                    Capacity = 6,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 9,
+                    TableNumber = 9,
+                    Capacity = 6,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 10,
+                    TableNumber = 10,
+                    Capacity = 6,
+                    IsJoinable = true,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                // 8-person tables
+                new Table
+                {
+                    TableID = 11,
+                    TableNumber = 11,
+                    Capacity = 8,
+                    IsJoinable = false,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                },
+                new Table
+                {
+                    TableID = 12,
+                    TableNumber = 12,
+                    Capacity = 8,
+                    IsJoinable = false,
+                    IsAvailable = true,
+                    RestaurantID = 1,
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0)
+                }
+            );
         }
     }
-
 }

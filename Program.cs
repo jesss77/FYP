@@ -2,8 +2,8 @@
 using FYP.Models;
 using FYP.Services;
 using FYP.Localization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
@@ -20,6 +20,22 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
+
+// Configure cookie options for "Remember Me" functionality
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromDays(14); // Cookie expires in 14 days
+    options.SlidingExpiration = true; // Refresh expiration on each request
+    options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    
+    // Cookie will persist only if "Remember Me" is checked
+    options.Cookie.IsEssential = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+});
 
 // Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -53,6 +69,9 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // Email service
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Table allocation service
+builder.Services.AddScoped<TableAllocationService>();
 
 var app = builder.Build();
 
@@ -101,15 +120,16 @@ using (var scope = app.Services.CreateScope())
     try
     {
         // Seed roles first
-        await RoleSeeder.SeedRolesAsync(serviceProvider);
+        await FYP.Data.RoleSeeder.SeedRolesAsync(serviceProvider);
         
-        // Then seed users
-        await UserSeeder.SeedUsersAsync(serviceProvider);
+        // Then seed users (from Services folder)
+        await FYP.Services.UserSeeder.SeedUsersAsync(serviceProvider);
 
-            // Ensure a dedicated Guest customer exists for guest reservations
-            await GuestCustomerSeeder.EnsureGuestCustomerAsync(serviceProvider);
-            // Ensure a dedicated Walk-in customer exists for staff walk-ins
-            await WalkInCustomerSeeder.EnsureWalkInCustomerAsync(serviceProvider);
+        // Ensure a dedicated Guest customer exists for guest reservations
+        await FYP.Data.GuestCustomerSeeder.EnsureGuestCustomerAsync(serviceProvider);
+        
+        // Ensure a dedicated Walk-in customer exists for staff walk-ins
+        await FYP.Data.WalkInCustomerSeeder.EnsureWalkInCustomerAsync(serviceProvider);
     }
     catch (Exception ex)
     {

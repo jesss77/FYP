@@ -1,0 +1,231 @@
+@model FYP.Models.Customer
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
+@{
+    ViewData["Title"] = L["Edit Profile"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="center-container">
+    <div class="register-form" style="max-width: 700px;">
+        <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Customer")" />
+
+        @if (TempData["Success"] != null)
+        {
+            { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
+
+        <!-- Header with Profile Picture -->
+        <div style="margin-bottom: var(--spacing-2xl); text-align: center;">
+            <div class="profile-picture-large" id="profilePicturePreview">
+                @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
+                {
+                    var cacheBuster = DateTime.UtcNow.Ticks;
+                    <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(Model.PictureBytes)}?v={cacheBuster}")" 
+                         alt="@Model.FirstName @Model.LastName" 
+                         id="currentProfilePic" />
+                }
+                else
+                {
+                    <span class="material-symbols-outlined profile-icon-default" id="defaultIcon">person</span>
+                }
+            </div>
+            <h1 class="gold-heading" style="font-size: 2rem; margin: var(--spacing-lg) 0 var(--spacing-xs) 0;">
+                @L["Edit Profile"]
+            </h1>
+            <p style="color: var(--text-secondary);">
+                @L["Update your personal information"]
+            </p>
+        </div>
+
+        <hr class="gold-hr" />
+
+        <!-- Edit Form -->
+        <form asp-action="UpdateProfile" asp-controller="Customer" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="CustomerID" />
+            <input type="hidden" asp-for="Email" />
+            <input type="hidden" asp-for="ApplicationUserId" />
+            <input type="hidden" asp-for="CreatedBy" />
+            <input type="hidden" asp-for="CreatedAt" />
+            <input type="hidden" asp-for="IsActive" />
+            <input type="hidden" asp-for="UpdatedBy" />
+            <input type="hidden" asp-for="UpdatedAt" />
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        @L["First Name"] <span style="color: var(--color-primary-red);">*</span>
+                    </label>
+                    <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" required />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        @L["Last Name"] <span style="color: var(--color-primary-red);">*</span>
+                    </label>
+                    <input asp-for="LastName" class="form-control" placeholder="Enter your last name" required />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="form-label fw-semibold">
+                    @L["Email Address"]
+                </label>
+                <input type="text" class="form-control" value="@Model.Email" disabled style="background: var(--bg-secondary); cursor: not-allowed;" />
+                <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.875rem;">
+                    @L["Email cannot be changed. Contact support if needed."]
+                </small>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        @L["Phone Number"] <span style="color: var(--color-primary-red);">*</span>
+                    </label>
+                    <input asp-for="PhoneNumber" class="form-control" placeholder="+1 234 567 8900" required />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.875rem;">
+                        @L["Include country code (e.g., +1 for US, +961 for Lebanon)"]
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        @L["Preferred Language"]
+                    </label>
+                    <select asp-for="PreferredLanguage" class="form-control">
+                        <option value="English">@L["English"]</option>
+                        <option value="French">@L["French"]</option>
+                    </select>
+                    <span asp-validation-for="PreferredLanguage" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="form-label fw-semibold">
+                    @L["Profile Picture"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                </label>
+                <input type="file" name="picture" id="pictureInput" class="form-control" accept="image/*" />
+                <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.875rem;">
+                    Supported formats: JPG, PNG, GIF (Max 5MB)
+                </small>
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+                <button type="submit" class="btn btn-confirm flex-fill">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">save</span>
+                    @L["Save Changes"]
+                </button>
+                <a asp-action="Index" asp-controller="Customer" class="btn btn-secondary flex-fill">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">cancel</span>
+                    @L["Cancel"]
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.profile-picture-large {
+    width: 150px;
+    height: 150px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--color-primary-red), var(--color-primary-gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    border: 4px solid var(--bg-card);
+    position: relative;
+    transition: transform var(--transition-base);
+}
+
+.profile-picture-large:hover {
+    transform: scale(1.05);
+}
+
+.profile-picture-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-icon-default {
+    font-size: 5rem !important;
+    color: white;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+}
+
+[data-theme="dark"] .profile-picture-large {
+    border-color: rgba(85, 85, 85, 0.4);
+}
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Ensure Material Icons are loaded
+        if (!document.querySelector('link[href*="material-symbols"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200';
+            document.head.appendChild(link);
+        }
+
+        // Image preview functionality
+        document.getElementById('pictureInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    e.target.value = '';
+                    return;
+                }
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    e.target.value = '';
+                    return;
+                }
+
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('profilePicturePreview');
+                    
+                    // Remove existing content
+                    const existingImg = document.getElementById('currentProfilePic');
+                    const existingIcon = document.getElementById('defaultIcon');
+                    if (existingImg) existingImg.remove();
+                    if (existingIcon) existingIcon.remove();
+                    
+                    // Add new image
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.alt = 'Profile preview';
+                    img.id = 'currentProfilePic';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    img.style.display = 'block';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}

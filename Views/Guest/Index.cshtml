@@ -1,21 +1,36 @@
 ﻿@model FYP.Models.Employee
 @{
-    ViewData["Title"] = "Guest Dashboard";
+    ViewData["Title"] = L["Guest Reservation"];
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@{
-    ViewData["ShowGuestName"] = true;
-    ViewData["FormController"] = "Guest";
-}
+<div class="center-container">
+    <div class="register-form" style="max-width: 700px;">
+        <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Home")" />
 
-<div class="container mt-5">
-    <h2>@L["Welcome Guest!"]</h2>
-    <p class="lead">@L["This is your guest dashboard page."]</p>
+        @if (TempData["Success"] != null)
+        {
+            { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
 
-    <div class="mt-4">
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@L["Back to Home"]</a>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@L["Log out"]</a>
+        @if (TempData["Error"] != null)
+        {
+            { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
 
-   </div>
+        @if (TempData["Message"] != null)
+        {
+            { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Message"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
+
+        <!-- Header -->
+        <h1 class="reservation-page-title">@L["Make a Reservation"]</h1>
+        <p class="reservation-page-subtitle">@L["We look forward to welcoming you. Please provide the following details to secure your reservation."]</p>
+
+        <!-- Form -->
+        @await Html.PartialAsync("_ReservationForm")
+    </div>
 </div>

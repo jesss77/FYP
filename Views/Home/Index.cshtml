@@ -2,41 +2,121 @@
     ViewData["Title"] = L["Welcome"];
 }
 
-<!DOCTYPE html>
-<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - @L["BrandName"]!</title>
-
-    <link rel="stylesheet" href="~/css/welcome.css" />
-</head>
-<body>
-    <div class="welcome-screen">
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
         @if (TempData["Message"] != null)
         {
-            <div class="alert alert-success w-100">@TempData["Message"]</div>
+            { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Message"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
         }
-        <header class="header">
-            <h1>🍴 @L["BrandName"]!</h1>
-        </header>
 
-        <div class="food-images">
-            <img src="~/pics/salad.jpg" alt="@L["Salad"]">
-            <img src="~/pics/pizza.jpg" alt="@L["Pizza"]">
-            <img src="~/pics/pasta.jpg" alt="@L["Pasta"]">
-            <img src="~/pics/burger.jpg" alt="@L["Burger"]">
+        <h1 class="hero-title text-gradient">@L["Experience Culinary Excellence"]</h1>
+        <p class="hero-description">@L["WelcomeDescription"]</p>
+
+        <div class="hero-actions">
+            <a asp-controller="Guest" asp-action="Index" class="btn-hero">
+                @L["Book a Table Now"]
+            </a>
+        </div>
+        <br>
+        <div class="hero-actions">
+            <a asp-area="Identity" asp-page="/Account/Login" class="btn-hero-secondary">
+                @L["Login"]
+            </a>
+
+            <a asp-area="Identity" asp-page="/Account/Register" class="btn-hero-secondary">
+                @L["Register"]
+            </a>
         </div>
 
-        <div class="welcome-text">
-            <h3>@L["Welcome!"]</h3>
-            <p>@L["WelcomeDescription"]</p>
-            <div class="mt-4">
-                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-lg btn-secondary mx-2">@L["Login"]</a>
-                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-lg btn-secondary mx-2">@L["Register"]</a>
+    </div>
+</section>
+
+<!-- Feature Section -->
+<section class="section section-bg-primary">
+    <div class="container-custom">
+        <h2 class="section-heading">@L["Why Dine With Us?"]</h2>
+        <p class="section-subheading">@L["Discover what makes our dining experience unique."]</p>
+
+        <div class="features-grid">
+            <div class="feature-card glassmorphic">
+                <div class="feature-icon">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                </div>
+                <h3 class="feature-title">@L["Instant Booking"]</h3>
+                <p class="feature-description">@L["Reserve your table in seconds with our seamless booking system."]</p>
             </div>
-            <a asp-controller="Guest" asp-action="Index" class="btn btn-primary">@L["Sign In as Guest"]</a>
+
+            <div class="feature-card glassmorphic">
+                <div class="feature-icon">
+                    <span class="material-symbols-outlined">restaurant_menu</span>
+                </div>
+                <h3 class="feature-title">@L["Artisanal Menu"]</h3>
+                <p class="feature-description">@L["Explore a curated menu of signature dishes made with the finest ingredients."]</p>
+            </div>
+
+            <div class="feature-card glassmorphic">
+                <div class="feature-icon">
+                    <span class="material-symbols-outlined">celebration</span>
+                </div>
+                <h3 class="feature-title">@L["Unforgettable Ambiance"]</h3>
+                <p class="feature-description">@L["Immerse yourself in a sophisticated and welcoming atmosphere."]</p>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</section>
+
+<!-- Menu Highlights Section -->
+<section class="section section-bg-secondary">
+    <div class="container-custom">
+        <h2 class="section-heading">@L["Menu Highlights"]</h2>
+        <p class="section-subheading">@L["A glimpse into our culinary creations."]</p>
+
+        <div class="image-grid">
+            <div class="image-card image-card-salad">
+                <p class="image-card-title">@L["Fresh Salads"]</p>
+            </div>
+            <div class="image-card image-card-pizza">
+                <p class="image-card-title">@L["Artisan Pizza"]</p>
+            </div>
+            <div class="image-card image-card-pasta">
+                <p class="image-card-title">@L["Signature Pasta"]</p>
+            </div>
+            <div class="image-card image-card-burger">
+                <p class="image-card-title">@L["Gourmet Burgers"]</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="section section-bg-primary">
+    <div class="container-custom">
+        <div class="stats-grid">
+            <div class="stat-card glassmorphic">
+                <div class="stat-icon">
+                    <span class="material-symbols-outlined">restaurant_menu</span>
+                </div>
+                <p class="stat-number">15,000+</p>
+                <p class="stat-label">@L["Reservations Served"]</p>
+            </div>
+
+            <div class="stat-card glassmorphic">
+                <div class="stat-icon">
+                    <span class="material-symbols-outlined">sentiment_satisfied</span>
+                </div>
+                <p class="stat-number">98%</p>
+                <p class="stat-label">@L["Customer Satisfaction"]</p>
+            </div>
+
+            <div class="stat-card glassmorphic">
+                <div class="stat-icon">
+                    <span class="material-symbols-outlined">workspace_premium</span>
+                </div>
+                <p class="stat-number">12</p>
+                <p class="stat-label">@L["Awards Won"]</p>
+            </div>
+        </div>
+    </div>
+</section>

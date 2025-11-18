@@ -28,18 +28,16 @@ namespace FYP.Models
 
         // Link to ApplicationUser
         public string? ApplicationUserId { get; set; }
-        public ApplicationUser ApplicationUser { get; set; }
+        public ApplicationUser? ApplicationUser { get; set; }
 
-        [Required, StringLength(450)]
-        public string CreatedBy { get; set; }
+        [StringLength(450)]
+        public string? CreatedBy { get; set; }
 
-        [Required]
         public DateTime CreatedAt { get; set; }
 
         [StringLength(450)]
-        public string UpdatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
 
-        [Required]
         public DateTime UpdatedAt { get; set; }
     }
 }

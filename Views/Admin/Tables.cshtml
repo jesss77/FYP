@@ -1,85 +1,463 @@
 @model IEnumerable<FYP.Models.Table>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
     ViewData["Title"] = L["Tables"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5 table-container">
+<div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1400px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
+
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success">@TempData["Success"]</div>
+        { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
     }
 
     @if (TempData["Info"] != null)
     {
-        <div class="alert alert-info">@TempData["Info"]</div>
+        { ViewData["Type"] = "info"; ViewData["Message"] = TempData["Info"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
     }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
+    @if (TempData["Error"] != null)
+    {
+        { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: var(--spacing-2xl); padding: 0 var(--spacing-md);">
+        <div>
+            <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">
+                @ViewData["Title"]
+            </h1>
+            <p style="color: var(--text-secondary);">@L["Manage restaurant table configuration"]</p>
+        </div>
         <a class="btn btn-primary" href="@Url.Action("CreateTable", "Admin")">
-            <i class="bi bi-plus-circle"></i> @L["Add New Table"]
+            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">add_circle</span>
+            @L["Add New Table"]
         </a>
     </div>
 
-    <table class="table table-dark table-hover align-middle">
-        <thead>
-            <tr>
-                <th>@L["Table Number"]</th>
-                <th>@L["Capacity"]</th>
-                <th>@L["Joinable"]</th>
-                <th>@L["Status"]</th>
-                <th class="text-center">@L["Actions"]</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var table in Model)
+    @if (Model != null && Model.Any())
+    {
+        <!-- Stats Row -->
+        <div class="stats-row-container" style="margin-bottom: var(--spacing-3xl); padding: 0 var(--spacing-md);">
+            <div class="stat-cube-inline stat-cube-gold">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">table_restaurant</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Count()</h3>
+                    <p class="stat-cube-label">@L["Total Tables"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-green">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Count(t => t.IsAvailable)</h3>
+                    <p class="stat-cube-label">@L["Available"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-blue">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">link</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Count(t => t.IsJoinable)</h3>
+                    <p class="stat-cube-label">@L["Joinable"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-red">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">groups</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Sum(t => t.Capacity)</h3>
+                    <p class="stat-cube-label">@L["Total Capacity"]</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Cards Grid -->
+        <div class="row g-4" style="padding: 0 var(--spacing-md); margin-top: var(--spacing-xl);">
+            @foreach (var table in Model.OrderBy(t => t.TableNumber))
             {
-                <tr>
-                    <td>@table.TableNumber</td>
-                    <td>@table.Capacity</td>
-                    <td>
-                        @if (table.IsJoinable)
-                        {
-                            <span class="badge bg-info">@L["Yes"]</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">@L["No"]</span>
-                        }
-                    </td>
-                    <td>
-                        @if (table.IsAvailable)
-                        {
-                            <span class="badge bg-success">@L["Available"]</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-warning text-dark">@L["Unavailable"]</span>
-                        }
-                    </td>
-                    <td class="text-center">
-                        <a class="btn btn-sm btn-warning me-1" href="@Url.Action("EditTable", "Admin", new { id = table.TableID })">
-                            <i class="bi bi-pencil-square"></i> @L["Edit"]
-                        </a>
-                        @if (table.IsAvailable)
-                        {
-                            <a class="btn btn-sm btn-secondary me-1" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
-                                <i class="bi bi-pause-circle"></i> @L["Make Unavailable"]
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="table-card">
+                        <div class="table-card-header">
+                            <div class="table-number-badge">
+                                <span class="table-number">@table.TableNumber</span>
+                            </div>
+                            <div class="table-badges">
+                                @if (table.IsAvailable)
+                                {
+                                    <span class="table-status-badge status-available">@L["Available"]</span>
+                                }
+                                else
+                                {
+                                    <span class="table-status-badge status-unavailable">@L["Unavailable"]</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="table-card-body">
+                            <div class="table-detail-item">
+                                <div class="table-detail-icon">
+                                    <span class="material-symbols-outlined">groups</span>
+                                </div>
+                                <div>
+                                    <div class="table-detail-label">@L["Capacity"]</div>
+                                    <div class="table-detail-value">@table.Capacity @L["people"]</div>
+                                </div>
+                            </div>
+
+                            <div class="table-detail-item">
+                                <div class="table-detail-icon">
+                                    <span class="material-symbols-outlined">link</span>
+                                </div>
+                                <div>
+                                    <div class="table-detail-label">@L["Joinable"]</div>
+                                    <div class="table-detail-value">
+                                        @if (table.IsJoinable)
+                                        {
+                                            <span style="color: #2ECC71;">@L["Yes"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: var(--text-muted);">@L["No"]</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-card-footer">
+                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("EditTable", "Admin", new { id = table.TableID })">
+                                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">edit</span>
                             </a>
-                        }
-                        else
-                        {
-                            <a class="btn btn-sm btn-success me-1" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
-                                <i class="bi bi-play-circle"></i> @L["Make Available"]
-                            </a>
-                        }
-                        <a class="btn btn-sm btn-danger" href="@Url.Action("DeleteTable", "Admin", new { id = table.TableID })"
-                           onclick="return confirm('@L["Are you sure you want to delete Table {0}? This action cannot be undone.", table.TableNumber]');">
-                            <i class="bi bi-trash"></i> @L["Delete"]
-                        </a>
-                    </td>
-                </tr>
+                            @if (table.IsAvailable)
+                            {
+                                <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">block</span>
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-sm btn-outline-success" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">check</span>
+                                </a>
+                            }
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="if(confirm('@L["Are you sure you want to delete Table {0}? This action cannot be undone.", table.TableNumber]')) window.location.href='@Url.Action("DeleteTable", "Admin", new { id = table.TableID })'">
+                                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state" style="margin-top: var(--spacing-3xl); padding: var(--spacing-3xl) var(--spacing-2xl);">
+            <span class="material-symbols-outlined empty-state-icon">table_restaurant_off</span>
+            <h3 style="margin-top: var(--spacing-xl); margin-bottom: var(--spacing-md);">@L["No Tables Yet"]</h3>
+            <p style="margin-bottom: var(--spacing-xl);">@L["Add your first table to get started"]</p>
+            <a class="btn btn-primary" href="@Url.Action("CreateTable", "Admin")">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">add_circle</span>
+                @L["Add New Table"]
+            </a>
+        </div>
+    }
 </div>
+
+<style>
+/* Stats Row Container */
+.stats-row-container {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.stat-cube-inline {
+    flex: 0 1 auto;
+    min-width: 200px;
+    max-width: 280px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+    text-decoration: none;
+}
+
+[data-theme="dark"] .stat-cube-inline {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.stat-cube-inline:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-cube-clickable:hover {
+    border-color: var(--color-primary-gold);
+    cursor: pointer;
+}
+
+.stat-cube-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-cube-red .stat-cube-icon {
+    background: linear-gradient(135deg, #E63946, #C41E3A);
+}
+
+.stat-cube-gold .stat-cube-icon {
+    background: linear-gradient(135deg, #D4AF37, #B8941E);
+}
+
+.stat-cube-green .stat-cube-icon {
+    background: linear-gradient(135deg, #2ECC71, #27AE60);
+}
+
+.stat-cube-blue .stat-cube-icon {
+    background: linear-gradient(135deg, #3498DB, #2980B9);
+}
+
+.stat-cube-purple .stat-cube-icon {
+    background: linear-gradient(135deg, #9B59B6, #8E44AD);
+}
+
+.stat-cube-icon .material-symbols-outlined {
+    font-size: 1.75rem;
+    color: white;
+}
+
+.stat-cube-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-cube-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-cube-label {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-cube-label-large {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.stat-cube-sublabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 600;
+}
+
+.table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all var(--transition-base);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-theme="dark"] .table-card {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.table-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-primary-gold);
+}
+
+.table-card-header {
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.1), rgba(212, 175, 55, 0.1));
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+[data-theme="dark"] .table-card-header {
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.2), rgba(212, 175, 55, 0.2));
+}
+
+.table-number-badge {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    background: var(--color-primary-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+}
+
+.table-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+}
+
+.table-badges {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    align-items: flex-end;
+}
+
+.table-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-available {
+    background: rgba(46, 204, 113, 0.2);
+    color: #27AE60;
+    border: 1px solid #2ECC71;
+}
+
+.status-unavailable {
+    background: rgba(230, 57, 70, 0.2);
+    color: #C0392B;
+    border: 1px solid #E63946;
+}
+
+.table-card-body {
+    padding: var(--spacing-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.table-detail-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.table-detail-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: rgba(212, 175, 55, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .table-detail-icon {
+    background: rgba(212, 175, 55, 0.15);
+}
+
+.table-detail-icon .material-symbols-outlined {
+    font-size: 1.25rem;
+    color: var(--color-primary-gold);
+}
+
+.table-detail-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.table-detail-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.table-card-footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid var(--border-primary);
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: space-between;
+}
+
+.table-card-footer .btn {
+    flex: 1;
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-3xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+}
+
+[data-theme="dark"] .empty-state {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-lg);
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+</style>

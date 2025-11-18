@@ -1,0 +1,559 @@
+@model IEnumerable<FYP.Models.Reservation>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
+@{
+    ViewData["Title"] = L["Reservations"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var filterDate = ViewBag.FilterDate as DateTime? ?? DateTime.UtcNow.Date;
+}
+
+<div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1600px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
+
+    @if (TempData["Success"] != null)
+    {
+        { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    @if (TempData["Message"] != null)
+    {
+        { ViewData["Type"] = "info"; ViewData["Message"] = TempData["Message"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    <!-- Header -->
+    <div style="margin-bottom: var(--spacing-2xl); padding: 0 var(--spacing-md);">
+        <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-xs);">
+            @L["All Reservations"]
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1rem;">
+            @filterDate.ToString("MMMM dd, yyyy")
+        </p>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        var stats = new {
+            Total = Model.Count(),
+            Pending = Model.Count(r => r.ReservationStatus.StatusName == "Pending"),
+            Confirmed = Model.Count(r => r.ReservationStatus.StatusName == "Confirmed"),
+            Seated = Model.Count(r => r.ReservationStatus.StatusName == "Seated"),
+            Completed = Model.Count(r => r.ReservationStatus.StatusName == "Completed"),
+            Cancelled = Model.Count(r => r.ReservationStatus.StatusName == "Cancelled"),
+            PreBooked = Model.Count(r => r.ReservationType),
+            WalkIn = Model.Count(r => !r.ReservationType)
+        };
+
+        <!-- Stats Row -->
+        <div class="stats-row-container" style="margin-bottom: var(--spacing-3xl); padding: 0 var(--spacing-md);">
+            <div class="stat-cube-inline stat-cube-gold">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@stats.Total</h3>
+                    <p class="stat-cube-label">@L["Total"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-orange">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">schedule</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@stats.Pending</h3>
+                    <p class="stat-cube-label">@L["Pending"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-green">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@stats.Confirmed</h3>
+                    <p class="stat-cube-label">@L["Confirmed"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-blue">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">event_seat</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@stats.Seated</h3>
+                    <p class="stat-cube-label">@L["Seated"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-gray">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">done_all</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@stats.Completed</h3>
+                    <p class="stat-cube-label">@L["Completed"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-red">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">cancel</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@stats.Cancelled</h3>
+                    <p class="stat-cube-label">@L["Cancelled"]</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Card -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-xl); padding: var(--spacing-2xl); margin: 0 var(--spacing-md) var(--spacing-2xl);">
+            <h3 class="gold-heading" style="font-size: 1.25rem; margin-bottom: var(--spacing-xl);">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">filter_list</span>
+                @L["Filters"]
+            </h3>
+            <form asp-action="Reservations" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="filterDate" class="form-label fw-semibold">@L["Date"]</label>
+                    <input type="date" name="filterDate" id="filterDate" class="form-control" 
+                           value="@filterDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label for="filterStatus" class="form-label fw-semibold">@L["Status"]</label>
+                    <select name="filterStatus" id="filterStatus" class="form-select">
+                        <option value="">@L["All Statuses"]</option>
+                        <option value="1">@L["Pending"]</option>
+                        <option value="2">@L["Confirmed"]</option>
+                        <option value="3">@L["Seated"]</option>
+                        <option value="4">@L["Completed"]</option>
+                        <option value="5">@L["Cancelled"]</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filterType" class="form-label fw-semibold">@L["Type"]</label>
+                    <select name="filterType" id="filterType" class="form-select">
+                        <option value="">@L["All Types"]</option>
+                        <option value="true">@L["Pre-booked"]</option>
+                        <option value="false">@L["Walk-in"]</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">search</span>
+                        @L["Apply"]
+                    </button>
+                    <a asp-action="Reservations" class="btn btn-secondary flex-fill">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">close</span>
+                        @L["Clear"]
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reservations Table -->
+        <div class="users-table-container" style="margin: 0 var(--spacing-md);">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["ID"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Date"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Time"]</th>
+                        <th style="padding: var(--spacing-lg) var,--spacing-xl);">@L["Type"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Customer/Guest"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Party"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Table(s)"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Status"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Duration"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Notes"]</th>
+                        <th class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reservation in Model)
+                    {
+                        var statusClass = reservation.ReservationStatus.StatusName switch
+                        {
+                            "Pending" => "status-pending",
+                            "Confirmed" => "status-confirmed",
+                            "Seated" => "status-seated",
+                            "Completed" => "status-completed",
+                            "Cancelled" => "status-cancelled",
+                            _ => "status-default"
+                        };
+
+                        var customerName = reservation.IsGuest && reservation.Guest != null
+                            ? $"{reservation.Guest.FirstName} {reservation.Guest.LastName}"
+                            : reservation.Customer != null 
+                                ? $"{reservation.Customer.FirstName} {reservation.Customer.LastName}"
+                                : "Unknown";
+
+                        <tr>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);"><strong>#@reservation.ReservationID</strong></td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@reservation.ReservationDate.ToString("MMM dd, yyyy")</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);"><strong>@reservation.ReservationTime.ToString(@"hh\:mm")</strong></td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">
+                                @if (reservation.ReservationType)
+                                {
+                                    <span class="reservation-type-badge type-prebooked">@L["Pre-booked"]</span>
+                                }
+                                else
+                                {
+                                    <span class="reservation-type-badge type-walkin">@L["Walk-in"]</span>
+                                }
+                            </td>
+                            <td class="user-name" style="padding: var(--spacing-lg) var(--spacing-xl);">
+                                @customerName
+                                <br />
+                                <small class="user-type-badge">@(reservation.IsGuest ? L["Guest"] : L["Customer"])</small>
+                            </td>
+                            <td style="padding: var(--spacing-lg) var,--spacing-xl);">@reservation.PartySize</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">
+                                @if (reservation.ReservationTables != null && reservation.ReservationTables.Any())
+                                {
+                                    var tableNumbers = string.Join(", ", reservation.ReservationTables.Select(rt => rt.Table.TableNumber));
+                                    <span>@tableNumbers</span>
+                                }
+                                else
+                                {
+                                    <span style="color: var(--text-muted);">-</span>
+                                }
+                            </td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);"><span class="reservation-status-badge @statusClass">@reservation.ReservationStatus.StatusName</span></td>
+                            <td style="padding: var(--spacing-lg) var,--spacing-xl);">@reservation.Duration min</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">
+                                @if (!string.IsNullOrWhiteSpace(reservation.Notes))
+                                {
+                                    <small style="color: var(--text-muted);">@reservation.Notes.Substring(0, Math.Min(30, reservation.Notes.Length))@(reservation.Notes.Length > 30 ? "..." : "")</small>
+                                }
+                                else
+                                {
+                                    <span style="color: var(--text-muted);">-</span>
+                                }
+                            </td>
+                            <td class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">
+                                <button type="button" class="action-btn action-edit" 
+                                        data-bs-toggle="modal" data-bs-target="#detailsModal@(reservation.ReservationID)">
+                                    <span class="material-symbols-outlined">visibility</span>
+                                    @L["View"]
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state" style="margin: var(--spacing-3xl) var,--spacing-md); padding: var(--spacing-3xl) var,--spacing-2xl);">
+            <span class="material-symbols-outlined empty-state-icon">event_busy</span>
+            <h3 style="margin-top: var(--spacing-xl); margin-bottom: var(--spacing-md);">@L["No Reservations Found"]</h3>
+            <p style="margin-bottom: var(--spacing-xl);">@L["No reservations match the selected filters."]</p>
+            <a asp-action="Reservations" class="btn btn-primary">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">refresh</span>
+                @L["Clear Filters"]
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+/* Stats Row Container */
+.stats-row-container {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.stat-cube-inline {
+    flex: 0 1 auto;
+    min-width: 180px;
+    max-width: 250px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+    text-decoration: none;
+}
+
+[data-theme="dark"] .stat-cube-inline {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.stat-cube-inline:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-cube-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-cube-red .stat-cube-icon {
+    background: linear-gradient(135deg, #E63946, #C41E3A);
+}
+
+.stat-cube-gold .stat-cube-icon {
+    background: linear-gradient(135deg, #D4AF37, #B8941E);
+}
+
+.stat-cube-green .stat-cube-icon {
+    background: linear-gradient(135deg, #2ECC71, #27AE60);
+}
+
+.stat-cube-blue .stat-cube-icon {
+    background: linear-gradient(135deg, #3498DB, #2980B9);
+}
+
+.stat-cube-orange .stat-cube-icon {
+    background: linear-gradient(135deg, #F39C12, #D68910);
+}
+
+.stat-cube-gray .stat-cube-icon {
+    background: linear-gradient(135deg, #95A5A6, #7F8C8D);
+}
+
+.stat-cube-icon .material-symbols-outlined {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-cube-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-cube-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-cube-label {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.users-table-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .users-table-container {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table thead {
+    background: rgba(212, 175, 55, 0.1);
+    border-bottom: 2px solid var(--border-primary);
+}
+
+[data-theme="dark"] .users-table thead {
+    background: rgba(212, 175, 55, 0.15);
+}
+
+.users-table th {
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.users-table tbody tr {
+    border-bottom: 1px solid var(--border-primary);
+    transition: background-color var(--transition-base);
+}
+
+.users-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.users-table tbody tr:hover {
+    background: rgba(212, 175, 55, 0.05);
+}
+
+[data-theme="dark"] .users-table tbody tr:hover {
+    background: rgba(212, 175, 55, 0.08);
+}
+
+.users-table td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.reservation-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: #F57C00;
+    border: 1px solid #FFA000;
+}
+
+.status-confirmed {
+    background: rgba(46, 204, 113, 0.2);
+    color: #27AE60;
+    border: 1px solid #2ECC71;
+}
+
+.status-seated {
+    background: rgba(52, 152, 219, 0.2);
+    color: #2980B9;
+    border: 1px solid #3498DB;
+}
+
+.status-completed {
+    background: rgba(149, 165, 166, 0.2);
+    color: #7F8C8D;
+    border: 1px solid #95A5A6;
+}
+
+.status-cancelled {
+    background: rgba(230, 57, 70, 0.2);
+    color: #C0392B;
+    border: 1px solid #E63946;
+}
+
+.reservation-type-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.type-prebooked {
+    background: rgba(52, 152, 219, 0.2);
+    color: #2980B9;
+    border: 1px solid #3498DB;
+}
+
+.type-walkin {
+    background: rgba(149, 165, 166, 0.2);
+    color: #7F8C8D;
+    border: 1px solid #95A5A6;
+}
+
+.user-type-badge {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    background: transparent;
+}
+
+.action-btn .material-symbols-outlined {
+    font-size: 1.125rem;
+}
+
+.action-edit {
+    color: var(--color-primary-blue);
+}
+
+.action-edit:hover {
+    background: rgba(52, 152, 219, 0.1);
+    color: #2980B9;
+}
+
+.empty-state {
+    margin: var(--spacing-3xl) var,--spacing-md);
+    padding: var(--spacing-3xl) var,--spacing-2xl);
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+}
+
+[data-theme="dark"] .empty-state {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-lg);
+}
+
+.empty-state h3 {
+    margin-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.empty-state p {
+    margin-bottom: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+</style>
+

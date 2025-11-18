@@ -1,0 +1,596 @@
+@model IEnumerable<FYP.Models.Reservation>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
+@{
+    ViewData["Title"] = L["My Reservations"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1400px; margin: 0 auto;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">
+                @L["My Reservations"]
+            </h1>
+            <p style="color: var(--text-secondary);">@L["View and manage all your bookings"]</p>
+        </div>
+        <a asp-controller="Customer" asp-action="Index" class="btn btn-primary">
+            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">add</span>
+            @L["New Reservation"]
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible" style="margin-bottom: var(--spacing-lg);">
+            <span class="material-symbols-outlined" style="vertical-align: middle;">error</span>
+            @TempData["Error"]
+        </div>
+    }
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible" style="margin-bottom: var(--spacing-lg);">
+            <span class="material-symbols-outlined" style="vertical-align: middle;">check_circle</span>
+            @TempData["Message"]
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        var upcoming = Model.Where(r => r.ReservationDate >= DateTime.UtcNow.Date && 
+                                        (r.ReservationStatus.StatusName == "Pending" || r.ReservationStatus.StatusName == "Confirmed")).Count();
+        var past = Model.Where(r => r.ReservationDate < DateTime.UtcNow.Date || 
+                                     r.ReservationStatus.StatusName == "Completed").Count();
+        var cancelled = Model.Where(r => r.ReservationStatus.StatusName == "Cancelled").Count();
+
+        <!-- Quick Stats -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="stats-card stats-success">
+                    <div class="stats-icon">
+                        <span class="material-symbols-outlined">event_available</span>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number">@upcoming</h3>
+                        <p class="stats-label">@L["Upcoming Reservations"]</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card stats-secondary">
+                    <div class="stats-icon">
+                        <span class="material-symbols-outlined">history</span>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number">@past</h3>
+                        <p class="stats-label">@L["Completed Reservations"]</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card stats-danger">
+                    <div class="stats-icon">
+                        <span class="material-symbols-outlined">cancel</span>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number">@cancelled</h3>
+                        <p class="stats-label">@L["Cancelled Reservations"]</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Reservations -->
+        var upcomingReservations = Model.Where(r => r.ReservationDate >= DateTime.UtcNow.Date && 
+                                                    (r.ReservationStatus.StatusName != "Completed" && r.ReservationStatus.StatusName != "Cancelled"))
+                                        .OrderBy(r => r.ReservationDate).ThenBy(r => r.ReservationTime);
+
+        @if (upcomingReservations.Any())
+        {
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="material-symbols-outlined">upcoming</span>
+                    @L["Upcoming Reservations"]
+                </h2>
+                <hr class="gold-hr" />
+            </div>
+
+            <div class="row g-4 mb-5">
+                @foreach (var reservation in upcomingReservations)
+                {
+                    var statusClass = reservation.ReservationStatus.StatusName switch
+                    {
+                        "Pending" => "status-pending",
+                        "Confirmed" => "status-confirmed",
+                        "Seated" => "status-seated",
+                        _ => "status-default"
+                    };
+
+                    <div class="col-md-6 col-lg-4">
+                        <div class="reservation-card-modern">
+                            <div class="reservation-card-header-modern">
+                                <div class="reservation-date-badge">
+                                    <span class="date-day">@reservation.ReservationDate.Day</span>
+                                    <span class="date-month">@reservation.ReservationDate.ToString("MMM")</span>
+                                    <span class="date-year">@reservation.ReservationDate.Year</span>
+                                </div>
+                                <span class="reservation-status-badge @statusClass">
+                                    @reservation.ReservationStatus.StatusName
+                                </span>
+                            </div>
+
+                            <div class="reservation-card-body-modern">
+                                <div class="reservation-time-large">
+                                    <span class="material-symbols-outlined">schedule</span>
+                                    @reservation.ReservationTime.ToString(@"HH\:mm")
+                                </div>
+
+                                <div class="reservation-info-grid">
+                                    <div class="info-item">
+                                        <span class="material-symbols-outlined">groups</span>
+                                        <span>@reservation.PartySize @(reservation.PartySize == 1 ? L["Guest"] : L["Guests"])</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="material-symbols-outlined">timer</span>
+                                        <span>@reservation.Duration @L["min"]</span>
+                                    </div>
+                                    @if (reservation.ReservationTables != null && reservation.ReservationTables.Any())
+                                    {
+                                        <div class="info-item">
+                                            <span class="material-symbols-outlined">table_restaurant</span>
+                                            <span>@L["Table"] @string.Join(", ", reservation.ReservationTables.Select(rt => rt.Table.TableNumber))</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(reservation.Notes))
+                                {
+                                    <div class="reservation-notes-modern">
+                                        <span class="material-symbols-outlined">notes</span>
+                                        <span>@reservation.Notes</span>
+                                    </div>
+                                }
+
+                                <div class="reservation-footer-modern">
+                                    <small class="text-muted">
+                                        @L["Booked"] @reservation.CreatedAt.ToString("dd/MM/yyyy")
+                                    </small>
+                                    @if (reservation.ReservationStatus.StatusName != "Cancelled" && reservation.ReservationStatus.StatusName != "Completed")
+                                    {
+                                        <form asp-controller="Customer" asp-action="CancelReservation" method="post" class="d-inline"
+                                              onsubmit="return confirm('@L["Are you sure you want to cancel this reservation?"]');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="reservationId" value="@reservation.ReservationID" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">cancel</span>
+                                                @L["Cancel"]
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Past & Cancelled Reservations -->
+        var pastReservations = Model.Where(r => r.ReservationDate < DateTime.UtcNow.Date || 
+                                                r.ReservationStatus.StatusName == "Completed" ||
+                                                r.ReservationStatus.StatusName == "Cancelled")
+                                    .OrderByDescending(r => r.ReservationDate).ThenByDescending(r => r.ReservationTime);
+
+        @if (pastReservations.Any())
+        {
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="material-symbols-outlined">history</span>
+                    @L["Past Reservations"]
+                </h2>
+                <hr class="gold-hr" />
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>@L["Date"]</th>
+                            <th>@L["Time"]</th>
+                            <th>@L["Party Size"]</th>
+                            <th>@L["Duration"]</th>
+                            <th>@L["Table"]</th>
+                            <th>@L["Status"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reservation in pastReservations)
+                        {
+                            var statusClass = reservation.ReservationStatus.StatusName switch
+                            {
+                                "Completed" => "status-completed",
+                                "Cancelled" => "status-cancelled",
+                                _ => "status-default"
+                            };
+
+                            <tr>
+                                <td data-label="@L["Date"]">
+                                    <strong>@reservation.ReservationDate.ToString("dd/MM/yyyy")</strong>
+                                </td>
+                                <td data-label="@L["Time"]">
+                                    @reservation.ReservationTime.ToString(@"HH\:mm")
+                                </td>
+                                <td data-label="@L["Party Size"]">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">groups</span>
+                                    @reservation.PartySize
+                                </td>
+                                <td data-label="@L["Duration"]">
+                                    @reservation.Duration @L["min"]
+                                </td>
+                                <td data-label="@L["Table"]">
+                                    @if (reservation.ReservationTables != null && reservation.ReservationTables.Any())
+                                    {
+                                        <span>@string.Join(", ", reservation.ReservationTables.Select(rt => rt.Table.TableNumber))</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td data-label="@L["Status"]">
+                                    <span class="reservation-status-badge @statusClass">
+                                        @reservation.ReservationStatus.StatusName
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <span class="material-symbols-outlined empty-state-icon">event_busy</span>
+            <h3>@L["No Reservations Yet"]</h3>
+            <p>@L["You don't have any reservations. Make your first booking to get started!"]</p>
+            <a asp-controller="Customer" asp-action="Index" class="btn btn-primary">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">add</span>
+                @L["Make Your First Reservation"]
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+.stats-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+}
+
+[data-theme="dark"] .stats-card {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stats-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stats-success .stats-icon {
+    background: linear-gradient(135deg, #2ECC71, #27AE60);
+}
+
+.stats-secondary .stats-icon {
+    background: linear-gradient(135deg, #D4AF37, #B8941E);
+}
+
+.stats-danger .stats-icon {
+    background: linear-gradient(135deg, #E63946, #C41E3A);
+}
+
+.stats-icon .material-symbols-outlined {
+    font-size: 2rem;
+    color: white;
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.stats-label {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+    font-size: 0.875rem;
+}
+
+.section-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.section-title .material-symbols-outlined {
+    color: var(--color-primary-gold);
+    font-size: 2rem;
+}
+
+.reservation-card-modern {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all var(--transition-base);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-theme="dark"] .reservation-card-modern {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.reservation-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-primary-gold);
+}
+
+.reservation-card-header-modern {
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.1), rgba(212, 175, 55, 0.1));
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+[data-theme="dark"] .reservation-card-header-modern {
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.2), rgba(212, 175, 55, 0.2));
+}
+
+.reservation-date-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg-card);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--color-primary-gold);
+}
+
+.date-day {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-primary-red);
+    line-height: 1;
+}
+
+.date-month {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.date-year {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.reservation-card-body-modern {
+    padding: var(--spacing-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.reservation-time-large {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.reservation-time-large .material-symbols-outlined {
+    color: var(--color-primary-gold);
+    font-size: 1.75rem;
+}
+
+.reservation-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.info-item .material-symbols-outlined {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+}
+
+.reservation-notes-modern {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: rgba(212, 175, 55, 0.1);
+    border-left: 3px solid var(--color-primary-gold);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-lg);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.reservation-notes-modern .material-symbols-outlined {
+    color: var(--color-primary-gold);
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+.reservation-footer-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-primary);
+    margin-top: auto;
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-3xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+}
+
+[data-theme="dark"] .empty-state {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-lg);
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.table-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .table-container {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.table thead {
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.1), rgba(212, 175, 55, 0.1));
+}
+
+[data-theme="dark"] .table thead {
+    background: linear-gradient(135deg, rgba(230, 57, 70, 0.2), rgba(212, 175, 55, 0.2));
+}
+
+.table th {
+    padding: var(--spacing-lg);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-primary);
+}
+
+.table td {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+}
+
+.table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+@@media (max-width: 768px) {
+    .table thead {
+        display: none;
+    }
+
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+    }
+
+    .table tr {
+        margin-bottom: var(--spacing-md);
+        border: 1px solid var(--border-primary);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+    }
+
+    .table td {
+        text-align: right;
+        padding: var(--spacing-sm) 0;
+        border: none;
+        position: relative;
+        padding-left: 50%;
+    }
+
+    .table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+}
+</style>

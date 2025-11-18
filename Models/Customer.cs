@@ -19,8 +19,10 @@ namespace FYP.Models
         [Required, StringLength(100), MinLength(2)]
         public string LastName { get; set; } = string.Empty;
 
-        [Phone, StringLength(20)]
-        public string? PhoneNumber { get; set; }
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [StringLength(20)]
+        public string PhoneNumber { get; set; } = string.Empty;
 
         [RegularExpression("English|French", ErrorMessage = "Must be English or French")]
         public string? PreferredLanguage { get; set; } = "English";

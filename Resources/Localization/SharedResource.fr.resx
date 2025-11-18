@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <!-- Existing keys -->
+  <data name="BrandName" xml:space="preserve"><value>Fine O Dine</value></data>
+  <data name="Language" xml:space="preserve"><value>Langue</value></data>
+  <data name="English" xml:space="preserve"><value>Anglais</value></data>
+  <data name="French" xml:space="preserve"><value>Français</value></data>
+  <data name="Login" xml:space="preserve"><value>Connexion</value></data>
+  <data name="Register" xml:space="preserve"><value>Inscription</value></data>
+  <data name="Book a Table" xml:space="preserve"><value>Réserver une Table</value></data>
+  <data name="Book a Table Now" xml:space="preserve"><value>Réserver Maintenant</value></data>
+  <data name="Make a Reservation" xml:space="preserve"><value>Faire une Réservation</value></data>
+  <data name="Guest Reservation Subtitle" xml:space="preserve"><value>Nous avons hâte de vous accueillir. Fournissez les détails pour confirmer votre réservation.</value></data>
+  <data name="About Us" xml:space="preserve"><value>À Propos</value></data>
+  <data name="Contact" xml:space="preserve"><value>Contact</value></data>
+  <data name="Explore More" xml:space="preserve"><value>Explorer Plus</value></data>
+  <data name="Hero Tagline" xml:space="preserve"><value>Une cuisine raffinée façonnée avec passion et finesse.</value></data>
+  <!-- Footer (reverted) -->
+  <data name="FooterQuote" xml:space="preserve"><value>« Où les saveurs rencontrent l'élégance et le temps ralentit. »</value></data>
+  <data name="FooterHours" xml:space="preserve"><value>Lun - Dim : 9 h - 0 h</value></data>
+  <data name="FooterRights" xml:space="preserve"><value>© 2025 Fine’O Dine. Tous droits réservés</value></data>
+  <!-- Home marketing -->
+  <data name="Experience Culinary Excellence" xml:space="preserve"><value>Vivez l'Excellence Culinaire</value></data>
+  <data name="WelcomeDescription" xml:space="preserve"><value>Votre application pour réserver les meilleures expériences culinaires.</value></data>
+  <data name="Why Dine With Us?" xml:space="preserve"><value>Pourquoi Dîner Chez Nous ?</value></data>
+  <data name="Discover what makes our dining experience unique." xml:space="preserve"><value>Découvrez ce qui rend notre expérience culinaire unique.</value></data>
+  <data name="Instant Booking" xml:space="preserve"><value>Réservation Instantanée</value></data>
+  <data name="Reserve your table in seconds with our seamless booking system." xml:space="preserve"><value>Réservez votre table en quelques secondes grâce à notre système intuitif.</value></data>
+  <data name="Artisanal Menu" xml:space="preserve"><value>Menu Artisanal</value></data>
+  <data name="Explore a curated menu of signature dishes made with the finest ingredients." xml:space="preserve"><value>Découvrez un menu de plats signatures élaborés avec des ingrédients de qualité.</value></data>
+  <data name="Unforgettable Ambiance" xml:space="preserve"><value>Ambiance Inoubliable</value></data>
+  <data name="Immerse yourself in a sophisticated and welcoming atmosphere." xml:space="preserve"><value>Plongez dans une atmosphère sophistiquée et accueillante.</value></data>
+  <data name="Menu Highlights" xml:space="preserve"><value>À la Carte</value></data>
+  <data name="A glimpse into our culinary creations." xml:space="preserve"><value>Un aperçu de nos créations culinaires.</value></data>
+  <data name="Fresh Salads" xml:space="preserve"><value>Salades Fraîches</value></data>
+  <data name="Artisan Pizza" xml:space="preserve"><value>Pizza Artisanale</value></data>
+  <data name="Signature Pasta" xml:space="preserve"><value>Pâtes Signatures</value></data>
+  <data name="Gourmet Burgers" xml:space="preserve"><value>Burgers Gourmets</value></data>
+  <data name="Reservations Served" xml:space="preserve"><value>Réservations Servies</value></data>
+  <data name="Customer Satisfaction" xml:space="preserve"><value>Satisfaction Client</value></data>
+  <data name="Awards Won" xml:space="preserve"><value>Prix Reçus</value></data>
+  <!-- Pending Confirmation Page -->
+  <data name="Pending Approval" xml:space="preserve"><value>En Attente d'Approbation</value></data>
+  <data name="Pending Confirmation" xml:space="preserve"><value>Confirmation en Attente</value></data>
+  <data name="Your account has been created and is awaiting your verification by email." xml:space="preserve"><value>Votre compte a été créé et attend votre vérification par email.</value></data>
+  <data name="Return Home" xml:space="preserve"><value>Retour à l'Accueil</value></data>
+  <!-- Customer Dashboard & Reservations -->
+  <data name="Customer Dashboard" xml:space="preserve"><value>Tableau de Bord Client</value></data>
+  <data name="Welcome" xml:space="preserve"><value>Bienvenue</value></data>
+  <data name="Manage your reservations and book your next exceptional meal" xml:space="preserve"><value>Gérez vos réservations et réservez votre prochain repas exceptionnel</value></data>
+  <data name="Upcoming" xml:space="preserve"><value>À Venir</value></data>
+  <data name="Past Visits" xml:space="preserve"><value>Visites Passées</value></data>
+  <data name="My Reservations" xml:space="preserve"><value>Mes Réservations</value></data>
+  <data name="View all your bookings" xml:space="preserve"><value>Voir toutes vos réservations</value></data>
+  <data name="New Reservation" xml:space="preserve"><value>Nouvelle Réservation</value></data>
+  <data name="Book a table now" xml:space="preserve"><value>Réserver une table maintenant</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Time" xml:space="preserve"><value>Heure</value></data>
+  <data name="Party Size" xml:space="preserve"><value>Nombre de Personnes</value></data>
+  <data name="Duration" xml:space="preserve"><value>Durée</value></data>
+  <data name="minutes" xml:space="preserve"><value>minutes</value></data>
+  <data name="Standard" xml:space="preserve"><value>Standard</value></data>
+  <data name="Special Requests" xml:space="preserve"><value>Demandes Spéciales</value></data>
+  <data name="Optional" xml:space="preserve"><value>Optionnel</value></data>
+  <data name="Any dietary restrictions or special occasions?" xml:space="preserve"><value>Des restrictions alimentaires ou occasions spéciales?</value></data>
+  <data name="Reserve Table" xml:space="preserve"><value>Réserver la Table</value></data>
+  <data name="Recent Reservations" xml:space="preserve"><value>Réservations Récentes</value></data>
+  <data name="You don't have any reservations yet. Make your first booking!" xml:space="preserve"><value>Vous n'avez pas encore de réservations. Faites votre première réservation!</value></data>
+  <data name="Guest" xml:space="preserve"><value>Invité</value></data>
+  <data name="Guests" xml:space="preserve"><value>Invités</value></data>
+  <data name="min" xml:space="preserve"><value>min</value></data>
+  <data name="Table" xml:space="preserve"><value>Table</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Are you sure you want to cancel this reservation?" xml:space="preserve"><value>Êtes-vous sûr de vouloir annuler cette réservation?</value></data>
+  <data name="View All Reservations" xml:space="preserve"><value>Voir Toutes les Réservations</value></data>
+  <data name="View and manage all your bookings" xml:space="preserve"><value>Voir et gérer toutes vos réservations</value></data>
+  <data name="Upcoming Reservations" xml:space="preserve"><value>Réservations à Venir</value></data>
+  <data name="Completed Reservations" xml:space="preserve"><value>Réservations Terminées</value></data>
+  <data name="Cancelled Reservations" xml:space="preserve"><value>Réservations Annulées</value></data>
+  <data name="Past Reservations" xml:space="preserve"><value>Réservations Passées</value></data>
+  <data name="Booked" xml:space="preserve"><value>Réservé le</value></data>
+  <data name="No Reservations Yet" xml:space="preserve"><value>Aucune Réservation</value></data>
+  <data name="You don't have any reservations. Make your first booking to get started!" xml:space="preserve"><value>Vous n'avez aucune réservation. Faites votre première réservation pour commencer!</value></data>
+  <data name="Make Your First Reservation" xml:space="preserve"><value>Faire Votre Première Réservation</value></data>
+  <data name="Status" xml:space="preserve"><value>Statut</value></data>
+  <!-- Admin Pages -->
+  <data name="Admin Dashboard" xml:space="preserve"><value>Tableau de Bord Admin</value></data>
+  <data name="Manage your restaurant operations" xml:space="preserve"><value>Gérez les opérations de votre restaurant</value></data>
+  <data name="Employees" xml:space="preserve"><value>Employés</value></data>
+  <data name="View and manage all employee accounts" xml:space="preserve"><value>Voir et gérer tous les comptes employés</value></data>
+  <data name="View Employees" xml:space="preserve"><value>Voir les Employés</value></data>
+  <data name="Table Management" xml:space="preserve"><value>Gestion des Tables</value></data>
+  <data name="View and manage restaurant tables" xml:space="preserve"><value>Voir et gérer les tables du restaurant</value></data>
+  <data name="Manage Tables" xml:space="preserve"><value>Gérer les Tables</value></data>
+  <data name="Restaurant Settings" xml:space="preserve"><value>Paramètres du Restaurant</value></data>
+  <data name="Manage key-value settings for the restaurant" xml:space="preserve"><value>Gérer les paramètres du restaurant</value></data>
+  <data name="Manage Settings" xml:space="preserve"><value>Gérer les Paramètres</value></data>
+  <data name="Manage employee accounts and permissions" xml:space="preserve"><value>Gérer les comptes et permissions des employés</value></data>
+  <data name="Add New Employee" xml:space="preserve"><value>Ajouter un Employé</value></data>
+  <data name="Total Employees" xml:space="preserve"><value>Total des Employés</value></data>
+  <data name="Total Managers" xml:space="preserve"><value>Total des Managers</value></data>
+  <data name="Total Customers" xml:space="preserve"><value>Total des Clients</value></data>
+  <data name="Active" xml:space="preserve"><value>Actif</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Inactif</value></data>
+  <data name="Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Phone Number" xml:space="preserve"><value>Numéro de Téléphone</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Edit" xml:space="preserve"><value>Modifier</value></data>
+  <data name="Deactivate" xml:space="preserve"><value>Désactiver</value></data>
+  <data name="Activate" xml:space="preserve"><value>Activer</value></data>
+  <data name="Delete" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Add" xml:space="preserve"><value>Ajouter</value></data>
+  <data name="Joined" xml:space="preserve"><value>Inscrit le</value></data>
+  <data name="Not provided" xml:space="preserve"><value>Non fourni</value></data>
+  <data name="No Employees Yet" xml:space="preserve"><value>Aucun Employé</value></data>
+  <data name="Add your first employee to get started" xml:space="preserve"><value>Ajoutez votre premier employé pour commencer</value></data>
+  <data name="Are you sure you want to delete {0} {1}? This action cannot be undone." xml:space="preserve"><value>Êtes-vous sûr de vouloir supprimer {0} {1}? Cette action est irréversible.</value></data>
+  <data name="Tables" xml:space="preserve"><value>Tables</value></data>
+  <data name="Manage restaurant table configuration" xml:space="preserve"><value>Gérer la configuration des tables du restaurant</value></data>
+  <data name="Add New Table" xml:space="preserve"><value>Ajouter une Table</value></data>
+  <data name="Total Tables" xml:space="preserve"><value>Total des Tables</value></data>
+  <data name="Available" xml:space="preserve"><value>Disponible</value></data>
+  <data name="Joinable" xml:space="preserve"><value>Joignable</value></data>
+  <data name="Total Capacity" xml:space="preserve"><value>Capacité Totale</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>Indisponible</value></data>
+  <data name="Table Number" xml:space="preserve"><value>Numéro de Table</value></data>
+  <data name="Capacity" xml:space="preserve"><value>Capacité</value></data>
+  <data name="people" xml:space="preserve"><value>personnes</value></data>
+  <data name="Yes" xml:space="preserve"><value>Oui</value></data>
+  <data name="No" xml:space="preserve"><value>Non</value></data>
+  <data name="Make Unavailable" xml:space="preserve"><value>Rendre Indisponible</value></data>
+  <data name="Make Available" xml:space="preserve"><value>Rendre Disponible</value></data>
+  <data name="No Tables Yet" xml:space="preserve"><value>Aucune Table</value></data>
+  <data name="Add your first table to get started" xml:space="preserve"><value>Ajoutez votre première table pour commencer</value></data>
+  <data name="Are you sure you want to delete Table {0}? This action cannot be undone." xml:space="preserve"><value>Êtes-vous sûr de vouloir supprimer la Table {0}? Cette action est irréversible.</value></data>
+  <!-- Customer Profile & Reservations -->
+  <data name="Edit Profile" xml:space="preserve"><value>Modifier le Profil</value></data>
+  <data name="Update your personal information" xml:space="preserve"><value>Mettez à jour vos informations personnelles</value></data>
+  <data name="First Name" xml:space="preserve"><value>Prénom</value></data>
+  <data name="Last Name" xml:space="preserve"><value>Nom</value></data>
+  <data name="Email Address" xml:space="preserve"><value>Adresse Email</value></data>
+  <data name="Email cannot be changed. Contact support if needed." xml:space="preserve"><value>L'email ne peut pas être modifié. Contactez le support si nécessaire.</value></data>
+  <data name="Preferred Language" xml:space="preserve"><value>Langue Préférée</value></data>
+  <data name="Profile Picture" xml:space="preserve"><value>Photo de Profil</value></data>
+  <data name="Leave empty to keep current picture" xml:space="preserve"><value>Laissez vide pour conserver la photo actuelle</value></data>
+  <data name="Include country code (e.g., +1 for US, +961 for Lebanon)" xml:space="preserve"><value>Incluez le code pays (ex: +1 pour US, +961 pour Liban)</value></data>
+  <data name="Save Changes" xml:space="preserve"><value>Enregistrer les Modifications</value></data>
+  <data name="Reserve your table for an exceptional dining experience" xml:space="preserve"><value>Réservez votre table pour une expérience culinaire exceptionnelle</value></data>
+  <data name="Reservation Name" xml:space="preserve"><value>Nom de la Réservation</value></data>
+  <data name="e.g., Birthday Dinner, Anniversary" xml:space="preserve"><value>ex: Dîner d'Anniversaire, Anniversaire</value></data>
+  <data name="Give your reservation a memorable name" xml:space="preserve"><value>Donnez un nom mémorable à votre réservation</value></data>
+  <data name="Back to Dashboard" xml:space="preserve"><value>Retour au Tableau de Bord</value></data>
+  <data name="Book" xml:space="preserve"><value>Réserver</value></data>
+  <data name="New Table" xml:space="preserve"><value>Nouvelle Table</value></data>
+  <data name="No Reservations Yet" xml:space="preserve"><value>Aucune Réservation</value></data>
+  <data name="Make Your First Reservation" xml:space="preserve"><value>Faire Votre Première Réservation</value></data>
+</root>

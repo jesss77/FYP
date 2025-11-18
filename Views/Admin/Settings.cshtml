@@ -1,44 +1,416 @@
 ﻿@model IEnumerable<FYP.Models.Settings>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
     ViewData["Title"] = L["Settings"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5 table-container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="gold-heading mb-0">@ViewData["Title"]</h2>
+<div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1400px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
+
+    @if (TempData["Success"] != null)
+    {
+        { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: var(--spacing-2xl); padding: 0 var(--spacing-md);">
+        <div>
+            <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-xs);">
+                @ViewData["Title"]
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1rem;">
+                @L["Manage restaurant configuration settings"]
+            </p>
+        </div>
         <a class="btn btn-primary" href="@Url.Action("CreateSetting", "Admin")">
-            <i class="bi bi-plus-circle"></i> @L["Add New Setting"]
+            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">add_circle</span>
+            @L["Add New Setting"]
         </a>
     </div>
 
-    <table class="table table-dark table-hover align-middle">
-        <thead>
-            <tr>
-                <th>@L["Key"]</th>
-                <th>@L["Value"]</th>
-                <th>@L["Created By"]</th>
-                <th>@L["Updated By"]</th>
-                <th class="text-center">@L["Actions"]</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var setting in Model)
+    @if (Model != null && Model.Any())
+    {
+        <!-- Stats Row -->
+        <div class="stats-row-container" style="margin-bottom: var(--spacing-3xl); padding: 0 var(--spacing-md);">
+            <div class="stat-cube-inline stat-cube-gold">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">settings</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Count()</h3>
+                    <p class="stat-cube-label">@L["Total Settings"]</p>
+                </div>
+            </div>
+
+            <div class="stat-cube-inline stat-cube-blue">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Count(s => !string.IsNullOrWhiteSpace(s.Value))</h3>
+                    <p class="stat-cube-label">@L["Configured"]</p>
+                </div>
+            </div>
+
+            <a href="@Url.Action("CreateSetting", "Admin")" class="stat-cube-inline stat-cube-green stat-cube-clickable">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">add_circle</span>
+                </div>
+                <div class="stat-cube-content">
+                    <p class="stat-cube-label-large">@L["Add New"]</p>
+                    <p class="stat-cube-sublabel">@L["Setting"]</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Settings Cards Grid -->
+        <div class="row g-4" style="padding: 0 var(--spacing-md); margin-top: var(--spacing-xl);">
+            @foreach (var setting in Model.OrderBy(s => s.Key))
             {
-                <tr>
-                    <td>@setting.Key</td>
-                    <td>@setting.Value</td>
-                    <td>@setting.CreatedBy</td>
-                    <td>@setting.UpdatedBy</td>
-                    <td class="text-center">
-                        <a class="btn btn-sm btn-warning me-1" href="@Url.Action("EditSetting", "Admin", new { id = setting.SettingsID })">
-                            <i class="bi bi-pencil-square"></i> @L["Edit"]
-                        </a>
-                        <a class="btn btn-sm btn-danger" href="@Url.Action("DeleteSetting", "Admin", new { id = setting.SettingsID })">
-                            <i class="bi bi-trash"></i> @L["Delete"]
-                        </a>
-                    </td>
-                </tr>
+                <div class="col-md-6 col-lg-4">
+                    <div class="setting-card">
+                        <div class="setting-card-header">
+                            <div class="setting-icon-badge">
+                                <span class="material-symbols-outlined">tune</span>
+                            </div>
+                            <div class="setting-key">
+                                <h4>@setting.Key</h4>
+                            </div>
+                        </div>
+
+                        <div class="setting-card-body">
+                            <div class="setting-value-section">
+                                <label class="setting-label">@L["Value"]</label>
+                                <div class="setting-value">@setting.Value</div>
+                            </div>
+
+                            <div class="setting-meta">
+                                <div class="setting-meta-item">
+                                    <span class="material-symbols-outlined">person</span>
+                                    <div>
+                                        <small class="setting-meta-label">@L["Created By"]</small>
+                                        <div class="setting-meta-value">@setting.CreatedBy</div>
+                                    </div>
+                                </div>
+                                <div class="setting-meta-item">
+                                    <span class="material-symbols-outlined">schedule</span>
+                                    <div>
+                                        <small class="setting-meta-label">@L["Updated"]</small>
+                                        <div class="setting-meta-value">@setting.UpdatedAt.ToString("MMM dd, yyyy")</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-card-footer">
+                            <a class="btn btn-sm btn-outline-primary flex-fill" href="@Url.Action("EditSetting", "Admin", new { id = setting.SettingsID })">
+                                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">edit</span>
+                                @L["Edit"]
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger flex-fill" 
+                                    onclick="if(confirm('@L["Are you sure you want to delete this setting? This action cannot be undone."]')) window.location.href='@Url.Action("DeleteSetting", "Admin", new { id = setting.SettingsID })'">
+                                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">delete</span>
+                                @L["Delete"]
+                            </button>
+                        </div>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state" style="margin-top: var(--spacing-3xl); padding: var(--spacing-3xl) var(--spacing-2xl);">
+            <span class="material-symbols-outlined empty-state-icon">settings_suggest</span>
+            <h3 style="margin-top: var(--spacing-xl); margin-bottom: var(--spacing-md);">@L["No Settings Yet"]</h3>
+            <p style="margin-bottom: var(--spacing-xl);">@L["Add your first setting to configure the restaurant"]</p>
+            <a class="btn btn-primary" href="@Url.Action("CreateSetting", "Admin")">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">add_circle</span>
+                @L["Add New Setting"]
+            </a>
+        </div>
+    }
 </div>
+
+<style>
+/* Stats Row Container */
+.stats-row-container {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.stat-cube-inline {
+    flex: 0 1 auto;
+    min-width: 200px;
+    max-width: 280px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+    text-decoration: none;
+}
+
+[data-theme="dark"] .stat-cube-inline {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.stat-cube-inline:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-cube-clickable:hover {
+    border-color: var(--color-primary-gold);
+    cursor: pointer;
+}
+
+.stat-cube-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-cube-gold .stat-cube-icon {
+    background: linear-gradient(135deg, #D4AF37, #B8941E);
+}
+
+.stat-cube-blue .stat-cube-icon {
+    background: linear-gradient(135deg, #3498DB, #2980B9);
+}
+
+.stat-cube-green .stat-cube-icon {
+    background: linear-gradient(135deg, #2ECC71, #27AE60);
+}
+
+.stat-cube-icon .material-symbols-outlined {
+    font-size: 1.75rem;
+    color: white;
+}
+
+.stat-cube-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-cube-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-cube-label {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-cube-label-large {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.stat-cube-sublabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Setting Cards */
+.setting-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all var(--transition-base);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-theme="dark"] .setting-card {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.setting-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-primary-gold);
+}
+
+.setting-card-header {
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(52, 152, 219, 0.1));
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+[data-theme="dark"] .setting-card-header {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(52, 152, 219, 0.2));
+}
+
+.setting-icon-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: var(--color-primary-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+}
+
+.setting-icon-badge .material-symbols-outlined {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.setting-key h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.setting-card-body {
+    padding: var(--spacing-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.setting-value-section {
+    background: rgba(212, 175, 55, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+[data-theme="dark"] .setting-value-section {
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.setting-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--spacing-xs) 0;
+    display: block;
+}
+
+.setting-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.setting-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.setting-meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.setting-meta-item .material-symbols-outlined {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+}
+
+.setting-meta-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    display: block;
+}
+
+.setting-meta-value {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.setting-card-footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid var(--border-primary);
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.setting-card-footer .btn {
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+}
+
+[data-theme="dark"] .empty-state {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    color: var(--text-muted);
+    display: inline-block;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+}
+</style>

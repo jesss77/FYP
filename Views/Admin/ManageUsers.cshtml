@@ -1,0 +1,110 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
+@{
+    ViewData["Title"] = L["Manage Users"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var activeTab = ViewBag.ActiveTab ?? "managers";
+}
+
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1400px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
+
+    @if (TempData["Success"] != null)
+    {
+        { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+        <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+    }
+
+    <!-- Header -->
+    <div style="margin-bottom: var(--spacing-2xl);">
+        <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-xs);">
+            @L["Manage Users"]
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1rem;">
+            @L["View and manage all system users"]
+        </p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="user-tabs mb-4">
+        <button class="user-tab @(activeTab == "managers" ? "active" : "")" 
+                onclick="location.href='@Url.Action("ManageUsers", new { category = "managers" })'">
+            <span class="material-symbols-outlined">admin_panel_settings</span>
+            @L["Managers"]
+        </button>
+        <button class="user-tab @(activeTab == "employees" ? "active" : "")" 
+                onclick="location.href='@Url.Action("ManageUsers", new { category = "employees" })'">
+            <span class="material-symbols-outlined">badge</span>
+            @L["Employees"]
+        </button>
+        <button class="user-tab @(activeTab == "customers" ? "active" : "")" 
+                onclick="location.href='@Url.Action("ManageUsers", new { category = "customers" })'">
+            <span class="material-symbols-outlined">person</span>
+            @L["Customers"]
+        </button>
+    </div>
+
+    <!-- Content -->
+    @if (activeTab == "managers")
+    {
+        <partial name="_ManagersPartial" model="ViewBag.Managers" />
+    }
+    else if (activeTab == "employees")
+    {
+        <partial name="_EmployeesPartial" model="ViewBag.Employees" />
+    }
+    else if (activeTab == "customers")
+    {
+        <partial name="_CustomersPartial" model="ViewBag.Customers" />
+    }
+</div>
+
+<style>
+.user-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    border-bottom: 2px solid var(--border-primary);
+    padding-bottom: 0;
+}
+
+.user-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+    margin-bottom: -2px;
+}
+
+.user-tab .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.user-tab:hover {
+    color: var(--color-primary-gold);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.user-tab.active {
+    color: var(--color-primary-gold);
+    border-bottom-color: var(--color-primary-gold);
+}
+
+[data-theme="dark"] .user-tab:hover {
+    background: rgba(212, 175, 55, 0.1);
+}
+</style>

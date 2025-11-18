@@ -1,35 +1,60 @@
 ﻿@{
-    // Keep the layout reference at the top.
+    ViewData["Title"] = L["Contact Us Title"];
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/css/Contact-Us.css" asp-append-version="true" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- Contact Hero Section -->
+<section class="contact-hero-section">
+    <div class="contact-hero-overlay"></div>
+    <div class="contact-hero-content">
+        <h1 class="contact-hero-title">@L["Contact Us Title"]</h1>
+        <p class="contact-hero-subtitle">@L["We'd love to hear from you. Reach out to us through any of the channels below."]</p>
+    </div>
+</section>
 
-<div class="content-container contact-container">
-    <h1>@L["Contact Us Title"]</h1>
+<!-- Contact Information Section -->
+<section class="section section-bg-primary">
+    <div class="container-custom">
+        <div class="contact-grid">
+            <div class="contact-card glassmorphic-card">
+                <div class="contact-icon">
+                    <img src="~/pics/icons/phone.svg" asp-append-version="true" alt="Phone" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/phone.png")'" />
+                </div>
+                <h3 class="contact-card-title">@L["Call us on"]</h3>
+                <p class="contact-card-text">
+                    <a href="tel:+96181468864" class="contact-link">+961 81 468 864</a>
+                </p>
+            </div>
 
-    <ul class="contact-list">
+            <div class="contact-card glassmorphic-card">
+                <div class="contact-icon">
+                    <img src="~/pics/icons/mail.svg" asp-append-version="true" alt="Email" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/mail.png")'" />
+                </div>
+                <h3 class="contact-card-title">@L["E-mail us at"]</h3>
+                <p class="contact-card-text">
+                    <a href="mailto:FineODine@gmail.com" class="contact-link">FineODine@gmail.com</a>
+                </p>
+            </div>
 
-        <li class="contact-item">
-            <span class="icon-placeholder"><i class="fab fa-instagram"></i></span>
-            <span>@L["Follow us on Instagram"] : <a href="https://www.instagram.com/Fine_O_Dine" target="_blank">@@Fine_O_Dine</a></span>
-        </li>
+            <div class="contact-card glassmorphic-card">
+                <div class="contact-icon">
+                    <img src="~/pics/icons/insta.svg" asp-append-version="true" alt="Instagram" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/insta.png")'" />
+                </div>
+                <h3 class="contact-card-title">@L["Follow us on Instagram"]</h3>
+                <p class="contact-card-text">
+                    <a href="https://www.instagram.com/Fine_O_Dine" target="_blank" rel="noopener noreferrer" class="contact-link">@@Fine_O_Dine</a>
+                </p>
+            </div>
 
-        <li class="contact-item">
-            <span class="icon-placeholder"><i class="fab fa-facebook"></i></span>
-            <span>@L["Follow us on Facebook"] : <a href="https://www.facebook.com/Fine_O_Dine" target="_blank">Fine_O_Dine</a></span>
-        </li>
-
-        <li class="contact-item">
-            <span class="icon-placeholder"><i class="fab fa-whatsapp"></i></span>
-            <span>@L["Call us on"] : <a href="tel:+96181468864">+961 81 468 864</a></span>
-        </li>
-
-        <li class="contact-item">
-            <span class="icon-placeholder"><i class="fas fa-envelope"></i></span>
-            <span>@L["E-mail us at"] : <a href="mailto:FineODine@gmail.com">FineODine@gmail.com</a></span>
-        </li>
-
-    </ul>
-</div>
+            <div class="contact-card glassmorphic-card">
+                <div class="contact-icon">
+                    <img src="~/pics/icons/fb.svg" asp-append-version="true" alt="Facebook" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/fb.png")'" />
+                </div>
+                <h3 class="contact-card-title">@L["Follow us on Facebook"]</h3>
+                <p class="contact-card-text">
+                    <a href="https://www.facebook.com/Fine_O_Dine" target="_blank" rel="noopener noreferrer" class="contact-link">Fine_O_Dine</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>

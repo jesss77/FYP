@@ -1,0 +1,185 @@
+@model IEnumerable<FYP.Models.Customer>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
+
+<div class="user-section">
+    @if (Model != null && Model.Any())
+    {
+        <!-- Stats Row -->
+        <div class="stats-row-container" style="margin-bottom: var(--spacing-2xl);">
+            <a href="@Url.Action("ManageUsers", "Admin", new { category = "customers" })" class="stat-cube-inline stat-cube-green stat-cube-clickable">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">person</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@Model.Count()</h3>
+                    <p class="stat-cube-label">@L["Total Customers"]</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Table -->
+        <div class="users-table-container" style="margin-top: var(--spacing-xl);">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Name"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Email"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Phone"]</th>
+                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Joined"]</th>
+                        <th class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.OrderBy(c => c.FirstName))
+                    {
+                        <tr>
+                            <td class="user-name" style="padding: var(--spacing-lg) var(--spacing-xl);">@c.FirstName @c.LastName</td>
+                            <td class="user-email" style="padding: var(--spacing-lg) var(--spacing-xl);">@c.Email</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@(c.PhoneNumber ?? L["Not provided"])</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@c.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">
+                                <div class="action-buttons">
+                                    <a class="action-btn action-edit" href="@Url.Action("EditCustomer", "Admin", new { id = c.CustomerID })" title="@L["Edit"]">
+                                        <span class="material-symbols-outlined">edit</span>
+                                        @L["Edit"]
+                                    </a>
+                                    <button class="action-btn action-delete" 
+                                            onclick="if(confirm('@L["Are you sure you want to delete {0} {1}? This action cannot be undone.", c.FirstName, c.LastName]')) window.location.href='@Url.Action("DeleteUser", "Admin", new { id = c.CustomerID, role = "customer" })'"
+                                            title="@L["Delete"]">
+                                        <span class="material-symbols-outlined">delete</span>
+                                        @L["Delete"]
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state" style="margin-top: var(--spacing-2xl); padding: var(--spacing-3xl) var(--spacing-2xl);">
+            <span class="material-symbols-outlined empty-state-icon">person_off</span>
+            <h3 style="margin-top: var(--spacing-xl); margin-bottom: var(--spacing-md);">@L["No Customers Yet"]</h3>
+            <p style="margin-bottom: var(--spacing-xl);">@L["Customers will appear here once they register."]</p>
+        </div>
+    }
+</div>
+
+<style>
+/* Stats Row Container */
+.stats-row-container {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.stat-cube-inline {
+    flex: 0 1 auto;
+    min-width: 200px;
+    max-width: 280px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+    text-decoration: none;
+}
+
+[data-theme="dark"] .stat-cube-inline {
+    background: rgba(58, 58, 58, 0.5);
+    border-color: rgba(85, 85, 85, 0.4);
+}
+
+.stat-cube-inline:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-cube-clickable:hover {
+    border-color: var(--color-primary-gold);
+    cursor: pointer;
+}
+
+.stat-cube-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-cube-green .stat-cube-icon {
+    background: linear-gradient(135deg, #2ECC71, #27AE60);
+}
+
+.stat-cube-purple .stat-cube-icon {
+    background: linear-gradient(135deg, #9B59B6, #8E44AD);
+}
+
+.stat-cube-gold .stat-cube-icon {
+    background: linear-gradient(135deg, #D4AF37, #B8941E);
+}
+
+.stat-cube-blue .stat-cube-icon {
+    background: linear-gradient(135deg, #3498DB, #2980B9);
+}
+
+.stat-cube-red .stat-cube-icon {
+    background: linear-gradient(135deg, #E63946, #C41E3A);
+}
+
+.stat-cube-icon .material-symbols-outlined {
+    font-size: 1.75rem;
+    color: white;
+}
+
+.stat-cube-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-cube-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-cube-label {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-cube-label-large {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.stat-cube-sublabel {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 600;
+}
+
+.user-section {
+    padding: var(--spacing-lg);
+}
+</style>

@@ -83,5 +83,69 @@ namespace FYP.Services
 
             await SendEmailAsync(user.Email, "Confirm your email", message);
         }
+
+        public async Task SendTableAllocationEmailAsync(string email, string customerName, DateTime reservationDate, TimeSpan reservationTime, int partySize, string tableInfo)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentNullException(nameof(email));
+
+            string message = $@"
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background: linear-gradient(135deg, #D4AF37, #B8941E); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                        .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                        .detail-row {{ margin: 15px 0; padding: 10px; background: white; border-left: 4px solid #D4AF37; }}
+                        .label {{ font-weight: bold; color: #555; }}
+                        .value {{ color: #333; font-size: 1.1em; }}
+                        .footer {{ text-align: center; margin-top: 20px; color: #888; font-size: 0.9em; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1 style='margin: 0;'>🎉 Table Allocated!</h1>
+                            <p style='margin: 10px 0 0 0;'>Your reservation has been confirmed</p>
+                        </div>
+                        <div class='content'>
+                            <p>Dear {customerName},</p>
+                            <p>Great news! Your table has been allocated for your upcoming reservation at <strong>Fine O Dine</strong>.</p>
+                            
+                            <div class='detail-row'>
+                                <span class='label'>📅 Date:</span>
+                                <span class='value'>{reservationDate:dddd, MMMM dd, yyyy}</span>
+                            </div>
+                            
+                            <div class='detail-row'>
+                                <span class='label'>🕐 Time:</span>
+                                <span class='value'>{reservationTime:hh\\:mm} </span>
+                            </div>
+                            
+                            <div class='detail-row'>
+                                <span class='label'>👥 Party Size:</span>
+                                <span class='value'>{partySize} {(partySize == 1 ? "guest" : "guests")}</span>
+                            </div>
+                            
+                            <div class='detail-row'>
+                                <span class='label'>🪑 Table Assignment:</span>
+                                <span class='value'>{tableInfo}</span>
+                            </div>
+                            
+                            <p style='margin-top: 30px;'>We look forward to serving you. Please arrive on time to ensure your table is ready.</p>
+                            
+                            <p><strong>Need to make changes?</strong> Please contact us as soon as possible.</p>
+                        </div>
+                        <div class='footer'>
+                            <p>Fine O Dine - Where flavors meet elegance</p>
+                            <p>© 2025 Fine O Dine. All Rights Reserved</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(email, "Table Allocated - Reservation Confirmed", message);
+        }
     }
 }
