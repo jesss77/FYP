@@ -155,7 +155,27 @@ namespace FYP.Data
                 {
                     SettingsID = 2,
                     Key = "Opening Hours",
-                    Value = "10 AM - 10 PM",
+                    Value = "10:00 - 22:00",
+                    CreatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedBy = "system"
+                },
+                new Settings
+                {
+                    SettingsID = 3,
+                    Key = "Phone",
+                    Value = "+1 555 123 4567",
+                    CreatedBy = "system",
+                    CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
+                    UpdatedBy = "system"
+                },
+                new Settings
+                {
+                    SettingsID = 4,
+                    Key = "Staff Number",
+                    Value = "0",
                     CreatedBy = "system",
                     CreatedAt = new DateTime(2025, 10, 16, 12, 0, 0),
                     UpdatedAt = new DateTime(2025, 10, 16, 12, 0, 0),

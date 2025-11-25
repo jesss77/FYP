@@ -1,0 +1,156 @@
+/* Admin and page-specific overrides moved out of Razor views */
+
+/* Higher-specificity rules to ensure these styles are applied for admin settings */
+.container-custom .admin-settings-grid { margin-top: var(--spacing-xl); padding: 0 var(--spacing-md); }
+.container-custom .admin-settings-grid > .col-12.col-sm-6.col-md-4 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Ensure cards do not collapse and fill their columns */
+.container-custom .admin-settings-grid .setting-card {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure header/body/footer paddings apply */
+.container-custom .admin-settings-grid .setting-card-header,
+.container-custom .admin-settings-grid .setting-card-body,
+.container-custom .admin-settings-grid .setting-card-footer {
+    padding-left: calc(var(--spacing-md) * 0.8) !important;
+    padding-right: calc(var(--spacing-md) * 0.8) !important;
+}
+
+.container-custom .admin-settings-grid .setting-card-footer .btn {
+    width: 100% !important;
+}
+
+/* Edit button gold enforcement */
+.container-custom .admin-settings-grid .setting-card-footer .btn-gold {
+    background: linear-gradient(135deg, var(--color-primary-gold), var(--color-primary-gold-dark)) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 6px rgba(212,175,55,0.25) !important;
+    border: none !important;
+}
+
+/* Edit profile actions */
+.profile-action-buttons { margin-top: var(--spacing-lg); display:flex; gap:var(--spacing-md); align-items:flex-start; flex-wrap:wrap; }
+.save-btn { flex: 0 0 auto; min-width: 220px; }
+.action-group { display: flex; justify-content: flex-end; align-items: center; gap: var(--spacing-sm); margin-left: auto; }
+.action-group .btn { min-width: 0; flex: 1 1 0; padding: 0.75rem 1rem; }
+.logout-btn { background: var(--color-primary-red) !important; color: #fff !important; border-color: var(--color-primary-red) !important; }
+.cancel-btn { background: var(--bg-secondary) !important; color: var(--text-primary) !important; border-color: var(--border-primary) !important; }
+
+/* Compact variant for settings cards */
+.setting-card-compact .setting-card-header { padding: calc(var(--spacing-md) * 0.6) !important; }
+.setting-card-compact .setting-card-body { padding: calc(var(--spacing-md) * 0.6) !important; }
+.setting-card-compact .setting-value-section { padding: calc(var(--spacing-sm) * 0.6) !important; }
+.setting-card-compact .setting-key h4 { font-size: 1rem !important; }
+.setting-card-compact { border-radius: calc(var(--radius-md)) !important; }
+
+/* Ensure buttons responsive on small screens */
+@media (max-width: 576px) {
+    .profile-action-buttons { flex-direction: column; }
+    .save-btn { width: 100%; }
+    .action-group { width: 100%; margin-left: 0; justify-content: space-between; }
+    .action-group .btn { width: 48%; flex: none; }
+}
+
+/* Force 3 columns per row at md breakpoint */
+@media (min-width: 768px) {
+    .container-custom .admin-settings-grid > .col-md-4 { flex: 0 0 33.333333% !important; max-width: 33.333333% !important; }
+}
+
+/* Search toggle styles for admin settings */
+.admin-search-wrapper {
+    display:flex;
+    align-items:center;
+    gap:var(--spacing-sm);
+}
+.admin-search-toggle {
+    background: transparent;
+    border: 2px solid var(--border-primary);
+    color: var(--text-primary);
+    width: 2.5rem;
+    height: 2.5rem;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:var(--radius-md);
+    cursor:pointer;
+}
+.admin-search-toggle .material-symbols-outlined { font-size:1.125rem; }
+
+.admin-search-input {
+    display:none; /* toggled via JS */
+    transition: width 200ms ease, opacity 200ms ease;
+    width: 0;
+    opacity: 0;
+    border: 2px solid var(--border-primary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+}
+.admin-search-input.show {
+    display:inline-block;
+    width: 320px;
+    opacity: 1;
+}
+
+/* Right-align search in header */
+.settings-header-actions { display:flex; align-items:center; gap:var(--spacing-md); }
+
+/* Style stats boxes to match admin theme */
+.stats-row-container {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-bottom: var(--spacing-2xl);
+}
+.stat-cube-inline {
+    flex: 0 1 auto;
+    min-width: 200px;
+    max-width: 340px;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+}
+.stat-cube-inline:hover, .stat-cube-clickable:hover {
+    border-color: var(--color-primary-gold);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-cube-icon { width: 56px; height: 56px; border-radius: var(--radius-lg); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.stat-cube-icon .material-symbols-outlined { font-size:1.75rem; color:white; }
+.stat-cube-content { flex:1; min-width:0; }
+.stat-cube-number { font-size:2rem; font-weight:800; color:var(--text-primary); margin:0; line-height:1; }
+.stat-cube-label { color:var(--text-secondary); margin:var(--spacing-xs) 0 0 0; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+.stat-cube-badge {
+    margin-top: var(--spacing-xs);
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+    background: rgba(212,175,55,0.12);
+    color: var(--color-primary-gold);
+    font-weight: 700;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .admin-search-input.show { width: 100%; }
+    .stat-cube-inline { min-width: 100%; }
+}

@@ -36,6 +36,17 @@
                 <label class="form-label">@L["Time"]</label>
                 <input name="ReservationTime" type="time" class="form-control" required />
             </div>
+
+            <div class="col-md-4">
+                <label class="form-label">@L["Duration"]</label>
+                <select name="Duration" class="form-select">
+                    <option value="">@L["Default (auto)"]</option>
+                    <option value="45">@L["45 minutes"]</option>
+                    <option value="60">@L["1 hour"]</option>
+                    <option value="90">@L["1 hour 30 minutes"]</option>
+                    <option value="120">@L["2 hours"]</option>
+                </select>
+            </div>
         </div>
 
 @if (showGuestName)
@@ -62,27 +73,6 @@
         <div class="mt-3">
             <label class="form-label">@L["Notes (optional)"]</label>
             <textarea name="Notes" class="form-control" rows="3" placeholder="Allergies, seating preference, occasion..."></textarea>
-        </div>
-
-        <div class="mt-3">
-            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#moreOptions" aria-expanded="false" aria-controls="moreOptions">
-                @L["More Options"]
-            </button>
-        </div>
-
-        <div class="collapse mt-3" id="moreOptions">
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label">@L["Duration"]</label>
-                    <select name="Duration" class="form-select">
-                        <option value="">@L["Default (auto)"]</option>
-                        <option value="45">@L["45 minutes"]</option>
-                        <option value="60">@L["1 hour"]</option>
-                        <option value="90">@L["1 hour 30 minutes"]</option>
-                        <option value="120">@L["2 hours"]</option>
-                    </select>
-                </div>
-            </div>
         </div>
 
         <div class="mt-4">

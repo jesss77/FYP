@@ -1,12 +1,32 @@
-﻿@model FYP.Models.Customer
+﻿@model FYP.ViewModels.CustomerCreateViewModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
     ViewData["Title"] = L["Customer Registration"];
 }
 
 <div class="center-container">
-    <div class="register-form">
+    <div class="register-form" style="max-width: 700px; margin-top: 1.5rem;">
         <h2 class="gold-heading">@ViewData["Title"]</h2>
         <hr class="gold-hr" />
+
+        <!-- Profile preview -->
+        <div style="text-align:center; margin-bottom: var(--spacing-lg);">
+            <div class="profile-picture-large" id="profilePicturePreview">
+                @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
+                {
+                    var mime = "image/jpeg";
+                    if (Model.PictureBytes.Length >= 4 && Model.PictureBytes[0] == 0x89 && Model.PictureBytes[1] == 0x50) { mime = "image/png"; }
+                    else if (Model.PictureBytes.Length >= 2 && Model.PictureBytes[0] == 0xFF && Model.PictureBytes[1] == 0xD8) { mime = "image/jpeg"; }
+                    else if (Model.PictureBytes.Length >= 3 && Model.PictureBytes[0] == 0x47 && Model.PictureBytes[1] == 0x49 && Model.PictureBytes[2] == 0x46) { mime = "image/gif"; }
+                    <img src="@($"data:{mime};base64,{Convert.ToBase64String(Model.PictureBytes)}")" alt="Profile" id="currentProfilePic" />
+                }
+                else
+                {
+                    <span class="material-symbols-outlined profile-icon-default" id="defaultIcon">person</span>
+                }
+            </div>
+        </div>
 
         <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -43,18 +63,16 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="PictureBytes" class="form-label">@L["Profile Picture"] <small style="color: var(--text-muted);">(Optional)</small></label>
-                <input asp-for="PictureBytes" type="file" class="form-control" accept="image/*" />
-                <span asp-validation-for="PictureBytes" class="text-danger"></span>
+                <label asp-for="Picture" class="form-label">@L["Profile Picture"] <small style="color: var(--text-muted);">(Optional)</small></label>
+                <input asp-for="Picture" type="file" id="pictureInput" class="form-control" accept="image/*" />
+                <span asp-validation-for="Picture" class="text-danger"></span>
             </div>
 
             <!-- Hidden fields -->
             <input type="hidden" asp-for="Email" />
-            <input type="hidden" asp-for="CreatedBy" />
-            <input type="hidden" asp-for="CreatedAt" />
-            <input type="hidden" asp-for="UpdatedBy" />
-            <input type="hidden" asp-for="UpdatedAt" />
             <input type="hidden" asp-for="ApplicationUserId" />
+            <input type="hidden" asp-for="CreatedBy" />
+            <input type="hidden" asp-for="UpdatedBy" />
             
             <button type="submit" class="btn btn-confirm">@L["Complete Registration"]</button>
         </form>
@@ -63,4 +81,37 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // preview handling same as edit profile
+        const pictureInput = document.getElementById('pictureInput');
+        if (pictureInput) {
+            pictureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) { alert('File size must be less than 5MB'); e.target.value = ''; return; }
+                    if (!file.type.startsWith('image/')) { alert('Please select an image file'); e.target.value = ''; return; }
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const preview = document.getElementById('profilePicturePreview');
+                        const existingImg = document.getElementById('currentProfilePic');
+                        const existingIcon = document.getElementById('defaultIcon');
+                        if (existingImg) existingImg.remove();
+                        if (existingIcon) existingIcon.remove();
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.alt = 'Profile preview';
+                        img.id = 'currentProfilePic';
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        img.style.display = 'block';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
 }

@@ -40,78 +40,18 @@
 
     @if (Model != null && Model.Any())
     {
-        var stats = new {
-            Total = Model.Count(),
-            Pending = Model.Count(r => r.ReservationStatus.StatusName == "Pending"),
-            Confirmed = Model.Count(r => r.ReservationStatus.StatusName == "Confirmed"),
-            Seated = Model.Count(r => r.ReservationStatus.StatusName == "Seated"),
-            Completed = Model.Count(r => r.ReservationStatus.StatusName == "Completed"),
-            Cancelled = Model.Count(r => r.ReservationStatus.StatusName == "Cancelled"),
-            PreBooked = Model.Count(r => r.ReservationType),
-            WalkIn = Model.Count(r => !r.ReservationType)
+        var stats = new[] {
+            new FYP.ViewModels.AdminStatViewModel { Icon = "calendar_month", Number = Model.Count().ToString(), Label = L["Total"], ColorClass = "stat-cube-gold" },
+            new FYP.ViewModels.AdminStatViewModel { Icon = "schedule", Number = Model.Count(r => r.ReservationStatus.StatusName == "Pending").ToString(), Label = L["Pending"], ColorClass = "stat-cube-orange" },
+            new FYP.ViewModels.AdminStatViewModel { Icon = "check_circle", Number = Model.Count(r => r.ReservationStatus.StatusName == "Confirmed").ToString(), Label = L["Confirmed"], ColorClass = "stat-cube-green" },
+            new FYP.ViewModels.AdminStatViewModel { Icon = "event_seat", Number = Model.Count(r => r.ReservationStatus.StatusName == "Seated").ToString(), Label = L["Seated"], ColorClass = "stat-cube-blue" },
+            new FYP.ViewModels.AdminStatViewModel { Icon = "done_all", Number = Model.Count(r => r.ReservationStatus.StatusName == "Completed").ToString(), Label = L["Completed"], ColorClass = "stat-cube-gray" },
+            new FYP.ViewModels.AdminStatViewModel { Icon = "cancel", Number = Model.Count(r => r.ReservationStatus.StatusName == "Cancelled").ToString(), Label = L["Cancelled"], ColorClass = "stat-cube-red" }
         };
 
         <!-- Stats Row -->
         <div class="stats-row-container" style="margin-bottom: var(--spacing-3xl); padding: 0 var(--spacing-md);">
-            <div class="stat-cube-inline stat-cube-gold">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">calendar_month</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@stats.Total</h3>
-                    <p class="stat-cube-label">@L["Total"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-orange">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">schedule</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@stats.Pending</h3>
-                    <p class="stat-cube-label">@L["Pending"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-green">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">check_circle</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@stats.Confirmed</h3>
-                    <p class="stat-cube-label">@L["Confirmed"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-blue">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">event_seat</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@stats.Seated</h3>
-                    <p class="stat-cube-label">@L["Seated"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-gray">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">done_all</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@stats.Completed</h3>
-                    <p class="stat-cube-label">@L["Completed"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-red">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">cancel</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@stats.Cancelled</h3>
-                    <p class="stat-cube-label">@L["Cancelled"]</p>
-                </div>
-            </div>
+            @foreach (var s in stats) { @Html.Partial("~/Views/Shared/_StatCube.cshtml", s) }
         </div>
 
         <!-- Filters Card -->

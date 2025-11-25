@@ -4,6 +4,9 @@
     ViewData["Title"] = L["Manage Users"];
     Layout = "~/Views/Shared/_Layout.cshtml";
     var activeTab = ViewBag.ActiveTab ?? "managers";
+    ViewBag.SearchCategory = activeTab;
+    ViewBag.SearchPlaceholder = "Search users...";
+    ViewBag.SearchInputId = "ManageUsersSearchInput";
 }
 
 <div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1400px; margin: 0 auto;">
@@ -22,13 +25,19 @@
     }
 
     <!-- Header -->
-    <div style="margin-bottom: var(--spacing-2xl);">
-        <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-xs);">
-            @L["Manage Users"]
-        </h1>
-        <p style="color: var(--text-secondary); font-size: 1rem;">
-            @L["View and manage all system users"]
-        </p>
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: var(--spacing-2xl);">
+        <div>
+            <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-xs);">
+                @L["Manage Users"]
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1rem;">
+                @L["View and manage all system users"]
+            </p>
+        </div>
+
+        <div>
+            <partial name="~/Views/Shared/_Search.cshtml" />
+        </div>
     </div>
 
     <!-- Tabs -->

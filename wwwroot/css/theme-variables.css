@@ -19,7 +19,7 @@
     --color-brand-gold: var(--color-primary-gold);
     --color-brand-gold-dark: var(--color-primary-gold-dark);
     --color-brand-gold-light: var(--color-primary-gold-light);
-    
+
     /* Background Colors - Light Mode */
     --bg-primary: #F8F8F8;
     --bg-secondary: #FFFFFF;
@@ -36,13 +36,17 @@
     --text-light: #9CA3AF;
     --text-inverse: #FFFFFF;
     --text-heading: #222222;
-    
+
     /* Border Colors */
     --border-primary: rgba(0, 0, 0, 0.1);
     --border-secondary: rgba(0, 0, 0, 0.15);
     --border-focus: var(--color-primary-gold);
     --border-gray: rgba(0, 0, 0, 0.15);
-    
+
+    /* BACK BUTTON / ICON colors (use variables so dark mode can override) */
+    --back-button-icon-color: var(--text-primary);
+    --back-button-border-color: var(--border-primary);
+
     /* Shadows - Light Mode */
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-sm: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
@@ -113,6 +117,10 @@
     --border-primary: #555555;
     --border-secondary: #666666;
     --border-gray: #666666;
+
+    /* BACK BUTTON - override for dark mode (use variables, keep white/high contrast) */
+    --back-button-icon-color: rgba(255,255,255,0.95);
+    --back-button-border-color: rgba(255,255,255,0.12);
     
     /* Shadows - Dark Mode */
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);

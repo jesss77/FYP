@@ -43,7 +43,23 @@
 
                 <div class="d-flex justify-content-between mt-3">
                     <a class="btn btn-secondary" href="@Url.Action("ManageUsers","Admin", new { category = "customers" })">@L["Back"]</a>
-                    <button type="submit" class="btn btn-primary">@L["Save"]</button>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">@L["Save"]</button>
+
+                        @* Activate/Deactivate button (follows existing toggle pattern used for employees) *@
+                        @if (Model != null)
+                        {
+                            var toggleText = Model.IsActive ? L["Deactivate"] : L["Activate"];
+                            var toggleIcon = Model.IsActive ? "pause" : "play_arrow";
+                            <a class="btn @(Model.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                               href="@Url.Action("ToggleCustomerStatus", "Admin", new { id = Model.CustomerID })"
+                               onclick="return confirm('@L["Are you sure you want to {0} this customer?", toggleText]');">
+                                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.25rem;">@toggleIcon</span>
+                                @toggleText
+                            </a>
+                        }
+                    </div>
                 </div>
             </form>
         </div>

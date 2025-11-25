@@ -6,6 +6,17 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@functions {
+    private string GetImageMime(byte[] bytes)
+    {
+        if (bytes == null || bytes.Length < 4) return "image/jpeg";
+        if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return "image/png";
+        if (bytes[0] == 0xFF && bytes[1] == 0xD8) return "image/jpeg";
+        if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46) return "image/gif";
+        return "image/jpeg";
+    }
+}
+
 <div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1200px; margin: 0 auto;">
     @if (TempData["Success"] != null)
     {
@@ -35,11 +46,10 @@
                 @L["Manage your reservations and book your next exceptional meal"]
             </p>
         </div>
-        <a asp-action="EditProfile" asp-controller="Customer" class="profile-picture-small">
+        <a asp-action="EditProfile" asp-controller="Customer" class="profile-picture-small" style="margin-top: 0.5rem;">
             @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
             {
-                var cacheBuster = TempData["ProfileUpdated"] ?? DateTime.UtcNow.Ticks.ToString();
-                <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(Model.PictureBytes)}?v={cacheBuster}")" 
+                <img src="@($"data:{GetImageMime(Model.PictureBytes)};base64,{Convert.ToBase64String(Model.PictureBytes)}")" 
                      alt="@Model.FirstName @Model.LastName" />
             }
             else
@@ -65,37 +75,15 @@
                 ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations)
                 .Count(r => r.ReservationDate < DateTime.UtcNow.Date || 
                            r.ReservationStatus.StatusName == "Completed") : 0;
+
+            var sList = new[] {
+                new FYP.ViewModels.AdminStatViewModel { Icon = "event_available", Number = upcoming.ToString(), Label = L["Upcoming"], ColorClass = "stat-cube-red" },
+                new FYP.ViewModels.AdminStatViewModel { Icon = "history", Number = past.ToString(), Label = L["Past Visits"], ColorClass = "stat-cube-gold" },
+                new FYP.ViewModels.AdminStatViewModel { Icon = "calendar_month", Number = "", Label = L["View All"], SubLabel = L["Reservations"], ColorClass = "stat-cube-blue", Link = Url.Action("MyReservations", "Customer") }
+            };
         }
 
-        <div class="stat-cube-inline stat-cube-red">
-            <div class="stat-cube-icon">
-                <span class="material-symbols-outlined">event_available</span>
-            </div>
-            <div class="stat-cube-content">
-                <h3 class="stat-cube-number">@upcoming</h3>
-                <p class="stat-cube-label">@L["Upcoming"]</p>
-            </div>
-        </div>
-
-        <div class="stat-cube-inline stat-cube-gold">
-            <div class="stat-cube-icon">
-                <span class="material-symbols-outlined">history</span>
-            </div>
-            <div class="stat-cube-content">
-                <h3 class="stat-cube-number">@past</h3>
-                <p class="stat-cube-label">@L["Past Visits"]</p>
-            </div>
-        </div>
-
-        <a asp-action="MyReservations" asp-controller="Customer" class="stat-cube-inline stat-cube-blue stat-cube-clickable">
-            <div class="stat-cube-icon">
-                <span class="material-symbols-outlined">calendar_month</span>
-            </div>
-            <div class="stat-cube-content">
-                <p class="stat-cube-label-large">@L["View All"]</p>
-                <p class="stat-cube-sublabel">@L["Reservations"]</p>
-            </div>
-        </a>
+        @foreach (var s in sList) { @Html.Partial("~/Views/Shared/_StatCube.cshtml", s) }
     </div>
 
     <!-- Book Cube (Square like Admin) -->

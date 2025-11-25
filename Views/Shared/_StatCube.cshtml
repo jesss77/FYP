@@ -1,0 +1,77 @@
+@model FYP.ViewModels.AdminStatViewModel
+
+@{
+    var cubeClass = "stat-cube-inline" + (string.IsNullOrEmpty(Model.ColorClass) ? "" : " " + Model.ColorClass);
+    var iconName = Model.Icon ?? "info";
+}
+
+@if (!string.IsNullOrEmpty(Model.Link))
+{
+    <a href="@Model.Link" class="@cubeClass stat-cube-clickable">
+        <div class="stat-cube-icon">
+            <span class="material-symbols-outlined" data-icon-name="@iconName">@iconName</span>
+        </div>
+        <div class="stat-cube-content">
+            <h3 class="stat-cube-number">@Model.Number</h3>
+            <p class="stat-cube-label">@Model.Label</p>
+            @if (!string.IsNullOrEmpty(Model.SubLabel)) { <p class="stat-cube-sublabel">@Model.SubLabel</p> }
+            @if (!string.IsNullOrEmpty(Model.BadgeText)) { <div class="stat-cube-badge">@Model.BadgeText</div> }
+        </div>
+    </a>
+}
+else
+{
+    <div class="@cubeClass">
+        <div class="stat-cube-icon">
+            <span class="material-symbols-outlined" data-icon-name="@iconName">@iconName</span>
+        </div>
+        <div class="stat-cube-content">
+            <h3 class="stat-cube-number">@Model.Number</h3>
+            <p class="stat-cube-label">@Model.Label</p>
+            @if (!string.IsNullOrEmpty(Model.SubLabel)) { <p class="stat-cube-sublabel">@Model.SubLabel</p> }
+            @if (!string.IsNullOrEmpty(Model.BadgeText)) { <div class="stat-cube-badge">@Model.BadgeText</div> }
+        </div>
+    </div>
+}
+
+<script>
+    // Fallback for cases where Material Symbols font or specific glyph is unavailable.
+    (function(){
+        var mapping = {
+            // common fallbacks
+            'badge': '\uD83D\uDC51', // crown
+            'pause_circle': '\u23F8', // pause symbol
+            'settings': '\u2699', // gear
+            'person': '\uD83D\uDC64', // bust in silhouette
+            'admin_panel_settings': '\u2699',
+            'table_restaurant': '\uD83C\uDF74', // plate with cutlery
+            'group': '\uD83D\uDC65',
+            'groups': '\uD83D\uDC65',
+            'check_circle': '\u2714',
+            'calendar_month': '\uD83D\uDCC5'
+        };
+
+        function needsFallback(span){
+            if (!span) return false;
+            // if rendered width is zero or font-family doesn't include Material Symbols Outlined
+            try{
+                var style = window.getComputedStyle(span);
+                var ff = style.fontFamily || '';
+                if (ff.indexOf('Material Symbols') === -1 && ff.indexOf('Material Icons') === -1) return true;
+                if (span.offsetWidth === 0 && span.offsetHeight === 0) return true;
+            } catch(e){ return false; }
+            return false;
+        }
+
+        document.querySelectorAll('.stat-cube-icon .material-symbols-outlined').forEach(function(span){
+            if (!needsFallback(span)) return;
+            var name = span.getAttribute('data-icon-name') || span.textContent || '';
+            name = name.trim();
+            var emoji = mapping[name] || '\u2753'; // question mark fallback
+            span.textContent = emoji;
+            span.style.fontFamily = 'inherit';
+            span.style.fontSize = '1.25rem';
+            span.style.lineHeight = '1';
+        });
+    })();
+</script>

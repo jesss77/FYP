@@ -4,6 +4,16 @@
 @{
     ViewData["Title"] = L["Employees"];
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var statsEmployees = Model != null ? new List<FYP.ViewModels.AdminStatViewModel>
+    {
+        new FYP.ViewModels.AdminStatViewModel { Icon = "badge", Number = Model.Count().ToString(), Label = L["Total Employees"], ColorClass = "stat-cube-green" },
+        new FYP.ViewModels.AdminStatViewModel { Icon = "check_circle", Number = Model.Count(e => e.IsActive).ToString(), Label = L["Active"], ColorClass = "stat-cube-blue" },
+        new FYP.ViewModels.AdminStatViewModel { Icon = "pause_circle", Number = Model.Count(e => !e.IsActive).ToString(), Label = L["Inactive"], ColorClass = "stat-cube-orange" }
+    } : new List<FYP.ViewModels.AdminStatViewModel>();
+
+    ViewBag.SearchPlaceholder = "Search employees...";
+    ViewBag.SearchInputId = "EmployeesSearchInput";
 }
 
 <div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1400px; margin: 0 auto;">
@@ -37,55 +47,17 @@
                 @L["Manage employee accounts and permissions"]
             </p>
         </div>
-        <a class="btn btn-primary" href="@Url.Action("CreateEmployee", "Admin")">
-            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">person_add</span>
-            @L["Add New Employee"]
-        </a>
+        <partial name="~/Views/Shared/_Search.cshtml" />
     </div>
 
     @if (Model != null && Model.Any())
     {
         <!-- Stats Row -->
         <div class="stats-row-container" style="margin-bottom: var(--spacing-3xl); padding: 0 var(--spacing-md);">
-            <div class="stat-cube-inline stat-cube-green">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">badge</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count()</h3>
-                    <p class="stat-cube-label">@L["Total Employees"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-blue">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">check_circle</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count(e => e.IsActive)</h3>
-                    <p class="stat-cube-label">@L["Active"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-orange">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">pause_circle</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count(e => !e.IsActive)</h3>
-                    <p class="stat-cube-label">@L["Inactive"]</p>
-                </div>
-            </div>
-
-            <a href="@Url.Action("CreateEmployee", "Admin")" class="stat-cube-inline stat-cube-gold stat-cube-clickable">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">person_add</span>
-                </div>
-                <div class="stat-cube-content">
-                    <p class="stat-cube-label-large">@L["Add New"]</p>
-                    <p class="stat-cube-sublabel">@L["Employee"]</p>
-                </div>
-            </a>
+            @foreach (var s in statsEmployees)
+            {
+                @Html.Partial("~/Views/Shared/_StatCube.cshtml", s)
+            }
         </div>
 
         <!-- Employee Cards Grid -->
@@ -171,259 +143,8 @@
 </div>
 
 <style>
-/* Stats Row Container */
-.stats-row-container {
-    display: flex;
-    gap: var(--spacing-lg);
-    flex-wrap: wrap;
-    justify-content: flex-start;
-}
-
-.stat-cube-inline {
-    flex: 0 1 auto;
-    min-width: 200px;
-    max-width: 280px;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-xl);
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
-    transition: all var(--transition-base);
-    text-decoration: none;
-}
-
-[data-theme="dark"] .stat-cube-inline {
-    background: rgba(58, 58, 58, 0.5);
-    border-color: rgba(85, 85, 85, 0.4);
-}
-
-.stat-cube-inline:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.stat-cube-clickable:hover {
-    border-color: var(--color-primary-gold);
-    cursor: pointer;
-}
-
-.stat-cube-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.stat-cube-green .stat-cube-icon {
-    background: linear-gradient(135deg, #2ECC71, #27AE60);
-}
-
-.stat-cube-blue .stat-cube-icon {
-    background: linear-gradient(135deg, #3498DB, #2980B9);
-}
-
-.stat-cube-orange .stat-cube-icon {
-    background: linear-gradient(135deg, #F39C12, #D68910);
-}
-
-.stat-cube-gold .stat-cube-icon {
-    background: linear-gradient(135deg, #D4AF37, #B8941E);
-}
-
-.stat-cube-icon .material-symbols-outlined {
-    font-size: 1.75rem;
-    color: white;
-}
-
-.stat-cube-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.stat-cube-number {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1;
-}
-
-.stat-cube-label {
-    color: var(--text-secondary);
-    margin: var(--spacing-xs) 0 0 0;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.stat-cube-label-large {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.2;
-}
-
-.stat-cube-sublabel {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 0;
-    font-weight: 600;
-}
-
-.employee-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    transition: all var(--transition-base);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-[data-theme="dark"] .employee-card {
-    background: rgba(58, 58, 58, 0.5);
-    border-color: rgba(85, 85, 85, 0.4);
-}
-
-.employee-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-    border-color: var(--color-primary-gold);
-}
-
-.employee-card-header {
+.user-section {
     padding: var(--spacing-lg);
-    background: linear-gradient(135deg, rgba(230, 57, 70, 0.1), rgba(212, 175, 55, 0.1));
-    border-bottom: 1px solid var(--border-primary);
-    display: flex;
-    gap: var(--spacing-md);
-    align-items: center;
-}
-
-[data-theme="dark"] .employee-card-header {
-    background: linear-gradient(135deg, rgba(230, 57, 70, 0.2), rgba(212, 175, 55, 0.2));
-}
-
-.employee-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-full);
-    background: var(--color-primary-gold);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.employee-avatar .material-symbols-outlined {
-    font-size: 2rem;
-    color: white;
-}
-
-.employee-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.employee-name {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 var(--spacing-xs) 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.employee-status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    display: inline-block;
-}
-
-.status-active {
-    background: rgba(46, 204, 113, 0.2);
-    color: #27AE60;
-    border: 1px solid #2ECC71;
-}
-
-.status-inactive {
-    background: rgba(243, 156, 18, 0.2);
-    color: #D68910;
-    border: 1px solid #F39C12;
-}
-
-.employee-card-body {
-    padding: var(--spacing-lg);
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
-.employee-detail {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-}
-
-.employee-detail .material-symbols-outlined {
-    font-size: 1.125rem;
-    color: var(--text-muted);
-}
-
-.employee-card-footer {
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-top: 1px solid var(--border-primary);
-    display: flex;
-    gap: var(--spacing-sm);
-    flex-wrap: wrap;
-}
-
-.employee-card-footer .btn {
-    flex: 1;
-    min-width: fit-content;
-}
-
-.empty-state {
-    text-align: center;
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
-}
-
-[data-theme="dark"] .empty-state {
-    background: rgba(58, 58, 58, 0.5);
-    border-color: rgba(85, 85, 85, 0.4);
-}
-
-.empty-state-icon {
-    font-size: 5rem;
-    color: var(--text-muted);
-    display: inline-block;
-}
-
-.empty-state h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.empty-state p {
-    color: var(--text-secondary);
 }
 </style>
 

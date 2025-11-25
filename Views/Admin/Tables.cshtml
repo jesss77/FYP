@@ -4,6 +4,18 @@
 @{
     ViewData["Title"] = L["Tables"];
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var stats = new List<FYP.ViewModels.AdminStatViewModel>();
+    if (Model != null && Model.Any())
+    {
+        stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "table_restaurant", Number = Model.Count().ToString(), Label = L["Total Tables"], ColorClass = "stat-cube-gold" });
+        stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "check_circle", Number = Model.Count(t => t.IsAvailable).ToString(), Label = L["Available"], ColorClass = "stat-cube-green" });
+        stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "link", Number = Model.Count(t => t.IsJoinable).ToString(), Label = L["Joinable"], ColorClass = "stat-cube-blue" });
+        stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "groups", Number = Model.Sum(t => t.Capacity).ToString(), Label = L["Total Capacity"], ColorClass = "stat-cube-red" });
+    }
+
+    ViewBag.SearchPlaceholder = "Search tables...";
+    ViewBag.SearchInputId = "TablesSearchInput";
 }
 
 <div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1400px; margin: 0 auto;">
@@ -35,55 +47,17 @@
             </h1>
             <p style="color: var(--text-secondary);">@L["Manage restaurant table configuration"]</p>
         </div>
-        <a class="btn btn-primary" href="@Url.Action("CreateTable", "Admin")">
-            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">add_circle</span>
-            @L["Add New Table"]
-        </a>
+        <partial name="~/Views/Shared/_Search.cshtml" />
     </div>
 
     @if (Model != null && Model.Any())
     {
         <!-- Stats Row -->
         <div class="stats-row-container" style="margin-bottom: var(--spacing-3xl); padding: 0 var(--spacing-md);">
-            <div class="stat-cube-inline stat-cube-gold">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">table_restaurant</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count()</h3>
-                    <p class="stat-cube-label">@L["Total Tables"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-green">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">check_circle</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count(t => t.IsAvailable)</h3>
-                    <p class="stat-cube-label">@L["Available"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-blue">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">link</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count(t => t.IsJoinable)</h3>
-                    <p class="stat-cube-label">@L["Joinable"]</p>
-                </div>
-            </div>
-
-            <div class="stat-cube-inline stat-cube-red">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">groups</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Sum(t => t.Capacity)</h3>
-                    <p class="stat-cube-label">@L["Total Capacity"]</p>
-                </div>
-            </div>
+            @foreach (var s in stats)
+            {
+                @Html.Partial("~/Views/Shared/_StatCube.cshtml", s)
+            }
         </div>
 
         <!-- Table Cards Grid -->

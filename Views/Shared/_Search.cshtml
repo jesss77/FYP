@@ -1,0 +1,44 @@
+@{
+    // Optional: set ViewBag.SearchPlaceholder and ViewBag.SearchCategory before rendering
+    var placeholder = ViewBag.SearchPlaceholder ?? "Search...";
+    var category = ViewBag.SearchCategory ?? null;
+    var inputId = ViewBag.SearchInputId ?? "AdminSearchInput";
+}
+<div class="settings-header-actions">
+    <div class="admin-search-wrapper">
+        <form method="get" class="d-inline-block" role="search">
+            <input id="@inputId" name="search" value="@ViewBag.Search" class="form-control search-input" placeholder="@placeholder" />
+            @if (!string.IsNullOrEmpty(category))
+            {
+                <input type="hidden" name="category" value="@category" />
+            }
+        </form>
+        <button id="@inputId-ctrl" type="button" class="search-toggle" aria-expanded="false" aria-controls="@inputId">
+            <span class="material-symbols-outlined">search</span>
+        </button>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        (function(){
+            var toggle = document.getElementById('@inputId-ctrl');
+            var input = document.getElementById('@inputId');
+            if(!toggle || !input) return;
+            // Auto-show if search value present
+            if (input.value && input.value.length > 0) {
+                input.classList.add('show');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+            toggle.addEventListener('click', function(){
+                var expanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', String(!expanded));
+                input.classList.toggle('show');
+                if(!expanded){ setTimeout(function(){ input.focus(); }, 150); }
+                else { input.blur(); }
+            });
+        })();
+    </script>
+}

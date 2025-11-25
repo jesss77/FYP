@@ -6,12 +6,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 800px; margin: 0 auto;">
-    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Settings","Admin")" />
-
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 720px; margin: 0 auto;">
     <div class="card shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-xl);">
-        <div class="card-header" style="border-bottom: 1px solid var(--border-primary); padding: var(--spacing-xl);">
-            <h3 class="mb-0 gold-heading" style="font-size: 1.75rem;">@ViewData["Title"]</h3>
+        <div class="card-header" style="border-bottom: 1px solid var(--border-primary); padding: var(--spacing-xl); display:flex; align-items:center; justify-content:space-between;">
+            <div>
+                <h3 class="mb-0 gold-heading" style="font-size: 1.5rem;">@ViewData["Title"]</h3>
+                <div style="color:var(--text-secondary); font-size:0.875rem;">@L["Update the value for this system setting."]</div>
+            </div>
+            <div>
+                <small style="color:var(--text-secondary);">@L["Key"]: <strong>@Model.Key</strong></small>
+            </div>
         </div>
 
         <div class="card-body" style="padding: var(--spacing-2xl);">
@@ -19,24 +23,18 @@
                 <input type="hidden" asp-for="SettingsID" />
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                <div class="mb-3">
-                    <label asp-for="Key" class="form-label fw-semibold"></label>
-                    <input asp-for="Key" class="form-control" placeholder="Enter setting key" />
-                    <span asp-validation-for="Key" class="text-danger"></span>
-                </div>
-
                 <div class="mb-4">
                     <label asp-for="Value" class="form-label fw-semibold"></label>
-                    <textarea asp-for="Value" class="form-control" rows="4" placeholder="Enter setting value"></textarea>
+                    <textarea asp-for="Value" class="form-control" rows="6" placeholder="Enter setting value"></textarea>
                     <span asp-validation-for="Value" class="text-danger"></span>
                 </div>
 
-                <div class="d-flex justify-content-between gap-3">
+                <div class="d-flex justify-content-end gap-3">
                     <a class="btn btn-secondary flex-fill" href="@Url.Action("Settings", "Admin")">
-                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">arrow_back</span>
+                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">cancel</span>
                         @L["Cancel"]
                     </a>
-                    <button type="submit" class="btn btn-primary flex-fill">
+                    <button type="submit" class="btn btn-primary">
                         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">save</span>
                         @L["Save Changes"]
                     </button>

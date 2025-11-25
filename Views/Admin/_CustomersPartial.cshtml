@@ -2,22 +2,28 @@
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<FYP.Localization.SharedResource> L
 
+@{
+    var stats = new List<FYP.ViewModels.AdminStatViewModel>();
+    if (Model != null)
+    {
+        stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "person", Number = Model.Count().ToString(), Label = L["Total Customers"], ColorClass = "stat-cube-green", Link = Url.Action("ManageUsers", "Admin", new { category = "customers" }) });
+    }
+}
+
 <div class="user-section">
+    <!-- Header with action (search lives at ManageUsers header) -->
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: var(--spacing-2xl); gap:var(--spacing-md);">
+        <div class="stats-row-container" style="margin-bottom: 0;">
+            @foreach (var s in stats)
+            {
+                @Html.Partial("~/Views/Shared/_StatCube.cshtml", s)
+            }
+        </div>
+       
+    </div>
+
     @if (Model != null && Model.Any())
     {
-        <!-- Stats Row -->
-        <div class="stats-row-container" style="margin-bottom: var(--spacing-2xl);">
-            <a href="@Url.Action("ManageUsers", "Admin", new { category = "customers" })" class="stat-cube-inline stat-cube-green stat-cube-clickable">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">person</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count()</h3>
-                    <p class="stat-cube-label">@L["Total Customers"]</p>
-                </div>
-            </a>
-        </div>
-
         <!-- Table -->
         <div class="users-table-container" style="margin-top: var(--spacing-xl);">
             <table class="users-table">
@@ -67,119 +73,3 @@
         </div>
     }
 </div>
-
-<style>
-/* Stats Row Container */
-.stats-row-container {
-    display: flex;
-    gap: var(--spacing-lg);
-    flex-wrap: wrap;
-    justify-content: flex-start;
-}
-
-.stat-cube-inline {
-    flex: 0 1 auto;
-    min-width: 200px;
-    max-width: 280px;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-xl);
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
-    transition: all var(--transition-base);
-    text-decoration: none;
-}
-
-[data-theme="dark"] .stat-cube-inline {
-    background: rgba(58, 58, 58, 0.5);
-    border-color: rgba(85, 85, 85, 0.4);
-}
-
-.stat-cube-inline:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.stat-cube-clickable:hover {
-    border-color: var(--color-primary-gold);
-    cursor: pointer;
-}
-
-.stat-cube-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.stat-cube-green .stat-cube-icon {
-    background: linear-gradient(135deg, #2ECC71, #27AE60);
-}
-
-.stat-cube-purple .stat-cube-icon {
-    background: linear-gradient(135deg, #9B59B6, #8E44AD);
-}
-
-.stat-cube-gold .stat-cube-icon {
-    background: linear-gradient(135deg, #D4AF37, #B8941E);
-}
-
-.stat-cube-blue .stat-cube-icon {
-    background: linear-gradient(135deg, #3498DB, #2980B9);
-}
-
-.stat-cube-red .stat-cube-icon {
-    background: linear-gradient(135deg, #E63946, #C41E3A);
-}
-
-.stat-cube-icon .material-symbols-outlined {
-    font-size: 1.75rem;
-    color: white;
-}
-
-.stat-cube-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.stat-cube-number {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1;
-}
-
-.stat-cube-label {
-    color: var(--text-secondary);
-    margin: var(--spacing-xs) 0 0 0;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.stat-cube-label-large {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.2;
-}
-
-.stat-cube-sublabel {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 0;
-    font-weight: 600;
-}
-
-.user-section {
-    padding: var(--spacing-lg);
-}
-</style>

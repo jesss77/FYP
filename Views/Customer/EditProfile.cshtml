@@ -1,4 +1,4 @@
-@model FYP.Models.Customer
+@model FYP.ViewModels.CustomerEditViewModel
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
@@ -6,9 +6,31 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+
+@functions {
+    private string GetImageMime(byte[] bytes)
+    {
+        if (bytes == null || bytes.Length < 4) return "image/jpeg";
+        // PNG signature: 89 50 4E 47
+        if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return "image/png";
+        // JPEG signature: FF D8
+        if (bytes[0] == 0xFF && bytes[1] == 0xD8) return "image/jpeg";
+        // GIF signature: 47 49 46
+        if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46) return "image/gif";
+        return "image/jpeg";
+    }
+}
+
 <div class="center-container">
-    <div class="register-form" style="max-width: 700px;">
-        <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Customer")" />
+    <div class="register-form" style="max-width: 700px; margin-top: 1.5rem;">
+        <div class="d-flex justify-content-between align-items-center" style="margin-bottom: var(--spacing-md);">
+            <div>
+                <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Customer")" />
+            </div>
+            <div class="profile-top-actions">
+                <!-- kept empty; logout moved to action row -->
+            </div>
+        </div>
 
         @if (TempData["Success"] != null)
         {
@@ -23,13 +45,12 @@
         }
 
         <!-- Header with Profile Picture -->
-        <div style="margin-bottom: var(--spacing-2xl); text-align: center;">
+        <div class="profile-header" style="margin-bottom: var(--spacing-2xl); text-align: center;">
             <div class="profile-picture-large" id="profilePicturePreview">
                 @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
                 {
-                    var cacheBuster = DateTime.UtcNow.Ticks;
-                    <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(Model.PictureBytes)}?v={cacheBuster}")" 
-                         alt="@Model.FirstName @Model.LastName" 
+                    <img src="@($"data:{GetImageMime(Model.PictureBytes)};base64,{Convert.ToBase64String(Model.PictureBytes)}")" 
+                         alt="Profile" 
                          id="currentProfilePic" />
                 }
                 else
@@ -48,16 +69,10 @@
         <hr class="gold-hr" />
 
         <!-- Edit Form -->
-        <form asp-action="UpdateProfile" asp-controller="Customer" method="post" enctype="multipart/form-data">
+        <form id="updateProfileForm" asp-action="UpdateProfile" asp-controller="Customer" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="CustomerID" />
             <input type="hidden" asp-for="Email" />
-            <input type="hidden" asp-for="ApplicationUserId" />
-            <input type="hidden" asp-for="CreatedBy" />
-            <input type="hidden" asp-for="CreatedAt" />
-            <input type="hidden" asp-for="IsActive" />
-            <input type="hidden" asp-for="UpdatedBy" />
-            <input type="hidden" asp-for="UpdatedAt" />
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -80,7 +95,7 @@
                 <label class="form-label fw-semibold">
                     @L["Email Address"]
                 </label>
-                <input type="text" class="form-control" value="@Model.Email" disabled style="background: var(--bg-secondary); cursor: not-allowed;" />
+                <input type="text" class="form-control" value="@Model.Email" readonly style="background: var(--bg-secondary); cursor: not-allowed;" />
                 <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.875rem;">
                     @L["Email cannot be changed. Contact support if needed."]
                 </small>
@@ -113,64 +128,42 @@
                 <label class="form-label fw-semibold">
                     @L["Profile Picture"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
                 </label>
-                <input type="file" name="picture" id="pictureInput" class="form-control" accept="image/*" />
+                <input asp-for="Picture" type="file" id="pictureInput" class="form-control" accept="image/*" />
                 <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.875rem;">
                     Supported formats: JPG, PNG, GIF (Max 5MB)
                 </small>
             </div>
+        </form>
 
-            <div class="d-flex gap-3 mt-4">
-                <button type="submit" class="btn btn-confirm flex-fill">
-                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">save</span>
-                    @L["Save Changes"]
-                </button>
-                <a asp-action="Index" asp-controller="Customer" class="btn btn-secondary flex-fill">
+        <!-- Action buttons: Save (submits updateProfileForm) on left, Cancel + Logout grouped on right -->
+        <div class="d-flex align-items-start gap-3 mt-4 profile-action-buttons">
+            <button type="submit" form="updateProfileForm" class="btn btn-gold save-btn">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">save</span>
+                @L["Save Changes"]
+            </button>
+
+            <div class="d-flex gap-2 action-group">
+                <a asp-action="Index" asp-controller="Customer" class="btn btn-secondary cancel-btn">
                     <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">cancel</span>
                     @L["Cancel"]
                 </a>
+
+                <button type="button" class="btn btn-logout logout-btn" onclick="document.getElementById('logoutFormMain').submit();">
+                    @L["Logout"]
+                </button>
             </div>
+        </div>
+
+        <!-- Separate logout form (must not be nested inside the main profile form) -->
+        <form id="logoutFormMain" asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-none">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Url.Action("Index","Home")" />
         </form>
+
     </div>
 </div>
 
-<style>
-.profile-picture-large {
-    width: 150px;
-    height: 150px;
-    border-radius: var(--radius-full);
-    background: linear-gradient(135deg, var(--color-primary-red), var(--color-primary-gold));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    overflow: hidden;
-    box-shadow: var(--shadow-xl);
-    border: 4px solid var(--bg-card);
-    position: relative;
-    transition: transform var(--transition-base);
-}
-
-.profile-picture-large:hover {
-    transform: scale(1.05);
-}
-
-.profile-picture-large img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.profile-icon-default {
-    font-size: 5rem !important;
-    color: white;
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
-}
-
-[data-theme="dark"] .profile-picture-large {
-    border-color: rgba(85, 85, 85, 0.4);
-}
-</style>
+<!-- styles for profile actions moved to wwwroot/css/admin.css -->
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -185,47 +178,50 @@
         }
 
         // Image preview functionality
-        document.getElementById('pictureInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // Validate file size (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File size must be less than 5MB');
-                    e.target.value = '';
-                    return;
-                }
+        const pictureInput = document.getElementById('pictureInput');
+        if (pictureInput) {
+            pictureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size must be less than 5MB');
+                        e.target.value = '';
+                        return;
+                    }
 
-                // Validate file type
-                if (!file.type.startsWith('image/')) {
-                    alert('Please select an image file');
-                    e.target.value = '';
-                    return;
-                }
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select an image file');
+                        e.target.value = '';
+                        return;
+                    }
 
-                // Show preview
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const preview = document.getElementById('profilePicturePreview');
-                    
-                    // Remove existing content
-                    const existingImg = document.getElementById('currentProfilePic');
-                    const existingIcon = document.getElementById('defaultIcon');
-                    if (existingImg) existingImg.remove();
-                    if (existingIcon) existingIcon.remove();
-                    
-                    // Add new image
-                    const img = document.createElement('img');
-                    img.src = event.target.result;
-                    img.alt = 'Profile preview';
-                    img.id = 'currentProfilePic';
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = 'cover';
-                    img.style.display = 'block';
-                    preview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const preview = document.getElementById('profilePicturePreview');
+                        
+                        // Remove existing content
+                        const existingImg = document.getElementById('currentProfilePic');
+                        const existingIcon = document.getElementById('defaultIcon');
+                        if (existingImg) existingImg.remove();
+                        if (existingIcon) existingIcon.remove();
+                        
+                        // Add new image
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.alt = 'Profile preview';
+                        img.id = 'currentProfilePic';
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        img.style.display = 'block';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
     </script>
 }

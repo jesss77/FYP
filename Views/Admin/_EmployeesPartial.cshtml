@@ -2,53 +2,54 @@
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<FYP.Localization.SharedResource> L
 
-<div class="user-section">
-    @if (Model != null && Model.Any())
+@{
+    var stats = new List<FYP.ViewModels.AdminStatViewModel>();
+    if (Model != null)
     {
-        <!-- Stats Row -->
-        <div class="stats-row-container" style="margin-bottom: var(--spacing-2xl);">
-            <a href="@Url.Action("ManageUsers", "Admin", new { category = "employees" })" class="stat-cube-inline stat-cube-blue stat-cube-clickable">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">badge</span>
-                </div>
-                <div class="stat-cube-content">
-                    <h3 class="stat-cube-number">@Model.Count()</h3>
-                    <p class="stat-cube-label">@L["Total Employees"]</p>
-                </div>
-            </a>
+        stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "badge", Number = Model.Count().ToString(), Label = L["Total Employees"], ColorClass = "stat-cube-blue", Link = Url.Action("ManageUsers", "Admin", new { category = "employees" }) });
+    }
+}
 
-            <a href="@Url.Action("CreateUser", "Admin", new { role = "employee" })" class="stat-cube-inline stat-cube-gold stat-cube-clickable">
-                <div class="stat-cube-icon">
-                    <span class="material-symbols-outlined">person_add</span>
-                </div>
-                <div class="stat-cube-content">
-                    <p class="stat-cube-label-large">@L["Add New"]</p>
-                    <p class="stat-cube-sublabel">@L["Employee"]</p>
-                </div>
+<div class="user-section">
+    <!-- Header with action (search lives at ManageUsers header) -->
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: var(--spacing-2xl); gap:var(--spacing-md);">
+        <div class="stats-row-container" style="margin-bottom: 0;">
+            @foreach (var s in stats)
+            {
+                @Html.Partial("~/Views/Shared/_StatCube.cshtml", s)
+            }
+        </div>
+        <div>
+            <a class="btn btn-primary" href="@Url.Action("CreateUser", "Admin", new { role = "employee" })">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">person_add</span>
+                @L["Add New Employee"]
             </a>
         </div>
+    </div>
 
+    @if (Model != null && Model.Any())
+    {
         <!-- Table -->
         <div class="users-table-container" style="margin-top: var(--spacing-xl);">
             <table class="users-table">
                 <thead>
                     <tr>
                         <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Name"]</th>
-                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Email"]</th>
-                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Phone"]</th>
-                        <th style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Joined"]</th>
-                        <th class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">@L["Actions"]</th>
+                        <th style="padding: var(--spacing-lg) var,--spacing-xl);">@L["Email"]</th>
+                        <th style="padding: var(--spacing-lg) var,--spacing-xl);">@L["Phone"]</th>
+                        <th style="padding: var(--spacing-lg) var,--spacing-xl);">@L["Joined"]</th>
+                        <th class="text-end" style="padding: var(--spacing-lg) var,--spacing-xl);">@L["Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var employee in Model.OrderBy(e => e.FirstName))
                     {
                         <tr>
-                            <td class="user-name" style="padding: var(--spacing-lg) var(--spacing-xl);">@employee.FirstName @employee.LastName</td>
-                            <td class="user-email" style="padding: var(--spacing-lg) var(--spacing-xl);">@employee.Email</td>
-                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@(employee.PhoneNumber ?? L["Not provided"])</td>
-                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@employee.CreatedAt.ToString("dd/MM/yyyy")</td>
-                            <td class="text-end" style="padding: var(--spacing-lg) var(--spacing-xl);">
+                            <td class="user-name" style="padding: var(--spacing-lg) var,--spacing-xl);">@employee.FirstName @employee.LastName</td>
+                            <td class="user-email" style="padding: var(--spacing-lg) var,--spacing-xl);">@employee.Email</td>
+                            <td style="padding: var(--spacing-lg) var,--spacing-xl);">@(employee.PhoneNumber ?? L["Not provided"])</td>
+                            <td style="padding: var(--spacing-lg) var,--spacing-xl);">@employee.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end" style="padding: var(--spacing-lg) var,--spacing-xl);">
                                 <div class="action-buttons">
                                     <a class="action-btn action-edit" href="@Url.Action("EditUser", "Admin", new { id = employee.EmployeeID, role = "employee" })" title="@L["Edit"]">
                                         <span class="material-symbols-outlined">edit</span>
@@ -86,8 +87,8 @@
     {
         <div class="empty-state" style="margin-top: var(--spacing-2xl); padding: var(--spacing-3xl) var(--spacing-2xl);">
             <span class="material-symbols-outlined empty-state-icon">badge_off</span>
-            <h3 style="margin-top: var(--spacing-xl); margin-bottom: var(--spacing-md);">@L["No Employees Yet"]</h3>
-            <p style="margin-bottom: var(--spacing-xl);">@L["Add your first employee to get started"]</p>
+            <h3 style="margin-top: var(--spacing-xl); margin-bottom: var,--spacing-md);">@L["No Employees Yet"]</h3>
+            <p style="margin-bottom: var,--spacing-xl);">@L["Add your first employee to get started"]</p>
             <a class="btn btn-primary" href="@Url.Action("CreateUser", "Admin", new { role = "employee" })">
                 <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">person_add</span>
                 @L["Add New Employee"]

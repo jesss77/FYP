@@ -61,18 +61,29 @@ namespace FYP.Controllers
         // ================== SETTINGS ==================
 
         // GET: /Admin/Settings
-        public async Task<IActionResult> Settings()
+        [HttpGet]
+        public async Task<IActionResult> Settings(string search)
         {
-            var settings = await _context.Settings
-                .OrderBy(s => s.Key)
-                .ToListAsync();
+            var query = _context.Settings.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var normalized = search.Trim();
+                query = query.Where(s => EF.Functions.Like(s.Key, $"%{normalized}%"));
+                ViewBag.Search = normalized;
+            }
+
+            var settings = await query.OrderBy(s => s.Key).ToListAsync();
             return View(settings);
         }
+
+        private static readonly string[] ProtectedSettingKeys = new[] { "Name", "Opening Hours", "Phone", "Staff Number" };
 
         // GET: /Admin/CreateSetting
         public IActionResult CreateSetting()
         {
-            return View();
+            // Creating new settings is not allowed: keys are fixed by system
+            TempData["Error"] = "Creating new settings is not allowed. Contact system administrator.";
+            return RedirectToAction(nameof(Settings));
         }
 
         // POST: /Admin/CreateSetting
@@ -80,34 +91,8 @@ namespace FYP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateSetting(Settings model)
         {
-            // Remove audit fields from validation since they're set programmatically
-            ModelState.Remove("CreatedBy");
-            ModelState.Remove("CreatedAt");
-            ModelState.Remove("UpdatedBy");
-            ModelState.Remove("UpdatedAt");
-            
-            if (ModelState.IsValid)
-            {
-                // Prevent duplicate key
-                if (await _context.Settings.AnyAsync(s => s.Key == model.Key))
-                {
-                    ModelState.AddModelError("Key", "A setting with this key already exists.");
-                    return View(model);
-                }
-
-                model.CreatedBy = User.Identity?.Name ?? "system";
-                model.UpdatedBy = User.Identity?.Name ?? "system";
-                model.CreatedAt = DateTime.UtcNow;
-                model.UpdatedAt = DateTime.UtcNow;
-
-                _context.Settings.Add(model);
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Setting created successfully!";
-                return RedirectToAction(nameof(Settings));
-            }
-
-            return View(model);
+            TempData["Error"] = "Creating new settings is not allowed.";
+            return RedirectToAction(nameof(Settings));
         }
 
         // GET: /Admin/EditSetting/5
@@ -116,6 +101,8 @@ namespace FYP.Controllers
             var setting = await _context.Settings.FindAsync(id);
             if (setting == null) return NotFound();
 
+            // We don't allow changing keys. Pass flag to view.
+            ViewBag.IsKeyEditable = false;
             return View(setting);
         }
 
@@ -131,20 +118,15 @@ namespace FYP.Controllers
             ModelState.Remove("CreatedAt");
             ModelState.Remove("UpdatedBy");
             ModelState.Remove("UpdatedAt");
-            
+            // Also remove Key from modelstate so it cannot be modified via post
+            ModelState.Remove("Key");
+
             if (ModelState.IsValid)
             {
                 var setting = await _context.Settings.FindAsync(id);
                 if (setting == null) return NotFound();
 
-                // Prevent duplicate key
-                if (await _context.Settings.AnyAsync(s => s.Key == model.Key && s.SettingsID != id))
-                {
-                    ModelState.AddModelError("Key", "A setting with this key already exists.");
-                    return View(model);
-                }
-
-                setting.Key = model.Key;
+                // Only update the Value; keys are fixed
                 setting.Value = model.Value;
                 setting.UpdatedBy = User.Identity?.Name ?? "system";
                 setting.UpdatedAt = DateTime.UtcNow;
@@ -164,10 +146,8 @@ namespace FYP.Controllers
             var setting = await _context.Settings.FindAsync(id);
             if (setting == null) return NotFound();
 
-            _context.Settings.Remove(setting);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Setting deleted successfully!";
+            // Deleting settings is not allowed
+            TempData["Error"] = "Deleting settings is not allowed.";
             return RedirectToAction(nameof(Settings));
         }
 
@@ -573,7 +553,7 @@ namespace FYP.Controllers
         // ================== USER MANAGEMENT ==================
 
         // GET: /Admin/ManageUsers
-        public async Task<IActionResult> ManageUsers(string category = "managers")
+        public async Task<IActionResult> ManageUsers(string category = "managers", string search = null)
         {
             try
             {
@@ -595,6 +575,35 @@ namespace FYP.Controllers
                     .OrderBy(c => c.FirstName ?? "")
                     .ThenBy(c => c.LastName ?? "")
                     .ToListAsync();
+
+                // Apply search filtering if provided
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var normalized = search.Trim();
+
+                    managers = managers.Where(e =>
+                        (!string.IsNullOrWhiteSpace(e.FirstName) && e.FirstName.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(e.LastName) && e.LastName.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(e.Email) && e.Email.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(e.PhoneNumber) && e.PhoneNumber.Contains(normalized, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+
+                    staff = staff.Where(e =>
+                        (!string.IsNullOrWhiteSpace(e.FirstName) && e.FirstName.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(e.LastName) && e.LastName.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(e.Email) && e.Email.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(e.PhoneNumber) && e.PhoneNumber.Contains(normalized, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+
+                    customers = customers.Where(c =>
+                        (!string.IsNullOrWhiteSpace(c.FirstName) && c.FirstName.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(c.LastName) && c.LastName.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(c.Email) && c.Email.Contains(normalized, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(c.PhoneNumber) && c.PhoneNumber.Contains(normalized, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+
+                    ViewBag.Search = normalized;
+                }
 
                 ViewBag.ActiveTab = category?.ToLowerInvariant();
                 ViewBag.Managers = managers;
@@ -890,6 +899,22 @@ namespace FYP.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        // Toggle status for customer
+        public async Task<IActionResult> ToggleCustomerStatus(int id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null) return NotFound();
+
+            customer.IsActive = !customer.IsActive;
+            customer.UpdatedBy = User.Identity?.Name ?? "admin";
+            customer.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            var action = customer.IsActive ? "activated" : "deactivated";
+            TempData["Success"] = $"Customer {customer.FirstName} {customer.LastName} {action} successfully!";
+            return RedirectToAction(nameof(ManageUsers), new { category = "customers" });
         }
     }
 }

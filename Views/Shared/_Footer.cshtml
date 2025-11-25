@@ -1,10 +1,28 @@
+@using Microsoft.EntityFrameworkCore
+@using FYP.ViewModels
+@inject FYP.Data.ApplicationDbContext Db
+@{
+    // Build view model from DB
+    var settings = Db.Settings.AsNoTracking().ToList();
+    var vm = new FooterViewModel
+    {
+        OpeningHours = settings.FirstOrDefault(s => s.Key == "Opening Hours")?.Value ?? string.Empty,
+        Phone = settings.FirstOrDefault(s => s.Key == "Phone")?.Value ?? string.Empty,
+        BrandName = settings.FirstOrDefault(s => s.Key == "Name")?.Value ?? "Fine O Dine"
+    };
+}
 <footer class="footer">
     <div class="container">
         <div class="footer-content">
             <div class="footer-section">
-                <h3>@L["BrandName"]</h3>
+                <h3>@vm.BrandName</h3>
                 <p>@L["FooterQuote"]</p>
-                <p>@L["FooterHours"]</p>
+                @if(!string.IsNullOrWhiteSpace(vm.OpeningHours)){
+                    <p><strong>@L["Opening Hours"]:</strong> @vm.OpeningHours</p>
+                }
+                @if(!string.IsNullOrWhiteSpace(vm.Phone)){
+                    <p><strong>@L["Phone"]:</strong> @vm.Phone</p>
+                }
             </div>
         </div>
         <div class="footer-bottom">

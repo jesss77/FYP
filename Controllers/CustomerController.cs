@@ -1,6 +1,7 @@
 using FYP.Data;
 using FYP.Models;
 using FYP.Services;
+using FYP.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -33,52 +34,77 @@ namespace FYP.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Create()
         {
-            var model = new Customer
+            var vm = new CustomerCreateViewModel
             {
                 Email = TempData["Email"]?.ToString(),
                 ApplicationUserId = TempData["UserId"]?.ToString(),
                 CreatedBy = TempData["UserId"]?.ToString(),
-                UpdatedBy = TempData["UserId"]?.ToString(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedBy = TempData["UserId"]?.ToString()
             };
 
             var defaultImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pics", "pfp.jpg");
             if (System.IO.File.Exists(defaultImagePath))
             {
-                model.PictureBytes = await System.IO.File.ReadAllBytesAsync(defaultImagePath);
+                vm.PictureBytes = await System.IO.File.ReadAllBytesAsync(defaultImagePath);
             }
             else
             {
-                model.PictureBytes = Array.Empty<byte>();
+                vm.PictureBytes = Array.Empty<byte>();
             }
 
-            return View(model);
+            return View(vm);
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Customer model, IFormFile? picture)
+        public async Task<IActionResult> Create(CustomerCreateViewModel vm)
         {
-            ModelState.Remove("ApplicationUser");
-            ModelState.Remove("PictureBytes");
+            // If a file was uploaded, populate PictureBytes for redisplay even if validation fails
+            if (vm.Picture != null && vm.Picture.Length > 0)
+            {
+                using var msPreview = new MemoryStream();
+                await vm.Picture.CopyToAsync(msPreview);
+                vm.PictureBytes = msPreview.ToArray();
+            }
 
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                // Ensure default picture is set when none uploaded
+                if ((vm.PictureBytes == null || vm.PictureBytes.Length == 0))
+                {
+                    var defaultImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pics", "pfp.jpg");
+                    if (System.IO.File.Exists(defaultImagePath))
+                    {
+                        vm.PictureBytes = await System.IO.File.ReadAllBytesAsync(defaultImagePath);
+                    }
+                    else
+                    {
+                        vm.PictureBytes = Array.Empty<byte>();
+                    }
+                }
 
-            model.ApplicationUserId ??= TempData["UserId"]?.ToString();
-            model.Email ??= TempData["Email"]?.ToString();
+                return View(vm);
+            }
 
-            model.CreatedBy ??= model.ApplicationUserId;
-            model.UpdatedBy ??= model.ApplicationUserId;
-            model.CreatedAt = DateTime.UtcNow;
-            model.UpdatedAt = DateTime.UtcNow;
+            var model = new Customer
+            {
+                Email = vm.Email ?? TempData["Email"]?.ToString(),
+                ApplicationUserId = vm.ApplicationUserId ?? TempData["UserId"]?.ToString(),
+                FirstName = vm.FirstName,
+                LastName = vm.LastName,
+                PhoneNumber = vm.PhoneNumber,
+                PreferredLanguage = vm.PreferredLanguage,
+                CreatedBy = vm.CreatedBy ?? vm.ApplicationUserId,
+                UpdatedBy = vm.UpdatedBy ?? vm.ApplicationUserId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-            if (picture != null && picture.Length > 0)
+            if (vm.Picture != null && vm.Picture.Length > 0)
             {
                 using var ms = new MemoryStream();
-                await picture.CopyToAsync(ms);
+                await vm.Picture.CopyToAsync(ms);
                 model.PictureBytes = ms.ToArray();
             }
             else
@@ -93,7 +119,6 @@ namespace FYP.Controllers
             _context.Customers.Add(model);
             await _context.SaveChangesAsync();
 
-            // Redirect to ConfirmEmail page with email parameter (for customers)
             return RedirectToPage("/Account/ConfirmEmail", new { area = "Identity", email = model.Email });
         }
 
@@ -192,12 +217,23 @@ namespace FYP.Controllers
                 return RedirectToAction("Create");
             }
 
-            return View(customer);
+            var vm = new CustomerEditViewModel
+            {
+                CustomerID = customer.CustomerID,
+                Email = customer.Email,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                PhoneNumber = customer.PhoneNumber,
+                PreferredLanguage = customer.PreferredLanguage,
+                PictureBytes = customer.PictureBytes
+            };
+
+            return View(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(Customer model, IFormFile? picture)
+        public async Task<IActionResult> UpdateProfile(CustomerEditViewModel vm)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -206,7 +242,7 @@ namespace FYP.Controllers
             }
 
             var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.CustomerID == model.CustomerID && c.ApplicationUserId == user.Id);
+                .FirstOrDefaultAsync(c => c.CustomerID == vm.CustomerID && c.ApplicationUserId == user.Id);
 
             if (customer == null)
             {
@@ -214,159 +250,112 @@ namespace FYP.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Remove fields from validation that we'll set programmatically
-            ModelState.Remove("ApplicationUser");
+            // Validate model
             ModelState.Remove("PictureBytes");
-            ModelState.Remove("Email");
-            ModelState.Remove("UpdatedBy");
-            ModelState.Remove("UpdatedAt");
-
             if (!ModelState.IsValid)
             {
-                // Log validation errors
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                TempData["Error"] = $"Validation failed: {string.Join(", ", errors)}";
-                
-                // Reload customer with picture data for redisplay
+                // Attach existing bytes for redisplay
                 var reloadedCustomer = await _context.Customers
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.CustomerID == model.CustomerID);
-                
+                    .FirstOrDefaultAsync(c => c.CustomerID == vm.CustomerID);
                 if (reloadedCustomer != null)
                 {
-                    model.PictureBytes = reloadedCustomer.PictureBytes;
+                    vm.PictureBytes = reloadedCustomer.PictureBytes;
                 }
-                
-                return View("EditProfile", model);
+
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                TempData["Error"] = $"Validation failed: {string.Join(", ", errors)}";
+                return View("EditProfile", vm);
             }
 
             try
             {
-                // Update customer details
-                customer.FirstName = model.FirstName;
-                customer.LastName = model.LastName;
-                customer.PhoneNumber = model.PhoneNumber;
-                customer.PreferredLanguage = model.PreferredLanguage;
+                // Update fields
+                customer.FirstName = vm.FirstName;
+                customer.LastName = vm.LastName;
+                customer.PhoneNumber = vm.PhoneNumber;
+                customer.PreferredLanguage = vm.PreferredLanguage;
                 customer.UpdatedBy = user.Id;
                 customer.UpdatedAt = DateTime.UtcNow;
 
-                // Handle profile picture update
-                if (picture != null && picture.Length > 0)
+                if (vm.Picture != null && vm.Picture.Length > 0)
                 {
-                    // Validate file size (5MB max)
-                    if (picture.Length > 5 * 1024 * 1024)
+                    if (vm.Picture.Length > 5 * 1024 * 1024)
                     {
                         TempData["Error"] = "Profile picture must be less than 5MB.";
-                        
-                        // Reload customer with picture data
-                        var reloadedCustomer = await _context.Customers
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(c => c.CustomerID == model.CustomerID);
-                        if (reloadedCustomer != null)
-                        {
-                            customer.PictureBytes = reloadedCustomer.PictureBytes;
-                        }
-                        
-                        return View("EditProfile", customer);
+                        vm.PictureBytes = customer.PictureBytes;
+                        return View("EditProfile", vm);
                     }
 
-                    // Validate file type
                     var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
-                    if (!allowedTypes.Contains(picture.ContentType.ToLower()))
+                    if (!allowedTypes.Contains(vm.Picture.ContentType.ToLower()))
                     {
                         TempData["Error"] = "Only image files (JPG, PNG, GIF) are allowed.";
-                        
-                        // Reload customer with picture data
-                        var reloadedCustomer = await _context.Customers
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(c => c.CustomerID == model.CustomerID);
-                        if (reloadedCustomer != null)
-                        {
-                            customer.PictureBytes = reloadedCustomer.PictureBytes;
-                        }
-                        
-                        return View("EditProfile", customer);
+                        vm.PictureBytes = customer.PictureBytes;
+                        return View("EditProfile", vm);
                     }
 
                     using var ms = new MemoryStream();
-                    await picture.CopyToAsync(ms);
+                    await vm.Picture.CopyToAsync(ms);
                     customer.PictureBytes = ms.ToArray();
+                    _context.Entry(customer).Property(c => c.PictureBytes).IsModified = true;
                 }
-                // If no new picture uploaded, keep the existing picture
-                // Don't modify PictureBytes if picture is null
 
-                // Mark only the properties we want to update
                 _context.Entry(customer).Property(c => c.FirstName).IsModified = true;
                 _context.Entry(customer).Property(c => c.LastName).IsModified = true;
                 _context.Entry(customer).Property(c => c.PhoneNumber).IsModified = true;
                 _context.Entry(customer).Property(c => c.PreferredLanguage).IsModified = true;
                 _context.Entry(customer).Property(c => c.UpdatedBy).IsModified = true;
                 _context.Entry(customer).Property(c => c.UpdatedAt).IsModified = true;
-                
-                if (picture != null && picture.Length > 0)
-                {
-                    _context.Entry(customer).Property(c => c.PictureBytes).IsModified = true;
-                }
-                
-                // Save changes
-                var savedCount = await _context.SaveChangesAsync();
-                
-                if (savedCount > 0)
+
+                var saved = await _context.SaveChangesAsync();
+                if (saved > 0)
                 {
                     TempData["Success"] = "Profile updated successfully!";
-                    TempData["ProfileUpdated"] = DateTime.UtcNow.Ticks.ToString(); // Cache buster
+                    TempData["ProfileUpdated"] = DateTime.UtcNow.Ticks.ToString();
                 }
                 else
                 {
                     TempData["Success"] = "Profile information verified - no changes needed.";
                 }
-                
+
                 return RedirectToAction("Index");
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 TempData["Error"] = $"Database concurrency error: {ex.Message}. Please try again.";
-                
-                // Reload customer with picture data
                 var reloadedCustomer = await _context.Customers
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.CustomerID == model.CustomerID);
+                    .FirstOrDefaultAsync(c => c.CustomerID == vm.CustomerID);
                 if (reloadedCustomer != null)
                 {
-                    customer.PictureBytes = reloadedCustomer.PictureBytes;
+                    vm.PictureBytes = reloadedCustomer.PictureBytes;
                 }
-                
-                return View("EditProfile", customer);
+                return View("EditProfile", vm);
             }
             catch (DbUpdateException ex)
             {
                 TempData["Error"] = $"Database error: {ex.InnerException?.Message ?? ex.Message}";
-                
-                // Reload customer with picture data
                 var reloadedCustomer = await _context.Customers
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.CustomerID == model.CustomerID);
+                    .FirstOrDefaultAsync(c => c.CustomerID == vm.CustomerID);
                 if (reloadedCustomer != null)
                 {
-                    customer.PictureBytes = reloadedCustomer.PictureBytes;
+                    vm.PictureBytes = reloadedCustomer.PictureBytes;
                 }
-                
-                return View("EditProfile", customer);
+                return View("EditProfile", vm);
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Failed to update profile: {ex.Message}";
-                
-                // Reload customer with picture data
                 var reloadedCustomer = await _context.Customers
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.CustomerID == model.CustomerID);
+                    .FirstOrDefaultAsync(c => c.CustomerID == vm.CustomerID);
                 if (reloadedCustomer != null)
                 {
-                    customer.PictureBytes = reloadedCustomer.PictureBytes;
+                    vm.PictureBytes = reloadedCustomer.PictureBytes;
                 }
-                
-                return View("EditProfile", customer);
+                return View("EditProfile", vm);
             }
         }
 

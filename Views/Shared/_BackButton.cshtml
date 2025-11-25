@@ -1,5 +1,23 @@
 @model string
-<a class="btn btn-outline-secondary mb-3" href="@Model">
-    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.25rem;">arrow_back</span>
+<a class="btn btn-outline-secondary mb-3 back-button" href="@Model">
+    <span class="material-symbols-outlined back-icon" aria-hidden="true" style="vertical-align: middle; margin-right: 0.25rem;">arrow_back</span>
     Back
 </a>
+
+<style>
+/* Use CSS variables for back button so dark mode can override via theme-variables.css */
+.back-button {
+    border-color: var(--back-button-border-color) !important;
+    color: var(--back-button-icon-color) !important;
+}
+
+.back-button .back-icon {
+    color: var(--back-button-icon-color) !important;
+}
+
+/* Small margin adjustments for consistent spacing */
+.back-button {
+    margin-bottom: var(--spacing-md) !important;
+}
+</style>
+    
