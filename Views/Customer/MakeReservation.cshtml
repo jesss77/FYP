@@ -48,13 +48,23 @@
                         <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">calendar_today</span>
                         @L["Date"] <span style="color: var(--color-primary-red);">*</span>
                     </label>
-                    <input name="ReservationDate" type="date" class="form-control" required 
-                           min="@DateTime.Now.ToString("yyyy-MM-dd")" 
-                           id="reservationDateInput"
-                           lang="en-GB" />
-                    <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.75rem;">
-                        ?? Format: DD/MM/YYYY
-                    </small>
+                    <div style="position: relative;">
+                        <input type="text" class="form-control" required 
+                               placeholder="DD/MM/YYYY"
+                               id="reservationDateInput" 
+                               style="padding-right: 45px;" />
+                        <input type="date" 
+                               id="reservationDatePicker" 
+                               style="position: absolute; opacity: 0; pointer-events: none;"
+                               min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" id="reservationDateHidden" name="ReservationDate" />
+                        <button type="button" 
+                                class="btn btn-link" 
+                                id="calendarIconBtn"
+                                style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); padding: 5px; color: var(--text-secondary); border: none; background: none; cursor: pointer;">
+                            <span class="material-symbols-outlined" style="font-size: 1.25rem;">calendar_today</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="col-md-6">
@@ -66,49 +76,48 @@
                 </div>
             </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">
-                        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">groups</span>
-                        @L["Party Size"] <span style="color: var(--color-primary-red);">*</span>
-                    </label>
-                    <input name="PartySize" type="number" min="1" max="20" class="form-control" 
-                           placeholder="Number of guests" value="2" required />
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">
-                        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">timer</span>
-                        @L["Duration"] (@L["minutes"])
-                    </label>
-                    <select name="Duration" class="form-control">
-                        <option value="90">90 @L["minutes"] (@L["Standard"])</option>
-                        <option value="120">120 @L["minutes"]</option>
-                        <option value="150">150 @L["minutes"]</option>
-                        <option value="180">180 @L["minutes"]</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group mb-3">
+            <div class="mb-3">
                 <label class="form-label fw-semibold">
-                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">edit_note</span>
-                    @L["Reservation Name"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">groups</span>
+                    @L["Party Size"] <span style="color: var(--color-primary-red);">*</span>
                 </label>
-                <input name="ReservationName" type="text" class="form-control" 
-                       placeholder="@L["e.g., Birthday Dinner, Anniversary"]" maxlength="100" />
-                <small style="display: block; color: var(--text-muted); margin-top: var(--spacing-xs); font-size: 0.875rem;">
-                    @L["Give your reservation a memorable name"]
-                </small>
+                <input name="PartySize" type="number" min="1" max="20" class="form-control" 
+                       placeholder="Number of guests" value="2" required />
             </div>
 
             <div class="form-group mb-4">
                 <label class="form-label fw-semibold">
                     <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">notes</span>
-                    @L["Special Requests"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                    @L["Notes"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
                 </label>
                 <textarea name="Notes" class="form-control" rows="4" 
                           placeholder="@L["Any dietary restrictions or special occasions?"]"></textarea>
+            </div>
+
+            <!-- More Options (Collapsible) -->
+            <div class="mb-4">
+                <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#moreOptions" aria-expanded="false" aria-controls="moreOptions" style="color: var(--color-primary-gold); font-weight: 600;">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">expand_more</span>
+                    @L["More"]
+                </button>
+                <div class="collapse mt-3" id="moreOptions">
+                    <div class="card card-body" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">timer</span>
+                                    @L["Duration"] (@L["minutes"])
+                                </label>
+                                <select name="Duration" class="form-control">
+                                    <option value="90">90 @L["minutes"] (@L["Standard"])</option>
+                                    <option value="120">120 @L["minutes"]</option>
+                                    <option value="150">150 @L["minutes"]</option>
+                                    <option value="180">180 @L["minutes"]</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="d-flex gap-3 mt-4">
@@ -126,38 +135,118 @@
 </div>
 
 <script>
-// Force dd/MM/yyyy format display for date input
 document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('reservationDateInput');
+    const datePicker = document.getElementById('reservationDatePicker');
+    const dateHidden = document.getElementById('reservationDateHidden');
     
-    if (dateInput) {
-        // Set the lang attribute to force GB locale (dd/MM/yyyy)
-        dateInput.setAttribute('lang', 'en-GB');
+    if (dateInput && datePicker) {
+        // Function to convert yyyy-MM-dd to DD/MM/YYYY
+        function formatToDDMMYYYY(isoDate) {
+            if (!isoDate) return '';
+            const date = new Date(isoDate + 'T00:00:00');
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
         
-        // Log selected date in dd/MM/yyyy format
-        dateInput.addEventListener('change', function() {
+        // Function to convert DD/MM/YYYY to yyyy-MM-dd
+        function formatToISO(ddmmYYYY) {
+            if (!ddmmYYYY || ddmmYYYY.length !== 10) return '';
+            const parts = ddmmYYYY.split('/');
+            if (parts.length !== 3) return '';
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+        }
+        
+        // When date picker changes, update the visible input and hidden field
+        datePicker.addEventListener('change', function() {
             if (this.value) {
-                const selectedDate = new Date(this.value + 'T00:00:00');
-                const day = String(selectedDate.getDate()).padStart(2, '0');
-                const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-                const year = selectedDate.getFullYear();
-                console.log(`Selected date: ${day}/${month}/${year}`);
-                
-                // Display confirmation
-                const confirmation = document.getElementById('dateConfirmation');
-                if (!confirmation) {
-                    const msg = document.createElement('small');
-                    msg.id = 'dateConfirmation';
-                    msg.style.display = 'block';
-                    msg.style.color = 'var(--color-primary-gold)';
-                    msg.style.marginTop = 'var(--spacing-xs)';
-                    msg.style.fontSize = '0.875rem';
-                    msg.style.fontWeight = '600';
-                    msg.innerHTML = `? Selected: ${day}/${month}/${year}`;
-                    dateInput.parentElement.appendChild(msg);
-                } else {
-                    confirmation.innerHTML = `? Selected: ${day}/${month}/${year}`;
+                const formatted = formatToDDMMYYYY(this.value);
+                dateInput.value = formatted;
+                if (dateHidden) {
+                    dateHidden.value = this.value;
                 }
+            }
+        });
+        
+        // Calendar icon button opens the date picker
+        const calendarBtn = document.getElementById('calendarIconBtn');
+        if (calendarBtn) {
+            calendarBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                datePicker.showPicker ? datePicker.showPicker() : datePicker.click();
+            });
+        }
+        
+        // Allow manual typing in DD/MM/YYYY format
+        dateInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+            if (value.length >= 5) {
+                value = value.substring(0, 5) + '/' + value.substring(5, 9);
+            }
+            
+            e.target.value = value;
+            
+            // Convert DD/MM/YYYY to yyyy-MM-dd for form submission
+            if (value.length === 10) {
+                const isoDate = formatToISO(value);
+                if (isoDate) {
+                    datePicker.value = isoDate;
+                    if (dateHidden) {
+                        dateHidden.value = isoDate;
+                    }
+                }
+            }
+        });
+        
+        // Also allow clicking the input to open picker
+        dateInput.addEventListener('focus', function() {
+            datePicker.showPicker ? datePicker.showPicker() : datePicker.click();
+        });
+        
+        // Handle form submission - ensure date is converted
+        const form = document.querySelector('form[asp-controller="Customer"]') || document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const value = dateInput.value;
+                if (value.length === 10) {
+                    const isoDate = formatToISO(value);
+                    if (isoDate && dateHidden) {
+                        dateHidden.value = isoDate;
+                    }
+                } else if (datePicker.value && dateHidden) {
+                    dateHidden.value = datePicker.value;
+                }
+            });
+        }
+    }
+    
+    // Handle More Options collapse icon rotation
+    const moreOptionsCollapse = document.getElementById('moreOptions');
+    const moreButton = document.querySelector('[data-bs-target="#moreOptions"]');
+    
+    if (moreOptionsCollapse && moreButton) {
+        const icon = moreButton.querySelector('.material-symbols-outlined');
+        
+        moreOptionsCollapse.addEventListener('show.bs.collapse', function () {
+            if (icon) {
+                icon.style.transform = 'rotate(180deg)';
+                icon.textContent = 'expand_less';
+            }
+        });
+        
+        moreOptionsCollapse.addEventListener('hide.bs.collapse', function () {
+            if (icon) {
+                icon.style.transform = 'rotate(0deg)';
+                icon.textContent = 'expand_more';
             }
         });
     }
@@ -210,5 +299,20 @@ input[type="date"]::-webkit-datetime-edit-year-field:focus {
 /* Ensure proper spacing */
 input[type="date"] {
     font-family: inherit;
+}
+
+/* More Options collapse styling */
+#moreOptions .material-symbols-outlined {
+    transition: transform 0.3s ease;
+}
+
+[data-bs-target="#moreOptions"] .material-symbols-outlined {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+[data-bs-target="#moreOptions"]:hover {
+    color: var(--color-primary-gold) !important;
+    opacity: 0.8;
 }
 </style>

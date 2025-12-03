@@ -46,20 +46,28 @@
                 @L["Manage your reservations and book your next exceptional meal"]
             </p>
         </div>
-        <a asp-action="EditProfile" asp-controller="Customer" class="profile-picture-small" style="margin-top: 0.5rem;">
-            @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
-            {
-                <img src="@($"data:{GetImageMime(Model.PictureBytes)};base64,{Convert.ToBase64String(Model.PictureBytes)}")" 
-                     alt="@Model.FirstName @Model.LastName" />
-            }
-            else
-            {
-                <span class="material-symbols-outlined">person</span>
-            }
-            <div class="profile-edit-badge">
-                <span class="material-symbols-outlined">edit</span>
-            </div>
-        </a>
+        <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-top: 0.5rem;">
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="~/" method="post" class="d-inline">
+                <button type="submit" class="btn btn-logout">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">logout</span>
+                    @L["Logout"]
+                </button>
+            </form>
+            <a asp-action="EditProfile" asp-controller="Customer" class="profile-picture-small">
+                @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
+                {
+                    <img src="@($"data:{GetImageMime(Model.PictureBytes)};base64,{Convert.ToBase64String(Model.PictureBytes)}")" 
+                         alt="@Model.FirstName @Model.LastName" />
+                }
+                else
+                {
+                    <span class="material-symbols-outlined">person</span>
+                }
+                <div class="profile-edit-badge">
+                    <span class="material-symbols-outlined">edit</span>
+                </div>
+            </a>
+        </div>
     </div>
 
     <!-- Stats in One Row -->

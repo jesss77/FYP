@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -17,17 +18,20 @@ namespace FYP.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailService _emailService;
+        private readonly IStringLocalizer<FYP.Localization.SharedResource> _localizer;
         private readonly TableAllocationService _allocationService;
 
         public CustomerController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             IEmailService emailService,
+            IStringLocalizer<FYP.Localization.SharedResource> localizer,
             TableAllocationService allocationService)
         {
             _context = context;
             _userManager = userManager;
             _emailService = emailService;
+            _localizer = localizer;
             _allocationService = allocationService;
         }
 
@@ -361,7 +365,7 @@ namespace FYP.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Reserve(int PartySize, DateTime ReservationDate, TimeSpan ReservationTime, string? Notes, int? Duration, string? ReservationName)
+        public async Task<IActionResult> Reserve(int PartySize, DateTime ReservationDate, TimeSpan ReservationTime, string? Notes, int? Duration)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
@@ -376,48 +380,45 @@ namespace FYP.Controllers
             }
 
             // Server-side validation
-            if (PartySize < 1)
+            if (PartySize < 1 || ReservationDate == default || ReservationTime == default)
             {
-                TempData["Error"] = "Please select a valid party size.";
+                TempData["Error"] = _localizer["Please select a valid party size, date and time."].Value;
                 return RedirectToAction("MakeReservation");
             }
-            if (ReservationDate == default || ReservationTime == default)
-            {
-                TempData["Error"] = "Please select a valid date and time.";
-                return RedirectToAction("MakeReservation");
-            }
+
             var selectedDateTimeUtc = new DateTime(
                 ReservationDate.Year, ReservationDate.Month, ReservationDate.Day,
                 ReservationTime.Hours, ReservationTime.Minutes, 0, DateTimeKind.Utc);
             if (selectedDateTimeUtc < DateTime.UtcNow)
             {
-                TempData["Error"] = "Date and time cannot be in the past.";
+                TempData["Error"] = _localizer["Date and time cannot be in the past."].Value;
                 return RedirectToAction("MakeReservation");
             }
 
-            // Ensure Pending status exists
-            var pendingStatus = await _context.ReservationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Pending");
-            if (pendingStatus == null)
+            // Business hours check (10:00 - 22:00)
+            var open = new TimeSpan(10, 0, 0);
+            var close = new TimeSpan(22, 0, 0);
+            if (ReservationTime < open || ReservationTime > close)
             {
-                pendingStatus = new ReservationStatus
+                TempData["Error"] = _localizer["Selected time is outside business hours."].Value;
+                return RedirectToAction("MakeReservation");
+            }
+
+            // Ensure Confirmed status exists
+            var confirmedStatus = await _context.ReservationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Confirmed");
+            if (confirmedStatus == null)
+            {
+                confirmedStatus = new ReservationStatus
                 {
-                    StatusName = "Pending",
-                    Description = "Awaiting confirmation",
+                    StatusName = "Confirmed",
+                    Description = "Confirmed by system",
                     CreatedBy = "system",
                     UpdatedBy = "system",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                _context.ReservationStatuses.Add(pendingStatus);
+                _context.ReservationStatuses.Add(confirmedStatus);
                 await _context.SaveChangesAsync();
-            }
-
-            var effectiveNotes = Notes;
-            if (!string.IsNullOrWhiteSpace(ReservationName))
-            {
-                effectiveNotes = string.IsNullOrWhiteSpace(Notes)
-                    ? $"Reservation Name: {ReservationName}"
-                    : $"Reservation Name: {ReservationName} | {Notes}";
             }
 
             // Ensure restaurant exists
@@ -448,7 +449,7 @@ namespace FYP.Controllers
 
             if (!allocation.Success)
             {
-                TempData["Error"] = allocation.ErrorMessage;
+                TempData["Error"] = _localizer[allocation.ErrorMessage ?? "No tables available"].Value;
                 return RedirectToAction("MakeReservation");
             }
 
@@ -465,18 +466,46 @@ namespace FYP.Controllers
                     ReservationTime,
                     effectiveDuration,
                     PartySize,
-                    effectiveNotes,
-                    pendingStatus.ReservationStatusID,
+                    Notes,
+                    confirmedStatus.ReservationStatusID,
                     false,
                     user.Id);
 
-                TempData["Message"] = $"Reservation submitted! {allocation.AllocationStrategy}. We'll confirm shortly.";
+                // Send confirmation email
+                var restaurantName = _localizer["BrandName"].Value;
+                var tableInfo = allocation.AllocatedTableIds.Count > 1 
+                    ? $"{allocation.AllocatedTableIds.Count} joined tables"
+                    : $"Table {allocation.AllocatedTableIds[0]}";
+                
+                var customerName = $"{customer.FirstName} {customer.LastName}";
+                var subject = _localizer["Your reservation at {0} is confirmed", restaurantName].Value;
+                var greeting = !string.IsNullOrWhiteSpace(customerName) 
+                    ? $"{_localizer["Hello"]} {System.Net.WebUtility.HtmlEncode(customerName)},"
+                    : _localizer["Hello"].Value;
+                var body = $@"
+                    <h2>{_localizer["Reservation Confirmed"]}</h2>
+                    <p>{greeting}</p>
+                    <p>{_localizer["Your reservation details are below:"]}</p>
+                    <ul>
+                        <li>{_localizer["Date"]}: {ReservationDate:yyyy-MM-dd}</li>
+                        <li>{_localizer["Time"]}: {ReservationTime}</li>
+                        <li>{_localizer["Duration"]}: {effectiveDuration} min</li>
+                        <li>{_localizer["Party Size"]}: {PartySize}</li>
+                        <li>{_localizer["Table"]}: {tableInfo}</li>
+                        <li>{_localizer["Restaurant"]}: {restaurantName}</li>
+                    </ul>
+                    <p><em>{allocation.AllocationStrategy}</em></p>
+                    <p>{_localizer["We look forward to welcoming you."]}</p>";
+
+                await _emailService.SendEmailAsync(customer.Email, subject, body);
+
+                TempData["Message"] = _localizer["Thanks! Your reservation is confirmed. A confirmation email has been sent."].Value;
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
                 var root = ex.GetBaseException()?.Message ?? ex.Message;
-                TempData["Error"] = $"Failed to save reservation: {root}";
+                TempData["Error"] = _localizer["Failed to save reservation: {0}", root].Value;
                 return RedirectToAction("MakeReservation");
             }
         }
