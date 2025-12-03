@@ -5,11 +5,26 @@
 }
 
 <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="gold-heading">Reservations - @filterDate.ToString("MMMM dd, yyyy")</h2>
-        <a asp-action="CreateWalkIn" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> New Walk-In
-        </a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <h2 class="gold-heading mb-0">Reservations - @filterDate.ToString("MMMM dd, yyyy")</h2>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <div class="btn-group" role="group" aria-label="View toggle">
+                <a asp-controller="ReservationCalendar" asp-action="Index" asp-route-date="@filterDate.ToString("yyyy-MM-dd")" class="btn btn-outline-primary">
+                    <i class="bi bi-calendar3"></i> Calendar
+                </a>
+                <a asp-action="Reservations" class="btn btn-primary active">
+                    <i class="bi bi-list-ul"></i> List
+                </a>
+            </div>
+            <a asp-action="CreateWalkIn" class="btn btn-success">
+                <i class="bi bi-person-plus"></i> New Walk-In
+            </a>
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="~/" method="post">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </div>
     </div>
 
     @if (TempData["Error"] != null)

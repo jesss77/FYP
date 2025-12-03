@@ -208,7 +208,8 @@ namespace FYP.Controllers
             }
 
             var effectiveDuration = Duration ?? 90;
-            var now = DateTime.UtcNow;
+            // Use local time for walk-in creation so calendar reflects actual local time
+            var now = DateTime.Now;
 
             // Use allocation service to find best table assignment
             var allocation = await _allocationService.FindBestAllocationAsync(
@@ -292,7 +293,7 @@ namespace FYP.Controllers
         // Update reservation status
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateStatus(int reservationId, int statusId)
+        public async Task<IActionResult> UpdateStatus(int reservationId, int statusId, string? returnTo = null)
         {
             var user = await _userManager.GetUserAsync(User);
             
@@ -303,14 +304,14 @@ namespace FYP.Controllers
             if (reservation == null)
             {
                 TempData["Error"] = "Reservation not found.";
-                return RedirectToAction("Reservations");
+                return RedirectAfterStatusChange(returnTo);
             }
 
             var newStatus = await _context.ReservationStatuses.FindAsync(statusId);
             if (newStatus == null)
             {
                 TempData["Error"] = "Invalid status.";
-                return RedirectToAction("Reservations");
+                return RedirectAfterStatusChange(returnTo);
             }
 
             var oldStatus = reservation.ReservationStatus.StatusName;
@@ -322,6 +323,16 @@ namespace FYP.Controllers
             await LogReservationAction(reservationId, "StatusChanged", $"From {oldStatus} to {newStatus.StatusName}", user.Id);
 
             TempData["Message"] = $"Reservation status updated to {newStatus.StatusName}.";
+            return RedirectAfterStatusChange(returnTo);
+        }
+
+        private IActionResult RedirectAfterStatusChange(string? returnTo)
+        {
+            if (string.Equals(returnTo, "Calendar", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("Index", "ReservationCalendar");
+            }
+
             return RedirectToAction("Reservations");
         }
 

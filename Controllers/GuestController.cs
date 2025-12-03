@@ -43,32 +43,31 @@ namespace FYP.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reserve(int PartySize, DateTime ReservationDate, TimeSpan ReservationTime, string? Notes, int? Duration,
-            string GuestName, string GuestEmail, string? GuestPhone)
+            string? FirstName, string? LastName, string GuestEmail, string? GuestPhone)
         {
             // Server-side validation
             if (PartySize < 1 || ReservationDate == default || ReservationTime == default)
             {
-                TempData["Error"] = _localizer["Please select a valid party size, date and time."];
+                TempData["Error"] = _localizer["Please select a valid party size, date and time."].Value;
                 return RedirectToAction("Index");
             }
 
-            if (string.IsNullOrWhiteSpace(GuestName) || string.IsNullOrWhiteSpace(GuestEmail))
+            if (string.IsNullOrWhiteSpace(GuestEmail))
             {
-                TempData["Error"] = _localizer["Please provide your name and email."];
+                TempData["Error"] = _localizer["Please provide your email."].Value;
                 return RedirectToAction("Index");
             }
 
-            // Parse name into first and last
-            var nameParts = GuestName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-            var firstName = nameParts.Length > 0 ? nameParts[0] : GuestName;
-            var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+            // Use provided first and last names (already separate)
+            string? firstName = string.IsNullOrWhiteSpace(FirstName) ? null : FirstName.Trim();
+            string? lastName = string.IsNullOrWhiteSpace(LastName) ? null : LastName.Trim();
 
             var selectedDateTimeUtc = new DateTime(
                 ReservationDate.Year, ReservationDate.Month, ReservationDate.Day,
                 ReservationTime.Hours, ReservationTime.Minutes, 0, DateTimeKind.Utc);
             if (selectedDateTimeUtc < DateTime.UtcNow)
             {
-                TempData["Error"] = _localizer["Date and time cannot be in the past."];
+                TempData["Error"] = _localizer["Date and time cannot be in the past."].Value;
                 return RedirectToAction("Index");
             }
 
@@ -77,7 +76,7 @@ namespace FYP.Controllers
             var close = new TimeSpan(22, 0, 0);
             if (ReservationTime < open || ReservationTime > close)
             {
-                TempData["Error"] = _localizer["Selected time is outside business hours."];
+                TempData["Error"] = _localizer["Selected time is outside business hours."].Value;
                 return RedirectToAction("Index");
             }
 
@@ -104,9 +103,15 @@ namespace FYP.Controllers
             }
             else
             {
-                // Update guest info if changed
-                guest.FirstName = firstName;
-                guest.LastName = lastName;
+                // Update guest info if provided (only update if new values are not null/empty)
+                if (!string.IsNullOrWhiteSpace(firstName))
+                {
+                    guest.FirstName = firstName;
+                }
+                if (!string.IsNullOrWhiteSpace(lastName))
+                {
+                    guest.LastName = lastName;
+                }
                 guest.PhoneNumber = string.IsNullOrWhiteSpace(GuestPhone) ? null : GuestPhone.Trim();
                 guest.UpdatedBy = "guest";
                 guest.UpdatedAt = DateTime.UtcNow;
@@ -158,7 +163,7 @@ namespace FYP.Controllers
 
             if (!allocation.Success)
             {
-                TempData["Error"] = _localizer[allocation.ErrorMessage ?? "No tables available"];
+                TempData["Error"] = _localizer[allocation.ErrorMessage ?? "No tables available"].Value;
                 return RedirectToAction("Index");
             }
 
@@ -187,9 +192,21 @@ namespace FYP.Controllers
                     : $"Table {allocation.AllocatedTableIds[0]}";
                 
                 var subject = _localizer["Your reservation at {0} is confirmed", restaurantName].Value;
+                var displayName = "";
+                if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
+                {
+                    displayName = $"{System.Net.WebUtility.HtmlEncode(firstName)} {System.Net.WebUtility.HtmlEncode(lastName)}";
+                }
+                else if (!string.IsNullOrWhiteSpace(firstName))
+                {
+                    displayName = System.Net.WebUtility.HtmlEncode(firstName);
+                }
+                var greeting = !string.IsNullOrWhiteSpace(displayName) 
+                    ? $"{_localizer["Hello"]} {displayName},"
+                    : _localizer["Hello"].Value;
                 var body = $@"
                     <h2>{_localizer["Reservation Confirmed"]}</h2>
-                    <p>{_localizer["Hello"]} {System.Net.WebUtility.HtmlEncode(GuestName)},</p>
+                    <p>{greeting}</p>
                     <p>{_localizer["Your reservation details are below:"]}</p>
                     <ul>
                         <li>{_localizer["Date"]}: {ReservationDate:yyyy-MM-dd}</li>
@@ -204,13 +221,13 @@ namespace FYP.Controllers
 
                 await _emailService.SendEmailAsync(GuestEmail, subject, body);
 
-                TempData["Message"] = _localizer["Thanks! Your reservation is confirmed. A confirmation email has been sent."];
+                TempData["Message"] = _localizer["Thanks! Your reservation is confirmed. A confirmation email has been sent."].Value;
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
                 var root = ex.GetBaseException()?.Message ?? ex.Message;
-                TempData["Error"] = _localizer["Failed to save reservation: {0}", root];
+                TempData["Error"] = _localizer["Failed to save reservation: {0}", root].Value;
                 return RedirectToAction("Index");
             }
         }
