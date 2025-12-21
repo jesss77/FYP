@@ -1,0 +1,47 @@
+@model FYP.ViewModels.Reports.FullReportVM
+@{
+    Layout = null;
+}
+
+<div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h1 style="text-align:center">Admin Reports</h1>
+    @if(Model.FromDate != null || Model.ToDate != null)
+    {
+        <p style="text-align:center; font-size:0.9rem; color:#666;">Range: @(Model.FromDate?.ToString("yyyy-MM-dd") ?? "-")  -  @(Model.ToDate?.ToString("yyyy-MM-dd") ?? "-")</p>
+    }
+
+    <h3>Peak Reservation Times</h3>
+    @if(ViewData["Chart1"] != null)
+    {
+        <div style="text-align:center; margin-bottom:10px;"><img src="@ViewData["Chart1"]" style="max-width:100%; height:auto;" /></div>
+    }
+
+    <h3>Capacity vs Availability</h3>
+    @if(ViewData["Chart2"] != null)
+    {
+        <div style="text-align:center; margin-bottom:10px;"><img src="@ViewData["Chart2"]" style="max-width:100%; height:auto;" /></div>
+    }
+
+    <h3>Most Frequently Used Tables</h3>
+    @if(ViewData["Chart3"] != null)
+    {
+        <div style="text-align:center; margin-bottom:10px;"><img src="@ViewData["Chart3"]" style="max-width:100%; height:auto;" /></div>
+    }
+
+    <h3>Guests vs Customer Reservations</h3>
+    @if(ViewData["Chart4"] != null)
+    {
+        <div style="text-align:center; margin-bottom:10px;"><img src="@ViewData["Chart4"]" style="max-width:100%; height:auto;" /></div>
+    }
+
+    <hr />
+    <h3>Tables Data</h3>
+    <table style="width:100%; border-collapse:collapse;">
+        <thead><tr><th style="border:1px solid #ddd; padding:8px;">Name</th><th style="border:1px solid #ddd; padding:8px;">Value</th></tr></thead>
+        <tbody>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Total Reservations</td><td style="border:1px solid #ddd; padding:8px;">@Model.TotalReservations</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Total Guests</td><td style="border:1px solid #ddd; padding:8px;">@Model.TotalGuests</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Total Customers</td><td style="border:1px solid #ddd; padding:8px;">@Model.TotalCustomers</td></tr>
+        </tbody>
+    </table>
+</div>

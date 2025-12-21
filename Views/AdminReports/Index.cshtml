@@ -1,0 +1,277 @@
+@model FYP.ViewModels.Reports.FullReportVM
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Admin Reports";
+}
+
+<div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-lg); max-width: 1400px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="gold-heading">Admin Reports</h1>
+
+        <div class="d-flex align-items-center gap-2">
+            <form class="d-flex align-items-center" method="get" asp-action="Index" asp-controller="AdminReports">
+                <label class="form-label me-2">From</label>
+                <input type="date" name="from" class="form-control form-control-sm me-2" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                <label class="form-label me-2">To</label>
+                <input type="date" name="to" class="form-control form-control-sm me-2" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                <button class="btn btn-secondary btn-sm me-2" type="submit">Filter</button>
+            </form>
+
+            <div style="position:relative;">
+                <button id="exportPdfBtn" class="btn btn-primary">Export as PDF</button>
+                <div id="pdfProgressOverlay" class="pdf-progress-overlay" style="display:none;">
+                    <div class="pdf-progress-box">
+                        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                        <div class="mt-2">Generating PDF&hellip;</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="exportPdfForm" method="post" asp-controller="AdminReports" asp-action="ExportPdfPost" style="display:none;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="from" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+        <input type="hidden" name="to" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+        <input type="hidden" name="chart1" />
+        <input type="hidden" name="chart2" />
+        <input type="hidden" name="chart3" />
+        <input type="hidden" name="chart4" />
+    </form>
+
+    <!-- Top stat cubes (like admin dashboard) -->
+    <div class="stats-row-container" style="margin-bottom:var(--spacing-2xl);">
+        @{ 
+            var stats = new List<FYP.ViewModels.AdminStatViewModel>();
+            var totalReservations = Model.PeakTimes?.Sum(p => p.Count) ?? 0;
+            var topTable = Model.PeakTables?.FirstOrDefault();
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "calendar_month", Number = totalReservations.ToString(), Label = "TotalReservations", ColorClass = "stat-cube-gold" });
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "table_restaurant", Number = topTable != null ? topTable.TimesUsed.ToString() : "0", Label = "TopTableUses", ColorClass = "stat-cube-green" });
+        }
+        @foreach(var s in stats)
+        {
+            @Html.Partial("~/Views/Shared/_StatCube.cshtml", s)
+        }
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3">Peak Reservation Times</h3>
+                <div class="chart-wrapper"><canvas id="peakTimesChart"></canvas></div>
+                <div class="mt-2 text-muted small">Data visualisation: peak reservations by hour</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3">Capacity vs Availability</h3>
+                <div class="chart-wrapper"><canvas id="capacityChart"></canvas></div>
+                <div class="mt-2 text-muted small">Capacity vs reserved seats over time</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3">Most Frequently Used Tables</h3>
+                <div class="chart-wrapper"><canvas id="peakTablesChart"></canvas></div>
+                <div class="mt-2 text-muted small">Most frequently used tables</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3 text-center">
+                <h3 class="mb-3">Average Party Size</h3>
+                <div class="stat-number" style="font-size:2.5rem;">@Model.AveragePartySize.AveragePartySize</div>
+                <div class="text-muted">Based on @Model.AveragePartySize.Count reservations</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3">Guests vs Customer Reservations</h3>
+                <div class="chart-wrapper"><canvas id="guestCustomerChart"></canvas></div>
+                <div class="mt-2 text-muted small">Reservations and guest counts per customer</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3">Party Size Distribution</h3>
+                <div class="chart-wrapper"><canvas id="partySizeChart"></canvas></div>
+                <div class="mt-2 text-muted small">How often each party size occurs</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3">Weekday × Hour Heatmap</h3>
+                <div class="chart-wrapper"><canvas id="weekdayHeatmapChart"></canvas></div>
+                <div class="mt-2 text-muted small">Reservations volume by weekday and hour</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function(){
+            const peakTimes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PeakTimes));
+            const capacity = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CapacityAvailability));
+            const peakTables = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PeakTables));
+            const guestCustomer = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GuestVsCustomer));
+            const partySize = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PartySizeDistribution));
+            const weekdayHeat = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeekdayHeatmap));
+            // read theme CSS variables
+            function cssVar(name, fallback){
+                try{ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback; } catch { return fallback; }
+            }
+
+            const colorPrimary = cssVar('--color-primary-red', '#E63946');
+            const colorGold = cssVar('--color-primary-gold', '#D4AF37');
+            const colorBlue = cssVar('--color-primary-blue', '#3498DB');
+            const colorGreen = cssVar('--color-primary-green', '#2ECC71');
+            const colorMuted = cssVar('--text-muted', '#6c757d');
+
+            const commonOptions = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:12 } }, tooltip: { mode:'index', intersect:false } } };
+
+            // PeakTimes Bar
+            (function(){
+                const ctx = document.getElementById('peakTimesChart').getContext('2d');
+                const labels1 = peakTimes.map(p => (p.Hour !== undefined ? p.Hour : p.hour) + ':00');
+                const values1 = peakTimes.map(p => (p.Count !== undefined ? p.Count : p.count));
+                const chart1 = new Chart(ctx, {
+                    type:'bar',
+                    data:{ labels: labels1, datasets:[{ label:'Reservations', data: values1, backgroundColor: Chart.helpers.color(colorBlue).alpha(0.85).rgbString(), borderColor: colorBlue, borderWidth:1 }] },
+                    options: Object.assign({}, commonOptions, { scales:{ x: { stacked:false }, y: { beginAtZero:true, ticks:{ precision:0 } } } })
+                });
+                bindResponsive(chart1);
+            })();
+
+            // Capacity Line
+            (function(){
+                const ctx = document.getElementById('capacityChart').getContext('2d');
+                const labels2 = capacity.map(c => { const d = (c.Date !== undefined ? c.Date : c.date); return new Date(d).toLocaleDateString(); });
+                const chart2 = new Chart(ctx, {
+                    type:'line',
+                    data:{ labels: labels2, datasets:[ { label:'Total Capacity', data: capacity.map(c => (c.TotalCapacity !== undefined ? c.TotalCapacity : c.totalCapacity)), borderColor: colorGold, backgroundColor: Chart.helpers.color(colorGold).alpha(0.12).rgbString(), fill:true, tension:0.3 }, { label:'Reserved Seats', data: capacity.map(c => (c.ReservedSeats !== undefined ? c.ReservedSeats : c.reservedSeats)), borderColor: colorPrimary, backgroundColor: Chart.helpers.color(colorPrimary).alpha(0.18).rgbString(), fill:true, tension:0.3 } ] },
+                    options: Object.assign({}, commonOptions, { scales:{ y:{ beginAtZero:true } } })
+                });
+                bindResponsive(chart2);
+            })();
+
+            // Peak Tables Column
+            (function(){
+                const ctx = document.getElementById('peakTablesChart').getContext('2d');
+                const labels3 = peakTables.map(t => 'Table ' + (t.TableNumber !== undefined ? t.TableNumber : t.tableNumber));
+                const chart3 = new Chart(ctx, {
+                    type:'bar',
+                    data:{ labels: labels3, datasets:[{ label:'Times Used', data: peakTables.map(t => (t.TimesUsed !== undefined ? t.TimesUsed : t.timesUsed)), backgroundColor: Chart.helpers.color(colorGreen).alpha(0.9).rgbString(), borderColor: colorGreen, borderWidth:1 }] },
+                    options: Object.assign({}, commonOptions, { scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } })
+                });
+                bindResponsive(chart3);
+            })();
+
+            // Guest vs Customer
+            (function(){
+                const ctx = document.getElementById('guestCustomerChart').getContext('2d');
+                const labels4 = guestCustomer.map(g => (g.CustomerName !== undefined ? g.CustomerName : g.customerName));
+                const chart4 = new Chart(ctx, {
+                    type:'bar',
+                    data:{ labels: labels4, datasets:[ { label:'Reservations', data: guestCustomer.map(g => (g.TotalReservations !== undefined ? g.TotalReservations : g.totalReservations)), backgroundColor: Chart.helpers.color(colorMuted).alpha(0.85).rgbString() }, { label:'Guests', data: guestCustomer.map(g => (g.TotalGuests !== undefined ? g.TotalGuests : g.totalGuests)), backgroundColor: Chart.helpers.color(colorBlue).alpha(0.75).rgbString() } ] },
+                    options: Object.assign({}, commonOptions, { scales:{ x:{ ticks: { maxRotation: 45, minRotation: 30 } }, y:{ beginAtZero:true } } })
+                });
+                bindResponsive(chart4);
+            })();
+
+            // Ensure charts resize inside their wrappers and avoid overflow
+            function bindResponsive(chart){
+                try{
+                    const container = chart.canvas.closest('.chart-wrapper');
+                    if(!container) return;
+                    const ro = new ResizeObserver(() => { chart.resize(); });
+                    ro.observe(container);
+                } catch(e){ console.warn('Resize binding failed', e); }
+            }
+
+            // Export chart images and send to GeneratePdf endpoint via AJAX
+            document.getElementById('exportPdfBtn').addEventListener('click', function(e){
+                e.preventDefault();
+                try{
+                    const charts = document.querySelectorAll('canvas');
+                    const payload = { charts: {}, title: 'Admin Reports', subTitle: '', fromDate: '@(Model.FromDate?.ToString("yyyy-MM-dd"))', toDate: '@(Model.ToDate?.ToString("yyyy-MM-dd"))', generatedBy: '@User?.Identity?.Name' };
+                    charts.forEach(c => {
+                        try{
+                            const id = c.id || ('chart_' + Math.random().toString(36).slice(2,7));
+                            payload.charts[id] = c.toDataURL('image/png');
+                        } catch(ex) { console.warn('canvas capture failed', ex); }
+                    });
+
+                    // Send via fetch with antiforgery token
+                    var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                    // show overlay
+                    document.getElementById('pdfProgressOverlay').style.display = 'flex';
+
+                    fetch('@Url.Action("GeneratePdf","AdminReports")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token || ''
+                        },
+                        body: JSON.stringify(payload)
+                    }).then(r => {
+                        if (!r.ok) throw new Error('PDF generation failed');
+                        return r.arrayBuffer();
+                    }).then(buf => {
+                        const blob = new Blob([buf], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'AdminReports.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(url);
+                        document.getElementById('pdfProgressOverlay').style.display = 'none';
+                    }).catch(err => {
+                        console.error(err);
+                        document.getElementById('pdfProgressOverlay').style.display = 'none';
+                        alert('PDF generation failed.');
+                    });
+
+                } catch(err){
+                    console.error('Export capture failed', err);
+                    alert('PDF export failed');
+                }
+            });
+
+            // Party size chart
+            (function(){
+                const ctx = document.getElementById('partySizeChart').getContext('2d');
+                const labels = partySize.map(p => p.PartySize + '');
+                const data = partySize.map(p => p.Count);
+                const chart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Occurrences', data, backgroundColor: Chart.helpers.color(colorBlue).alpha(0.85).rgbString() }] }, options: Object.assign({}, commonOptions, { scales:{ y:{ beginAtZero:true } } }) });
+                bindResponsive(chart);
+            })();
+
+            // Weekday heatmap: render as stacked grouped bar (weekday on x, hours aggregated) - simplified
+            (function(){
+                const ctx = document.getElementById('weekdayHeatmapChart').getContext('2d');
+                // Build matrix: weekdays 0..6 -> sum counts per hour
+                const hours = Array.from({length:24}, (_,i)=>i);
+                const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+                const matrix = {};
+                weekdays.forEach((w,i)=> matrix[i]=hours.map(()=>0));
+                weekdayHeat.forEach(h => { if(matrix[h.Weekday]) matrix[h.Weekday][h.Hour] = (matrix[h.Weekday][h.Hour]||0) + h.Count; });
+                // For visualization, show total per weekday and stacked by morning/afternoon/evening
+                const series = [ { label:'Morning', range:[6,11], color: Chart.helpers.color(colorGold).alpha(0.85).rgbString() }, { label:'Afternoon', range:[12,16], color: Chart.helpers.color(colorBlue).alpha(0.85).rgbString() }, { label:'Evening', range:[17,22], color: Chart.helpers.color(colorGreen).alpha(0.85).rgbString() } ];
+                const datasets = series.map(s => ({ label: s.label, data: weekdays.map((_,wd)=> matrix[wd].slice(s.range[0], s.range[1]+1).reduce((a,b)=>a+b,0)), backgroundColor: s.color }));
+                const chart = new Chart(ctx, { type:'bar', data:{ labels: weekdays, datasets }, options: Object.assign({}, commonOptions, { scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } }) });
+                bindResponsive(chart);
+            })();
+        })();
+    </script>
+}

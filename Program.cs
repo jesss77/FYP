@@ -48,6 +48,8 @@ builder.Services.AddControllersWithViews()
             factory.Create(typeof(SharedResource));
     });
 
+// Global exception handling is done via middleware (UseExceptionHandler and status code pages)
+
 builder.Services.AddRazorPages();
 
 // Supported cultures
@@ -73,14 +75,30 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // Table allocation service
 builder.Services.AddScoped<TableAllocationService>();
 
+// Reports DI (on-demand service only)
+builder.Services.AddScoped<FYP.Services.Interfaces.IReportService, FYP.Services.ReportService>();
+// PDF generator
+builder.Services.AddScoped<FYP.Services.Pdf.ReportPdfGenerator>();
+
+
 var app = builder.Build();
+
+// QuestPDF license
+try
+{
+    QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+}
+catch { }
 
 // Middleware
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    // Redirect unhandled exceptions to our Error page
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+// Also handle status codes (404, 500 etc.) by re-executing to /Error
+app.UseStatusCodePagesWithReExecute("/Error");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

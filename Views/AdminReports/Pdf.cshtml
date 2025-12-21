@@ -1,0 +1,97 @@
+@model FYP.ViewModels.Reports.FullReportVM
+@{
+    Layout = null; // simplified layout for PDF
+}
+
+<div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h1 style="text-align:center">Admin Reports</h1>
+    @if(Model.FromDate != null || Model.ToDate != null)
+    {
+        <p style="text-align:center; font-size:0.9rem; color:#666;">Range: @(Model.FromDate?.ToString("yyyy-MM-dd") ?? "-")  -  @(Model.ToDate?.ToString("yyyy-MM-dd") ?? "-")</p>
+    }
+
+    <h3>Peak Reservation Times</h3>
+    <table style="width:100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #ddd; padding:8px;">Hour</th>
+                <th style="border: 1px solid #ddd; padding:8px;">Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var p in Model.PeakTimes)
+            {
+                <tr>
+                    <td style="border:1px solid #ddd; padding:8px;">@p.Hour:00</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@p.Count</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Capacity vs Availability</h3>
+    <table style="width:100%; border-collapse: collapse; margin-top:8px;">
+        <thead>
+            <tr>
+                <th style="border:1px solid #ddd; padding:8px;">Date</th>
+                <th style="border:1px solid #ddd; padding:8px;">Total Capacity</th>
+                <th style="border:1px solid #ddd; padding:8px;">Reserved Seats</th>
+                <th style="border:1px solid #ddd; padding:8px;">Availability</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var c in Model.CapacityAvailability)
+            {
+                <tr>
+                    <td style="border:1px solid #ddd; padding:8px;">@c.Date.ToString("dd/MM/yyyy")</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@c.TotalCapacity</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@c.ReservedSeats</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@c.Availability</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Most Frequently Used Tables</h3>
+    <table style="width:100%; border-collapse: collapse; margin-top:8px;">
+        <thead>
+            <tr>
+                <th style="border:1px solid #ddd; padding:8px;">Table Number</th>
+                <th style="border:1px solid #ddd; padding:8px;">Times Used</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var t in Model.PeakTables)
+            {
+                <tr>
+                    <td style="border:1px solid #ddd; padding:8px;">@t.TableNumber</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@t.TimesUsed</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Average Party Size</h3>
+    <p>Average: <strong>@Model.AveragePartySize.AveragePartySize</strong> (Based on @Model.AveragePartySize.Count reservations)</p>
+
+    <h3>Guests vs Customer Reservations</h3>
+    <table style="width:100%; border-collapse: collapse; margin-top:8px;">
+        <thead>
+            <tr>
+                <th style="border:1px solid #ddd; padding:8px;">Customer</th>
+                <th style="border:1px solid #ddd; padding:8px;">Total Reservations</th>
+                <th style="border:1px solid #ddd; padding:8px;">Total Guests</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var g in Model.GuestVsCustomer)
+            {
+                <tr>
+                    <td style="border:1px solid #ddd; padding:8px;">@g.CustomerName</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@g.TotalReservations</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@g.TotalGuests</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

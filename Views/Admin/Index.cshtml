@@ -53,5 +53,17 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </div>
+
+        <div class="admin-cube" onclick="location.href='@Url.Action("Index", "AdminReports")'" role="button" tabindex="0">
+            <div class="admin-cube-icon" style="background: linear-gradient(135deg, #9B59B6, #8E44AD);">
+                <span class="material-symbols-outlined">assessment</span>
+            </div>
+            <h3 class="admin-cube-title">@L["Reports"]</h3>
+            <p class="admin-cube-description">@L["View analytics and export reports"]</p>
+            <div class="admin-cube-link">
+                @L["Admin Reports"]
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </div>
     </div>
 </div>

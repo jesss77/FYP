@@ -8,6 +8,51 @@
     margin-bottom: 1.5rem !important;
 }
 
+/* PDF progress overlay */
+.pdf-progress-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    border-radius: inherit;
+}
+.pdf-progress-box { background: rgba(255,255,255,0.95); padding: 1rem 1.25rem; border-radius: 8px; text-align:center; box-shadow: var(--shadow-lg); }
+
+/* Slightly larger canvas render area */
+.chart-wrapper { height: 320px; }
+.admin-stat-card h3 { margin-bottom: 0.5rem; }
+
+/* Chart wrappers to keep Canvas responsive and within cards */
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 260px; /* default chart height */
+    overflow: hidden;
+}
+
+.admin-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    box-sizing: border-box;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-stat-card .chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+@media (max-width: 768px) {
+    .chart-wrapper { height: 220px; }
+}
+
+
 /* Ensure cards do not collapse and fill their columns */
 .container-custom .admin-settings-grid .setting-card {
     min-width: 0 !important;

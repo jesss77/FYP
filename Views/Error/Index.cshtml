@@ -1,0 +1,20 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Error";
+}
+
+<div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-lg); max-width: 1000px; margin: 0 auto;">
+    <div class="empty-state" style="padding: var(--spacing-3xl);">
+        <span class="material-symbols-outlined empty-state-icon">error</span>
+        <h2 style="margin-top: var(--spacing-lg);">Something went wrong</h2>
+        <p style="color:var(--text-secondary);">@(ViewData["ErrorMessage"] ?? "An unexpected error occurred. Please try again or contact support.")</p>
+        <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
+            <a class="btn btn-primary" href="/">Go to Home</a>
+            <a class="btn btn-outline-secondary" href="javascript:location.reload()">Reload</a>
+        </div>
+        @if(ViewData["ErrorPath"] != null)
+        {
+            <p style="margin-top:var(--spacing-lg); font-size:0.85rem; color:var(--text-muted);">Path: @ViewData["ErrorPath"]</p>
+        }
+    </div>
+</div>

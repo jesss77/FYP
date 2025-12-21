@@ -1,8 +1,11 @@
 @model FYP.ViewModels.AdminStatViewModel
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer L
 
 @{
     var cubeClass = "stat-cube-inline" + (string.IsNullOrEmpty(Model.ColorClass) ? "" : " " + Model.ColorClass);
     var iconName = Model.Icon ?? "info";
+    var label = !string.IsNullOrEmpty(Model.Label) ? L[Model.Label].Value ?? Model.Label : "";
+    var subLabel = !string.IsNullOrEmpty(Model.SubLabel) ? L[Model.SubLabel].Value ?? Model.SubLabel : null;
 }
 
 @if (!string.IsNullOrEmpty(Model.Link))
@@ -13,8 +16,8 @@
         </div>
         <div class="stat-cube-content">
             <h3 class="stat-cube-number">@Model.Number</h3>
-            <p class="stat-cube-label">@Model.Label</p>
-            @if (!string.IsNullOrEmpty(Model.SubLabel)) { <p class="stat-cube-sublabel">@Model.SubLabel</p> }
+            <p class="stat-cube-label">@label</p>
+            @if (!string.IsNullOrEmpty(subLabel)) { <p class="stat-cube-sublabel">@subLabel</p> }
             @if (!string.IsNullOrEmpty(Model.BadgeText)) { <div class="stat-cube-badge">@Model.BadgeText</div> }
         </div>
     </a>
@@ -27,8 +30,8 @@ else
         </div>
         <div class="stat-cube-content">
             <h3 class="stat-cube-number">@Model.Number</h3>
-            <p class="stat-cube-label">@Model.Label</p>
-            @if (!string.IsNullOrEmpty(Model.SubLabel)) { <p class="stat-cube-sublabel">@Model.SubLabel</p> }
+            <p class="stat-cube-label">@label</p>
+            @if (!string.IsNullOrEmpty(subLabel)) { <p class="stat-cube-sublabel">@subLabel</p> }
             @if (!string.IsNullOrEmpty(Model.BadgeText)) { <div class="stat-cube-badge">@Model.BadgeText</div> }
         </div>
     </div>
