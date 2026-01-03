@@ -123,7 +123,7 @@ namespace FYP.Controllers
                 return RedirectToAction("Create");
             }
 
-            // Get today's reservations summary
+            // Get today's reservations summary (based on ReservedFor)
             var today = DateTime.UtcNow.Date;
             var todayReservations = await _context.Reservations
                 .Include(r => r.ReservationStatus)
@@ -131,7 +131,7 @@ namespace FYP.Controllers
                 .Include(r => r.Guest)
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
-                .Where(r => r.ReservationDate == today)
+                .Where(r => r.ReservedFor.Date == today)
                 .OrderBy(r => r.ReservationTime)
                 .ToListAsync();
 
@@ -170,7 +170,7 @@ namespace FYP.Controllers
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
-                .Where(r => r.ReservationDate == date)
+                .Where(r => r.ReservedFor.Date == date)
                 .OrderBy(r => r.ReservationTime)
                 .ToListAsync();
 
@@ -265,7 +265,6 @@ namespace FYP.Controllers
                     allocation,
                     customerId,
                     guestId,
-                    isGuest,
                     restaurant.RestaurantID,
                     now.Date,
                     new TimeSpan(now.Hour, now.Minute, 0),
@@ -299,6 +298,8 @@ namespace FYP.Controllers
             
             var reservation = await _context.Reservations
                 .Include(r => r.ReservationStatus)
+                .Include(r => r.Customer)
+                .Include(r => r.Guest)
                 .FirstOrDefaultAsync(r => r.ReservationID == reservationId);
 
             if (reservation == null)
@@ -321,7 +322,7 @@ namespace FYP.Controllers
 
             await _context.SaveChangesAsync();
             await LogReservationAction(reservationId, "StatusChanged", $"From {oldStatus} to {newStatus.StatusName}", user.Id);
-
+            // Do not send notification emails when staff change reservation status (operations performed by staff)
             TempData["Message"] = $"Reservation status updated to {newStatus.StatusName}.";
             return RedirectAfterStatusChange(returnTo);
         }

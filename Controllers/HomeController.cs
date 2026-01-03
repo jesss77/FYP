@@ -35,6 +35,13 @@ namespace FYP.Controllers
             return View();
         }
 
+        // Landing route that always shows the public home page (used by header/logo and back links)
+        [HttpGet]
+        public IActionResult Landing()
+        {
+            return View("Index");
+        }
+
 
         [HttpGet] // Optional, but good practice for simple page views
         public IActionResult AboutUs()

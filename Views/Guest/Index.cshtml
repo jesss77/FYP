@@ -39,11 +39,24 @@
 
         <hr class="gold-hr" />
 
-        <!-- Reservation Form (copied from MakeReservation + guest fields) -->
         <form asp-controller="Guest" asp-action="Reserve" method="post">
             @Html.AntiForgeryToken()
 
             <div class="row g-3 mb-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            @L["First Name"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                        </label>
+                        <input name="FirstName" type="text" class="form-control" placeholder="@L["First Name"]" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            @L["Last Name"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                        </label>
+                        <input name="LastName" type="text" class="form-control" placeholder="@L["Last Name"]" />
+                    </div>
+                </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">
                         <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">calendar_today</span>
@@ -94,8 +107,14 @@
                 </label>
                 <input name="GuestEmail" type="email" class="form-control" placeholder="name@example.com" required />
             </div>
-
-
+            <div class="row g-3 mt-0">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        @L["Phone"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                    </label>
+                    <input name="GuestPhone" type="tel" class="form-control" placeholder="+1 555 123 4567" />
+                </div>
+            </div>
             <div class="form-group mb-4">
                 <label class="form-label fw-semibold">
                     <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">notes</span>
@@ -127,28 +146,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    @L["First Name"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
-                                </label>
-                                <input name="FirstName" type="text" class="form-control" placeholder="@L["First Name"]" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    @L["Last Name"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
-                                </label>
-                                <input name="LastName" type="text" class="form-control" placeholder="@L["Last Name"]" />
-                            </div>
-                        </div>
-                        <div class="row g-3 mt-0">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    @L["Phone"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
-                                </label>
-                                <input name="GuestPhone" type="tel" class="form-control" placeholder="+1 555 123 4567" />
-                            </div>
-                        </div>
+                     
                     </div>
                 </div>
             </div>

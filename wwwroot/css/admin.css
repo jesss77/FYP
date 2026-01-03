@@ -199,3 +199,28 @@
     .admin-search-input.show { width: 100%; }
     .stat-cube-inline { min-width: 100%; }
 }
+
+/* Manager dashboard: use slightly smaller cubes to match admin size consistency */
+.manager-cubes .admin-cube {
+    padding: calc(var(--spacing-lg) * 0.9);
+}
+
+.manager-cubes .admin-cube .admin-cube-icon {
+    width: 64px;
+    height: 64px;
+}
+
+.manager-cubes .admin-cube-title { font-size: 1.125rem; }
+.manager-cubes .admin-cube-description { font-size: 0.8125rem; }
+.manager-cubes .admin-cube-link { font-size: 0.8125rem; }
+
+/* Reduce gap for manager dashboard and avoid extra centering caused by admin max-width */
+.admin-cubes-container.manager-cubes {
+    gap: 1.25%; /* smaller percentage gap for manager view */
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.admin-cubes-container.manager-cubes .admin-cube {
+    max-width: none; /* allow cubes to fill their grid cell to avoid large gaps */
+    margin: 0; /* remove auto centering which creates extra gaps */
+}

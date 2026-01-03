@@ -14,10 +14,6 @@ namespace FYP.Models
         public int? GuestID { get; set; }
         public Guest? Guest { get; set; }
 
-        // Flag to determine which type
-        [Required]
-        public bool IsGuest { get; set; } = false;
-
         [Required]
         public int RestaurantID { get; set; }
         public Restaurant Restaurant { get; set; }
@@ -28,8 +24,16 @@ namespace FYP.Models
         [Required]
         public TimeSpan ReservationTime { get; set; }
 
+        // When the reservation is for (the actual date/time the guest will arrive)
+        [Required]
+        public DateTime ReservedFor { get; set; }
+
+        // When the reservation was made (timestamp)
+        [Required]
+        public DateTime ReservedAt { get; set; }
+
         [Required, Range(45, int.MaxValue)]
-        public int Duration { get; set; } // Duration in minutes
+        public int Duration { get; set; } // in minutes
 
         public string? Notes { get; set; }
 

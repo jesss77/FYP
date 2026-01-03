@@ -129,7 +129,7 @@
                             _ => "status-default"
                         };
 
-                        var customerName = reservation.IsGuest && reservation.Guest != null
+                        var customerName = reservation.Guest != null && reservation.Guest != null
                             ? $"{reservation.Guest.FirstName} {reservation.Guest.LastName}"
                             : reservation.Customer != null 
                                 ? $"{reservation.Customer.FirstName} {reservation.Customer.LastName}"
@@ -137,8 +137,8 @@
 
                         <tr>
                             <td style="padding: var(--spacing-lg) var(--spacing-xl);"><strong>#@reservation.ReservationID</strong></td>
-                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@reservation.ReservationDate.ToString("MMM dd, yyyy")</td>
-                            <td style="padding: var(--spacing-lg) var(--spacing-xl);"><strong>@reservation.ReservationTime.ToString(@"hh\:mm")</strong></td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);">@reservation.ReservedFor.ToString("MMM dd, yyyy")</td>
+                            <td style="padding: var(--spacing-lg) var(--spacing-xl);"><strong>@reservation.ReservedFor.ToString("hh:mm")</strong></td>
                             <td style="padding: var(--spacing-lg) var(--spacing-xl);">
                                 @if (reservation.ReservationType)
                                 {
@@ -152,7 +152,7 @@
                             <td class="user-name" style="padding: var(--spacing-lg) var(--spacing-xl);">
                                 @customerName
                                 <br />
-                                <small class="user-type-badge">@(reservation.IsGuest ? L["Guest"] : L["Customer"])</small>
+                                <small class="user-type-badge">@(reservation.Guest != null ? L["Guest"] : L["Customer"])</small>
                             </td>
                             <td style="padding: var(--spacing-lg) var,--spacing-xl);">@reservation.PartySize</td>
                             <td style="padding: var(--spacing-lg) var(--spacing-xl);">

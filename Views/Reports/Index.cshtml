@@ -1,16 +1,22 @@
 @model FYP.ViewModels.Reports.FullReportVM
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Admin Reports";
+    ViewData["Title"] = "Reports";
+}
+
+@{
+    var backUrl = User.IsInRole("admin") ? Url.Action("Index", "Admin") : User.IsInRole("manager") ? Url.Action("Index", "Manager") : Url.Action("Index", "Home");
+    var filterAction = Url.Action("Index", "Reports");
+    var generatePdfUrl = Url.Action("GeneratePdf", "Reports");
 }
 
 <div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-lg); max-width: 1400px; margin: 0 auto;">
-    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@backUrl" />
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="gold-heading">Admin Reports</h1>
+        <h1 class="gold-heading">Reports</h1>
 
         <div class="d-flex align-items-center gap-2">
-            <form class="d-flex align-items-center" method="get" asp-action="Index" asp-controller="AdminReports">
+            <form class="d-flex align-items-center" method="get" action="@filterAction">
                 <label class="form-label me-2">From</label>
                 <input type="date" name="from" class="form-control form-control-sm me-2" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
                 <label class="form-label me-2">To</label>
@@ -30,7 +36,7 @@
         </div>
     </div>
 
-    <form id="exportPdfForm" method="post" asp-controller="AdminReports" asp-action="ExportPdfPost" style="display:none;">
+    <form id="exportPdfForm" method="post" action="@generatePdfUrl" style="display:none;">
         @Html.AntiForgeryToken()
         <input type="hidden" name="from" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
         <input type="hidden" name="to" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
@@ -201,7 +207,7 @@
                 e.preventDefault();
                 try{
                     const charts = document.querySelectorAll('canvas');
-                    const payload = { charts: {}, title: 'Admin Reports', subTitle: '', fromDate: '@(Model.FromDate?.ToString("yyyy-MM-dd"))', toDate: '@(Model.ToDate?.ToString("yyyy-MM-dd"))', generatedBy: '@User?.Identity?.Name' };
+                    const payload = { charts: {}, title: '@(User.IsInRole("admin") ? "Admin Reports" : User.IsInRole("manager") ? "Manager Reports" : "Reports")', subTitle: '', fromDate: '@(Model.FromDate?.ToString("yyyy-MM-dd"))', toDate: '@(Model.ToDate?.ToString("yyyy-MM-dd"))', generatedBy: '@User?.Identity?.Name' };
                     charts.forEach(c => {
                         try{
                             const id = c.id || ('chart_' + Math.random().toString(36).slice(2,7));
@@ -215,7 +221,7 @@
                     // show overlay
                     document.getElementById('pdfProgressOverlay').style.display = 'flex';
 
-                    fetch('@Url.Action("GeneratePdf","AdminReports")', {
+                    fetch('@generatePdfUrl', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -230,7 +236,7 @@
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = 'AdminReports.pdf';
+                        a.download = payload.title.replace(/\s+/g, '') + '.pdf';
                         document.body.appendChild(a);
                         a.click();
                         a.remove();

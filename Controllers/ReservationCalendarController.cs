@@ -77,7 +77,7 @@ namespace FYP.Controllers
 
             foreach (var r in reservations)
             {
-                var customerName = r.IsGuest && r.Guest != null
+                var customerName = r.Guest != null
                     ? $"{r.Guest.FirstName} {r.Guest.LastName}"
                     : r.Customer != null
                         ? $"{r.Customer.FirstName} {r.Customer.LastName}"

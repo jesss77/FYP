@@ -328,9 +328,16 @@ body {
 .admin-cubes-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--spacing-xl);
+    /* use percentage gap so spacing scales with container width */
+    gap: 2%;
     max-width: 1000px;
     margin: 0 auto;
+}
+
+/* Keep cubes a consistent size even when there are fewer on the row */
+.admin-cubes-container .admin-cube {
+    max-width: 320px;
+    margin: 0 auto; /* center each cube in its grid cell */
 }
 
 .admin-cube {
@@ -1573,6 +1580,44 @@ contact-link:hover { color: var(--color-primary-gold-dark); }
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+/* Compact footer: reduce vertical padding to make footer height smaller */
+.footer {
+    padding: calc(var(--spacing-sm) * 1.0) 0; /* smaller vertical padding */
+    background: var(--bg-surface);
+}
+
+.footer .footer-content {
+    padding: var(--spacing-sm) 0; /* reduce top/bottom spacing inside footer */
+}
+
+.footer .footer-section h3 {
+    margin-bottom: calc(var(--spacing-xs));
+    font-size: 1rem;
+}
+
+.footer .footer-section p {
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+.footer .footer-bottom {
+    padding: calc(var(--spacing-xs)) 0; /* smaller bottom area */
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+@media (max-width: 576px) {
+    .footer .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-xs);
+    }
 }
 .reservation-action-buttons {
     display: flex;

@@ -94,14 +94,14 @@
                         var typeBadge = reservation.ReservationType ? "badge bg-primary" : "badge bg-secondary";
                         var typeText = reservation.ReservationType ? "Pre-booked" : "Walk-in";
 
-                        var customerName = reservation.IsGuest && reservation.Guest != null
+                        var customerName = reservation.Guest != null
                             ? $"{reservation.Guest.FirstName} {reservation.Guest.LastName}"
                             : reservation.Customer != null 
                                 ? $"{reservation.Customer.FirstName} {reservation.Customer.LastName}"
                                 : "Unknown";
 
                         <tr>
-                            <td><strong>@reservation.ReservationTime.ToString(@"hh\:mm")</strong></td>
+                            <td><strong>@reservation.ReservedFor.ToString("HH:mm")</strong></td>
                             <td><span class="@typeBadge">@typeText</span></td>
                             <td>@customerName</td>
                             <td>@reservation.PartySize</td>

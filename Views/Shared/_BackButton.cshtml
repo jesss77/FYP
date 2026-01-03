@@ -1,5 +1,14 @@
 @model string
-<a class="btn btn-outline-secondary mb-3 back-button" href="@Model">
+@{
+    var backUrl = Model;
+    var homeIndex = Url.Action("Index", "Home");
+    var homeLanding = Url.Action("Landing", "Home");
+    if (string.IsNullOrEmpty(backUrl) || backUrl == homeIndex || backUrl?.EndsWith("/Home") == true || backUrl?.EndsWith("/Home/Index") == true)
+    {
+        backUrl = homeLanding;
+    }
+}
+<a class="btn btn-outline-secondary mb-3 back-button" href="@backUrl">
     <span class="material-symbols-outlined back-icon" aria-hidden="true" style="vertical-align: middle; margin-right: 0.25rem;">arrow_back</span>
     Back
 </a>

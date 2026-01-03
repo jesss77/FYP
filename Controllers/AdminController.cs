@@ -383,7 +383,6 @@ namespace FYP.Controllers
         {
             try
             {
-                // Remove audit fields and restaurant from validation since they're set programmatically
                 ModelState.Remove("CreatedBy");
                 ModelState.Remove("CreatedAt");
                 ModelState.Remove("UpdatedBy");
@@ -391,7 +390,6 @@ namespace FYP.Controllers
                 ModelState.Remove("Restaurant");
                 ModelState.Remove("RestaurantID");
                 
-                // Debug: Log model state
                 if (!ModelState.IsValid)
                 {
                     foreach (var error in ModelState.Values.SelectMany(v => v.Errors))

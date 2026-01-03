@@ -174,7 +174,6 @@ namespace FYP.Controllers
                     allocation,
                     null,
                     guest.GuestID,
-                    true,
                     restaurant.RestaurantID,
                     ReservationDate,
                     ReservationTime,
@@ -185,43 +184,8 @@ namespace FYP.Controllers
                     false,
                     "guest");
 
-                // Send confirmation email
-                var restaurantName = _localizer["BrandName"].Value;
-                var tableInfo = allocation.AllocatedTableIds.Count > 1 
-                    ? $"{allocation.AllocatedTableIds.Count} joined tables"
-                    : $"Table {allocation.AllocatedTableIds[0]}";
-                
-                var subject = _localizer["Your reservation at {0} is confirmed", restaurantName].Value;
-                var displayName = "";
-                if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
-                {
-                    displayName = $"{System.Net.WebUtility.HtmlEncode(firstName)} {System.Net.WebUtility.HtmlEncode(lastName)}";
-                }
-                else if (!string.IsNullOrWhiteSpace(firstName))
-                {
-                    displayName = System.Net.WebUtility.HtmlEncode(firstName);
-                }
-                var greeting = !string.IsNullOrWhiteSpace(displayName) 
-                    ? $"{_localizer["Hello"]} {displayName},"
-                    : _localizer["Hello"].Value;
-                var body = $@"
-                    <h2>{_localizer["Reservation Confirmed"]}</h2>
-                    <p>{greeting}</p>
-                    <p>{_localizer["Your reservation details are below:"]}</p>
-                    <ul>
-                        <li>{_localizer["Date"]}: {ReservationDate:yyyy-MM-dd}</li>
-                        <li>{_localizer["Time"]}: {ReservationTime}</li>
-                        <li>{_localizer["Duration"]}: {effectiveDuration} min</li>
-                        <li>{_localizer["Party Size"]}: {PartySize}</li>
-                        <li>{_localizer["Table"]}: {tableInfo}</li>
-                        <li>{_localizer["Restaurant"]}: {restaurantName}</li>
-                    </ul>
-                    <p><em>{allocation.AllocationStrategy}</em></p>
-                    <p>{_localizer["We look forward to welcoming you."]}</p>";
-
-                await _emailService.SendEmailAsync(GuestEmail, subject, body);
-
-                TempData["Message"] = _localizer["Thanks! Your reservation is confirmed. A confirmation email has been sent."].Value;
+                // Confirmation is sent by the reservation creation workflow. Show success message to guest.
+                TempData["Message"] = _localizer["Thanks! Your reservation is confirmed."].Value;
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)

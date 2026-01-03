@@ -460,7 +460,6 @@ namespace FYP.Controllers
                     allocation,
                     customer.CustomerID,
                     null,
-                    false,
                     restaurant.RestaurantID,
                     ReservationDate,
                     ReservationTime,
@@ -471,35 +470,8 @@ namespace FYP.Controllers
                     false,
                     user.Id);
 
-                // Send confirmation email
-                var restaurantName = _localizer["BrandName"].Value;
-                var tableInfo = allocation.AllocatedTableIds.Count > 1 
-                    ? $"{allocation.AllocatedTableIds.Count} joined tables"
-                    : $"Table {allocation.AllocatedTableIds[0]}";
-                
-                var customerName = $"{customer.FirstName} {customer.LastName}";
-                var subject = _localizer["Your reservation at {0} is confirmed", restaurantName].Value;
-                var greeting = !string.IsNullOrWhiteSpace(customerName) 
-                    ? $"{_localizer["Hello"]} {System.Net.WebUtility.HtmlEncode(customerName)},"
-                    : _localizer["Hello"].Value;
-                var body = $@"
-                    <h2>{_localizer["Reservation Confirmed"]}</h2>
-                    <p>{greeting}</p>
-                    <p>{_localizer["Your reservation details are below:"]}</p>
-                    <ul>
-                        <li>{_localizer["Date"]}: {ReservationDate:yyyy-MM-dd}</li>
-                        <li>{_localizer["Time"]}: {ReservationTime}</li>
-                        <li>{_localizer["Duration"]}: {effectiveDuration} min</li>
-                        <li>{_localizer["Party Size"]}: {PartySize}</li>
-                        <li>{_localizer["Table"]}: {tableInfo}</li>
-                        <li>{_localizer["Restaurant"]}: {restaurantName}</li>
-                    </ul>
-                    <p><em>{allocation.AllocationStrategy}</em></p>
-                    <p>{_localizer["We look forward to welcoming you."]}</p>";
-
-                await _emailService.SendEmailAsync(customer.Email, subject, body);
-
-                TempData["Message"] = _localizer["Thanks! Your reservation is confirmed. A confirmation email has been sent."].Value;
+                // Confirmation email is sent by the reservation creation workflow (CreateReservationAsync)
+                TempData["Message"] = _localizer["Thanks! Your reservation is confirmed."].Value;
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -564,6 +536,32 @@ namespace FYP.Controllers
 
                 await _context.SaveChangesAsync();
                 await LogReservationAction(reservationId, "StatusChanged", $"From {oldStatus} to Cancelled", user.Id);
+
+                // Send cancellation email to customer
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(customer.Email))
+                    {
+                        var subject = _localizer["Your reservation has been cancelled"].Value;
+                        var greeting = !string.IsNullOrWhiteSpace(customer.FirstName)
+                            ? $"{_localizer["Hello"].Value} {System.Net.WebUtility.HtmlEncode(customer.FirstName)},"
+                            : _localizer["Hello"].Value;
+
+                        var body = $@"
+                            <h2>{_localizer["Reservation Cancelled"]}</h2>
+                            <p>{greeting}</p>
+                            <p>{_localizer["Your reservation on"]} {reservation.ReservationDate:yyyy-MM-dd} {_localizer["at"]} {reservation.ReservationTime.ToString(@"hh\:mm") } {_localizer["has been cancelled."]}</p>
+                            <p>{_localizer["If you have any questions please contact us."]}</p>";
+
+                        await _emailService.SendEmailAsync(customer.Email, subject, body);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // don't block cancellation on email failure
+                    var logger = HttpContext.RequestServices.GetService(typeof(ILogger<CustomerController>)) as ILogger;
+                    logger?.LogWarning(ex, "Failed to send cancellation email for reservation {ReservationId}", reservationId);
+                }
 
                 TempData["Message"] = "Reservation cancelled successfully.";
             }

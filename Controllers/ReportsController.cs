@@ -9,13 +9,13 @@ using FYP.Services.Pdf;
 
 namespace FYP.Controllers
 {
-    [Authorize(Roles = "admin")]
-    public class AdminReportsController : Controller
+    [Authorize(Roles = "admin,manager")]
+    public class ReportsController : Controller
     {
         private readonly IReportService _reportService;
-        private readonly ILogger<AdminReportsController> _logger;
+        private readonly ILogger<ReportsController> _logger;
 
-        public AdminReportsController(IReportService reportService, ILogger<AdminReportsController> logger)
+        public ReportsController(IReportService reportService, ILogger<ReportsController> logger)
         {
             _reportService = reportService;
             _logger = logger;
@@ -74,7 +74,7 @@ namespace FYP.Controllers
             // Build data VM
             var data = new ReportPdfDataVM
             {
-                Title = vm.Title ?? "Admin Reports",
+                Title = vm.Title ?? "Reports",
                 SubTitle = vm.SubTitle ?? string.Empty,
                 GeneratedAt = DateTime.UtcNow,
                 GeneratedBy = vm.GeneratedBy ?? (User?.Identity?.Name ?? "system"),
@@ -100,14 +100,14 @@ namespace FYP.Controllers
                 {
                     var reportsDir = System.IO.Path.Combine(webRoot.WebRootPath, "reports");
                     if (!System.IO.Directory.Exists(reportsDir)) System.IO.Directory.CreateDirectory(reportsDir);
-                    var fileName = $"AdminReports_{DateTime.UtcNow:yyyyMMdd_HHmmss}.pdf";
+                    var fileName = $"Reports_{DateTime.UtcNow:yyyyMMdd_HHmmss}.pdf";
                     var filePath = System.IO.Path.Combine(reportsDir, fileName);
                     await System.IO.File.WriteAllBytesAsync(filePath, bytes);
                 }
             }
             catch { /* don't block response on save errors */ }
 
-            return File(bytes, "application/pdf", "AdminReports.pdf");
+            return File(bytes, "application/pdf", "Reports.pdf");
         }
     }
 }

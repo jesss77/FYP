@@ -4,7 +4,7 @@
 }
 
 <div style="font-family: Arial, sans-serif; padding: 20px;">
-    <h1 style="text-align:center">Admin Reports</h1>
+    <h1 style="text-align:center">Reports</h1>
     @if(Model.FromDate != null || Model.ToDate != null)
     {
         <p style="text-align:center; font-size:0.9rem; color:#666;">Range: @(Model.FromDate?.ToString("yyyy-MM-dd") ?? "-")  -  @(Model.ToDate?.ToString("yyyy-MM-dd") ?? "-")</p>

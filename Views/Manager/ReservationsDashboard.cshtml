@@ -1,6 +1,6 @@
 @model FYP.Models.Employee
 @{
-    ViewData["Title"] = "Staff Dashboard";
+    ViewData["Title"] = "Reservation Dashboard";
     var todayReservations = ViewBag.TodayReservations as IEnumerable<FYP.Models.Reservation>;
     var todayDate = ViewBag.TodayDate as DateTime? ?? DateTime.UtcNow.Date;
 }
@@ -8,7 +8,7 @@
 <div class="container mt-5">
     <div class="row mb-4">
         <div class="col-md-12">
-            <h2 class="gold-heading">Staff Dashboard</h2>
+            <h2 class="gold-heading">Manager Dashboard</h2>
             <p class="lead">Welcome, @Model.FirstName @Model.LastName</p>
             <hr class="gold-hr" />
         </div>

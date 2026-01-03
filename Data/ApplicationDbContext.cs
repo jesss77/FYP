@@ -115,7 +115,7 @@ namespace FYP.Data
             modelBuilder.Entity<Reservation>()
                 .ToTable(t => t.HasCheckConstraint(
                     "CK_Reservation_CustomerOrGuest",
-                    "([IsGuest] = 0 AND [CustomerID] IS NOT NULL AND [GuestID] IS NULL) OR ([IsGuest] = 1 AND [GuestID] IS NOT NULL AND [CustomerID] IS NULL)"
+                    "((CustomerID IS NOT NULL AND GuestID IS NULL) OR (GuestID IS NOT NULL AND CustomerID IS NULL))"
                 ));
 
             // ---------------- Keys ----------------

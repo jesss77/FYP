@@ -4,6 +4,8 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> _userManagerService
+
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {

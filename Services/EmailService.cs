@@ -128,10 +128,7 @@ namespace FYP.Services
                                 <span class='value'>{partySize} {(partySize == 1 ? "guest" : "guests")}</span>
                             </div>
                             
-                            <div class='detail-row'>
-                                <span class='label'>🪑 Table Assignment:</span>
-                                <span class='value'>{tableInfo}</span>
-                            </div>
+                            <!-- Table assignment intentionally omitted in this email to reduce duplicate info -->
                             
                             <p style='margin-top: 30px;'>We look forward to serving you. Please arrive on time to ensure your table is ready.</p>
                             

@@ -77,88 +77,68 @@ namespace FYP.Services
 
                     if (allocation.Success)
                     {
-                        using var transaction = await _context.Database.BeginTransactionAsync();
-                        
-                        try
+                        var strategy = _context.Database.CreateExecutionStrategy();
+                        await strategy.ExecuteAsync(async () =>
                         {
-                            // Link allocated tables
-                            foreach (var tableId in allocation.AllocatedTableIds)
-                            {
-                                var reservationTable = new ReservationTables
-                                {
-                                    ReservationID = reservation.ReservationID,
-                                    TableID = tableId,
-                                    CreatedBy = userId,
-                                    UpdatedBy = userId,
-                                    CreatedAt = DateTime.UtcNow,
-                                    UpdatedAt = DateTime.UtcNow
-                                };
-                                _context.ReservationTables.Add(reservationTable);
-                            }
+                            using var transaction = await _context.Database.BeginTransactionAsync();
 
-                            // Update status to Confirmed
-                            reservation.ReservationStatusID = confirmedStatusId;
-                            reservation.UpdatedBy = userId;
-                            reservation.UpdatedAt = DateTime.UtcNow;
-
-                            await _context.SaveChangesAsync();
-
-                            // Log the action
-                            await LogReservationActionAsync(
-                                reservation.ReservationID,
-                                "AutoAllocated",
-                                allocation.AllocationStrategy,
-                                userId
-                            );
-
-                            await transaction.CommitAsync();
-
-                            // Send confirmation email
                             try
                             {
-                                var customerEmail = reservation.IsGuest ? reservation.Guest?.Email : reservation.Customer?.Email;
-                                var customerName = reservation.IsGuest 
-                                    ? $"{reservation.Guest?.FirstName} {reservation.Guest?.LastName}" 
-                                    : $"{reservation.Customer?.FirstName} {reservation.Customer?.LastName}";
-
-                                if (!string.IsNullOrEmpty(customerEmail))
+                                // Link allocated tables
+                                foreach (var tableId in allocation.AllocatedTableIds)
                                 {
-                                    await _emailService.SendTableAllocationEmailAsync(
-                                        customerEmail,
-                                        customerName,
-                                        reservation.ReservationDate,
-                                        reservation.ReservationTime,
-                                        reservation.PartySize,
-                                        allocation.AllocationStrategy
-                                    );
+                                    var reservationTable = new ReservationTables
+                                    {
+                                        ReservationID = reservation.ReservationID,
+                                        TableID = tableId,
+                                        CreatedBy = userId,
+                                        UpdatedBy = userId,
+                                        CreatedAt = DateTime.UtcNow,
+                                        UpdatedAt = DateTime.UtcNow
+                                    };
+                                    _context.ReservationTables.Add(reservationTable);
                                 }
-                            }
-                            catch (Exception emailEx)
-                            {
-                                _logger.LogWarning(emailEx, "Failed to send allocation email for reservation {ReservationId}", reservation.ReservationID);
-                                // Don't fail the allocation if email fails
-                            }
 
-                            summary.Allocated++;
-                            summary.AllocatedReservations.Add(new AllocationDetail
-                            {
-                                ReservationId = reservation.ReservationID,
-                                PartySize = reservation.PartySize,
-                                TableIds = allocation.AllocatedTableIds,
-                                Message = allocation.AllocationStrategy
-                            });
+                                // Update status to Confirmed
+                                reservation.ReservationStatusID = confirmedStatusId;
+                                reservation.UpdatedBy = userId;
+                                reservation.UpdatedAt = DateTime.UtcNow;
 
-                            _logger.LogInformation(
-                                "Auto-allocated reservation {ReservationId}: {Strategy}",
-                                reservation.ReservationID,
-                                allocation.AllocationStrategy
-                            );
-                        }
-                        catch (Exception ex)
-                        {
-                            await transaction.RollbackAsync();
-                            throw;
-                        }
+                                await _context.SaveChangesAsync();
+
+                                // Log the action
+                                await LogReservationActionAsync(
+                                    reservation.ReservationID,
+                                    "AutoAllocated",
+                                    allocation.AllocationStrategy,
+                                    userId
+                                );
+
+                                await transaction.CommitAsync();
+
+                                // Email notifications for auto-allocation are intentionally suppressed to avoid duplicate messages
+
+                                summary.Allocated++;
+                                summary.AllocatedReservations.Add(new AllocationDetail
+                                {
+                                    ReservationId = reservation.ReservationID,
+                                    PartySize = reservation.PartySize,
+                                    TableIds = allocation.AllocatedTableIds,
+                                    Message = allocation.AllocationStrategy
+                                });
+
+                                _logger.LogInformation(
+                                    "Auto-allocated reservation {ReservationId}: {Strategy}",
+                                    reservation.ReservationID,
+                                    allocation.AllocationStrategy
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                await transaction.RollbackAsync();
+                                throw;
+                            }
+                        });
                     }
                     else
                     {
@@ -251,14 +231,14 @@ namespace FYP.Services
                 return result;
             }
 
-            // Get all existing reservations that might overlap with our time window
+            // Get all existing reservations that might overlap with our time window (use ReservedFor)
             var existingReservations = await _context.Reservations
                 .Include(r => r.ReservationTables)
-                .Where(r => r.ReservationDate == reservationDate.Date)
+                .Where(r => r.ReservedFor.Date == reservationDate.Date)
                 .Select(r => new
                 {
                     r.ReservationID,
-                    r.ReservationDate,
+                    r.ReservedFor,
                     r.ReservationTime,
                     r.Duration,
                     TableIds = r.ReservationTables.Select(rt => rt.TableID).ToList()
@@ -279,9 +259,9 @@ namespace FYP.Services
                     if (existing.TableIds.Contains(table.TableID))
                     {
                         var existingStart = new DateTime(
-                            existing.ReservationDate.Year,
-                            existing.ReservationDate.Month,
-                            existing.ReservationDate.Day,
+                            existing.ReservedFor.Year,
+                            existing.ReservedFor.Month,
+                            existing.ReservedFor.Day,
                             existing.ReservationTime.Hours,
                             existing.ReservationTime.Minutes, 0, DateTimeKind.Utc);
                         var existingEnd = existingStart.AddMinutes(existing.Duration);
@@ -614,7 +594,6 @@ namespace FYP.Services
             AllocationResult allocation,
             int? customerId,
             int? guestId,
-            bool isGuest,
             int restaurantId,
             DateTime reservationDate,
             TimeSpan reservationTime,
@@ -625,110 +604,128 @@ namespace FYP.Services
             bool isWalkIn,
             string userId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            var strategy = _context.Database.CreateExecutionStrategy();
 
-            try
+            return await strategy.ExecuteAsync(async () =>
             {
-                // Create reservation
-                var reservation = new Reservation
-                {
-                    CustomerID = customerId,
-                    GuestID = guestId,
-                    IsGuest = isGuest,
-                    RestaurantID = restaurantId,
-                    ReservationDate = reservationDate.Date,
-                    ReservationTime = reservationTime,
-                    Duration = duration,
-                    PartySize = partySize,
-                    Notes = notes,
-                    ReservationStatusID = statusId,
-                    ReservationType = !isWalkIn,
-                    CreatedBy = userId,
-                    UpdatedBy = userId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                using var transaction = await _context.Database.BeginTransactionAsync();
 
-                _context.Reservations.Add(reservation);
-                await _context.SaveChangesAsync();
-
-                // Link allocated tables
-                foreach (var tableId in allocation.AllocatedTableIds)
+                try
                 {
-                    var reservationTable = new ReservationTables
+                    // Create reservation
+                    var reservation = new Reservation
                     {
-                        ReservationID = reservation.ReservationID,
-                        TableID = tableId,
+                        CustomerID = customerId,
+                        GuestID = guestId,
+                        RestaurantID = restaurantId,
+                        ReservationDate = reservationDate.Date,
+                        ReservationTime = reservationTime,
+                        ReservedFor = new DateTime(reservationDate.Year, reservationDate.Month, reservationDate.Day, reservationTime.Hours, reservationTime.Minutes, 0, DateTimeKind.Utc),
+                        ReservedAt = DateTime.UtcNow,
+                        Duration = duration,
+                        PartySize = partySize,
+                        Notes = notes,
+                        ReservationStatusID = statusId,
+                        ReservationType = !isWalkIn,
                         CreatedBy = userId,
                         UpdatedBy = userId,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
-                    _context.ReservationTables.Add(reservationTable);
+
+                    _context.Reservations.Add(reservation);
+                    await _context.SaveChangesAsync();
+
+                    // Link allocated tables
+                    foreach (var tableId in allocation.AllocatedTableIds)
+                    {
+                        var reservationTable = new ReservationTables
+                        {
+                            ReservationID = reservation.ReservationID,
+                            TableID = tableId,
+                            CreatedBy = userId,
+                            UpdatedBy = userId,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _context.ReservationTables.Add(reservationTable);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    // Log the action
+                    await LogReservationActionAsync(
+                        reservation.ReservationID,
+                        "Created",
+                        allocation.AllocationStrategy,
+                        userId);
+
+                    await transaction.CommitAsync();
+
+                    // Send confirmation email
+                    try
+                    {
+                        string customerEmail = null;
+                        string customerName = null;
+                        string customerFirstName = null;
+
+                        if (guestId.HasValue)
+                        {
+                            var guest = await _context.Guests.FindAsync(guestId.Value);
+                            customerEmail = guest?.Email;
+                            customerName = $"{guest?.FirstName} {guest?.LastName}";
+                            customerFirstName = guest?.FirstName;
+                        }
+                        else if (customerId.HasValue)
+                        {
+                            var customer = await _context.Customers.FindAsync(customerId.Value);
+                            customerEmail = customer?.Email;
+                            customerName = $"{customer?.FirstName} {customer?.LastName}";
+                            customerFirstName = customer?.FirstName;
+                        }
+
+                        if (!string.IsNullOrEmpty(customerEmail))
+                        {
+                            // Compose localized subject/body
+                            var subject = "Your reservation is confirmed";
+                            var greeting = !string.IsNullOrWhiteSpace(customerFirstName)
+                                ? $"Hello {System.Net.WebUtility.HtmlEncode(customerFirstName)},"
+                                : "Hello";
+
+                            var body = $@"
+                                <h2>Reservation Confirmed</h2>
+                                <p>{greeting}</p>
+                                <p>Your reservation for {reservationDate:yyyy-MM-dd} at {reservationTime.ToString(@"hh\:mm")} has been confirmed.</p>
+                                <ul>
+                                    <li>Party Size: {partySize}</li>
+                                    <li>Duration: {duration} minutes</li>
+                                </ul>
+                                <p>We look forward to welcoming you.</p>";
+
+                            await _emailService.SendEmailAsync(customerEmail, subject, body);
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        _logger.LogWarning(emailEx, "Failed to send allocation email for reservation {ReservationId}", reservation.ReservationID);
+                        // Don't fail the reservation if email fails
+                    }
+
+                    _logger.LogInformation(
+                        "Reservation {ReservationId} created successfully. Strategy: {Strategy}, Tables: {Tables}",
+                        reservation.ReservationID,
+                        allocation.AllocationStrategy,
+                        string.Join(", ", allocation.AllocatedTableIds));
+
+                    return reservation;
                 }
-
-                await _context.SaveChangesAsync();
-
-                // Log the action
-                await LogReservationActionAsync(
-                    reservation.ReservationID,
-                    "Created",
-                    allocation.AllocationStrategy,
-                    userId);
-
-                await transaction.CommitAsync();
-
-                // Send confirmation email
-                try
+                catch (Exception ex)
                 {
-                    string customerEmail = null;
-                    string customerName = null;
-
-                    if (isGuest && guestId.HasValue)
-                    {
-                        var guest = await _context.Guests.FindAsync(guestId.Value);
-                        customerEmail = guest?.Email;
-                        customerName = $"{guest?.FirstName} {guest?.LastName}";
-                    }
-                    else if (customerId.HasValue)
-                    {
-                        var customer = await _context.Customers.FindAsync(customerId.Value);
-                        customerEmail = customer?.Email;
-                        customerName = $"{customer?.FirstName} {customer?.LastName}";
-                    }
-
-                    if (!string.IsNullOrEmpty(customerEmail))
-                    {
-                        await _emailService.SendTableAllocationEmailAsync(
-                            customerEmail,
-                            customerName,
-                            reservationDate,
-                            reservationTime,
-                            partySize,
-                            allocation.AllocationStrategy
-                        );
-                    }
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Failed to create reservation with allocation");
+                    throw;
                 }
-                catch (Exception emailEx)
-                {
-                    _logger.LogWarning(emailEx, "Failed to send allocation email for reservation {ReservationId}", reservation.ReservationID);
-                    // Don't fail the reservation if email fails
-                }
-
-                _logger.LogInformation(
-                    "Reservation {ReservationId} created successfully. Strategy: {Strategy}, Tables: {Tables}",
-                    reservation.ReservationID,
-                    allocation.AllocationStrategy,
-                    string.Join(", ", allocation.AllocatedTableIds));
-
-                return reservation;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Failed to create reservation with allocation");
-                throw;
-            }
+            });
         }
 
         /// <summary>

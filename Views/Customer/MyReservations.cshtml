@@ -108,12 +108,12 @@
 
                     <div class="col-md-6 col-lg-4">
                         <div class="reservation-card-modern">
-                            <div class="reservation-card-header-modern">
-                                <div class="reservation-date-badge">
-                                    <span class="date-day">@reservation.ReservationDate.Day</span>
-                                    <span class="date-month">@reservation.ReservationDate.ToString("MMM")</span>
-                                    <span class="date-year">@reservation.ReservationDate.Year</span>
-                                </div>
+                    <div class="reservation-card-header-modern">
+                        <div class="reservation-date-badge">
+                            <span class="date-day">@reservation.ReservedFor.Day</span>
+                            <span class="date-month">@reservation.ReservedFor.ToString("MMM")</span>
+                            <span class="date-year">@reservation.ReservedFor.Year</span>
+                        </div>
                                 <span class="reservation-status-badge @statusClass">
                                     @reservation.ReservationStatus.StatusName
                                 </span>
@@ -122,7 +122,7 @@
                             <div class="reservation-card-body-modern">
                                 <div class="reservation-time-large">
                                     <span class="material-symbols-outlined">schedule</span>
-                                    @reservation.ReservationTime.ToString(@"HH\:mm")
+                                    @reservation.ReservedFor.ToString("HH:mm")
                                 </div>
 
                                 <div class="reservation-info-grid">
