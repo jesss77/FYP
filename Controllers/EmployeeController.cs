@@ -155,11 +155,25 @@ namespace FYP.Controllers
                 return RedirectToAction("Create");
             }
 
-            // Show today's reservations by default in index
-            return RedirectToAction("Reservations");
+            // Populate today's reservations so the Index (employee) view can show a dashboard-like summary
+            var today = DateTime.UtcNow.Date;
+            var todayReservations = await _context.Reservations
+                .Include(r => r.ReservationStatus)
+                .Include(r => r.Customer)
+                .Include(r => r.Guest)
+                .Include(r => r.ReservationTables)
+                    .ThenInclude(rt => rt.Table)
+                .Where(r => r.ReservedFor >= today && r.ReservedFor < today.AddDays(1))
+                .OrderBy(r => r.ReservationTime)
+                .ToListAsync();
+
+            ViewBag.TodayReservations = todayReservations;
+            ViewBag.TodayDate = today;
+
+            // Render the employee Index view (acts as the dashboard)
+            return View("Index", employee);
         }
 
-        // View all reservations with date filter
         public async Task<IActionResult> Reservations(DateTime? filterDate)
         {
             var date = filterDate ?? DateTime.UtcNow.Date;
@@ -170,7 +184,8 @@ namespace FYP.Controllers
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
-                .Where(r => r.ReservedFor.Date == date)
+                // Compare by range on ReservedFor to avoid translating the Date property which EF may not support
+                .Where(r => r.ReservedFor >= date && r.ReservedFor < date.AddDays(1))
                 .OrderBy(r => r.ReservationTime)
                 .ToListAsync();
 
@@ -317,7 +332,7 @@ namespace FYP.Controllers
 
             var oldStatus = reservation.ReservationStatus.StatusName;
             reservation.ReservationStatusID = statusId;
-            reservation.UpdatedBy = user.Id;
+            reservation.UpdatedBy = user?.Id ?? User.Identity?.Name ?? reservation.UpdatedBy;
             reservation.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

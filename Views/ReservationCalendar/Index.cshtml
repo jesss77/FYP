@@ -18,11 +18,6 @@
             <a asp-controller="Employee" asp-action="CreateWalkIn" class="btn btn-success">
                 <i class="bi bi-person-plus"></i> New Walk-In
             </a>
-            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="~/" method="post">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </button>
-            </form>
         </div>
     </div>
 
@@ -113,27 +108,6 @@
 </div>
 
 <style>
-    /* Calendar theme styling to match Fine O Dine */
-    .fc-toolbar-title {
-        color: var(--color-primary-gold, #D4AF37) !important;
-        font-weight: 600;
-    }
-
-    .fc-button-primary {
-        background-color: var(--color-primary-gold, #D4AF37) !important;
-        border-color: var(--color-primary-gold, #D4AF37) !important;
-        color: #222 !important;
-    }
-
-    .fc-button-primary:hover {
-        background-color: var(--color-primary-gold-dark, #B8941E) !important;
-        border-color: var(--color-primary-gold-dark, #B8941E) !important;
-    }
-
-    .fc-event {
-        cursor: pointer;
-    }
-
     /* Event status colors */
     .event-confirmed { 
         background-color: #198754 !important; 
@@ -260,9 +234,15 @@
                     events: eventsData,
 
                     headerToolbar: {
-                        left: 'prev,next today',
+                        left: 'today',
                         center: 'title',
-                        right: 'resourceTimeGridDay'
+                        right: ''
+                    },
+                    customButtons: {
+                        today: {
+                            text: 'Today',
+                            click: function() { calendar.today(); }
+                        }
                     },
                     resourceLabelDidMount: function(info) {
                         var capacity = info.resource.extendedProps.capacity;

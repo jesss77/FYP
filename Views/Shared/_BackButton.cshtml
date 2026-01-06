@@ -1,16 +1,14 @@
 @model string
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
     var backUrl = Model;
     var homeIndex = Url.Action("Index", "Home");
-    var homeLanding = Url.Action("Landing", "Home");
-    if (string.IsNullOrEmpty(backUrl) || backUrl == homeIndex || backUrl?.EndsWith("/Home") == true || backUrl?.EndsWith("/Home/Index") == true)
-    {
-        backUrl = homeLanding;
-    }
+    var href = !string.IsNullOrWhiteSpace(backUrl) ? backUrl : "javascript:history.back()";
 }
-<a class="btn btn-outline-secondary mb-3 back-button" href="@backUrl">
+<a class="btn btn-outline-secondary mb-3 back-button" href="@href" role="button" aria-label="@L["Back"]">
     <span class="material-symbols-outlined back-icon" aria-hidden="true" style="vertical-align: middle; margin-right: 0.25rem;">arrow_back</span>
-    Back
+    @L["Back"]
 </a>
 
 <style>
@@ -27,6 +25,12 @@
 /* Small margin adjustments for consistent spacing */
 .back-button {
     margin-bottom: var(--spacing-md) !important;
+    margin-left: 0 !important;
+    padding-left: 0.5rem; /* keep a little inner spacing but ensure outer margin-left is 0 */
+}
+
+.back-button .back-icon {
+    margin-left: 0 !important;
 }
 </style>
     

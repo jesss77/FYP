@@ -63,7 +63,8 @@ namespace FYP.Controllers
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
-                .Where(r => r.ReservationDate == selectedDate)
+                // Compare by ReservedFor range to avoid using the unmapped ReservationDate property
+                .Where(r => r.ReservedFor >= selectedDate && r.ReservedFor < selectedDate.AddDays(1))
                 .ToListAsync();
 
             // Create events from reservations

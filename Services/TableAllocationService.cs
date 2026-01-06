@@ -69,7 +69,7 @@ namespace FYP.Services
                     // Try to find allocation
                     var allocation = await FindBestAllocationAsync(
                         reservation.RestaurantID,
-                        reservation.ReservationDate,
+                        reservation.ReservedFor.Date,
                         reservation.ReservationTime,
                         reservation.Duration,
                         reservation.PartySize
@@ -294,8 +294,19 @@ namespace FYP.Services
 
             _logger.LogInformation("Found {Count} available tables", availableTables.Count);
 
-            // ========== PRIORITY RULE 1: Exact capacity match (single table) =========
-            var exactFitTable = availableTables
+            // Collect all table ids that participate in any configured join.
+            // Use union of two projections so EF can translate to SQL rather than creating an array in the expression.
+            var primaryIdsQuery = _context.TablesJoins.Select(tj => tj.PrimaryTableID);
+            var joinedIdsQuery = _context.TablesJoins.Select(tj => tj.JoinedTableID);
+            var tablesInJoins = await primaryIdsQuery
+                .Union(joinedIdsQuery)
+                .ToListAsync();
+
+            var standaloneTables = availableTables
+                .Where(t => !tablesInJoins.Contains(t.TableID))
+                .ToList();
+
+            var exactFitTable = standaloneTables
                 .FirstOrDefault(t => t.Capacity == partySize);
 
             if (exactFitTable != null)
@@ -309,10 +320,9 @@ namespace FYP.Services
                 return result;
             }
 
-            // ========== PRIORITY RULE 2: Single table with closest larger capacity =========
-            var singleTableFit = availableTables
+             var singleTableFit = standaloneTables
                 .Where(t => t.Capacity >= partySize)
-                .OrderBy(t => t.Capacity) // Smallest table that fits
+                .OrderBy(t => t.Capacity)
                 .FirstOrDefault();
 
             if (singleTableFit != null)
@@ -321,9 +331,30 @@ namespace FYP.Services
                 result.AllocatedTableIds = new List<int> { singleTableFit.TableID };
                 result.TotalCapacity = singleTableFit.Capacity;
                 result.WastedSeats = singleTableFit.Capacity - partySize;
-                result.AllocationStrategy = $"Single table: Table {singleTableFit.TableNumber} (capacity {singleTableFit.Capacity}, {result.WastedSeats} seats unused)";
-                _logger.LogInformation("Found single table fit: Table {TableId} with {Wasted} wasted seats", 
-                    singleTableFit.TableID, result.WastedSeats);
+                result.AllocationStrategy = $"Single standalone table: Table {singleTableFit.TableNumber} (capacity {singleTableFit.Capacity}, {result.WastedSeats} seats unused)";
+                _logger.LogInformation("Found single standalone table fit: Table {TableId} with {Wasted} wasted seats", singleTableFit.TableID, result.WastedSeats);
+                return result;
+            }
+
+            // Extract available table IDs for EF Core translation
+            var availableTableIds = availableTables.Select(t => t.TableID).ToList();
+            
+            var possibleJoins = await _context.TablesJoins
+                .Where(tj => availableTableIds.Contains(tj.PrimaryTableID) && 
+                             availableTableIds.Contains(tj.JoinedTableID))
+                .OrderBy(tj => tj.TotalCapacity)
+                .ToListAsync();
+
+            var joinFit = possibleJoins.FirstOrDefault(j => j.TotalCapacity >= partySize);
+            if (joinFit != null)
+            {
+                // allocate both tables from the join
+                result.Success = true;
+                result.AllocatedTableIds = new List<int> { joinFit.PrimaryTableID, joinFit.JoinedTableID };
+                result.TotalCapacity = joinFit.TotalCapacity;
+                result.WastedSeats = joinFit.TotalCapacity - partySize;
+                result.AllocationStrategy = $"Preconfigured join: Tables {joinFit.PrimaryTableID} + {joinFit.JoinedTableID} (total capacity {joinFit.TotalCapacity}, {result.WastedSeats} seats unused)";
+                _logger.LogInformation("Found preconfigured join fit: Tables {Primary}+{Joined} capacity {Cap}", joinFit.PrimaryTableID, joinFit.JoinedTableID, joinFit.TotalCapacity);
                 return result;
             }
 
@@ -335,7 +366,6 @@ namespace FYP.Services
                 _logger.LogInformation("Attempting to find joinable combination from {Count} joinable tables", 
                     joinableTables.Count);
 
-                // Get all configured table joins
                 var tableJoins = await _context.TablesJoins
                     .Where(tj => joinableTables.Select(t => t.TableID).Contains(tj.PrimaryTableID) ||
                                  joinableTables.Select(t => t.TableID).Contains(tj.JoinedTableID))
@@ -343,7 +373,6 @@ namespace FYP.Services
 
                 _logger.LogInformation("Found {Count} configured joins", tableJoins.Count);
 
-                // Try to find best combination
                 var bestCombination = FindBestJoinCombination(joinableTables, tableJoins, partySize);
 
                 if (bestCombination != null && bestCombination.Any())
@@ -368,40 +397,52 @@ namespace FYP.Services
             _logger.LogWarning("No suitable allocation found for party of {PartySize}", partySize);
             return result;
         }
-
-        /// <summary>
-        /// Find best combination of joinable tables using graph-based algorithms
-        /// Implements PRIORITY RULE 4: Smallest number of tables with least unused seats
-        /// </summary>
         private List<Table>? FindBestJoinCombination(
             List<Table> joinableTables,
             List<TablesJoin> configuredJoins,
             int partySize)
         {
-            // Build adjacency graph of which tables can join
+            // PASS 1: Preferred Joins (Strict Mode)
+            // Try to find a combination using ONLY the configured join rules.
+            _logger.LogInformation("Pass 1: Attempting to find combination using preferred joins.");
+            var strictAdjacency = BuildAdjacency(joinableTables, configuredJoins, usePermissiveFallback: false);
+            var bestStrict = SearchForCombination(joinableTables, strictAdjacency, partySize);
+
+            if (bestStrict != null)
+            {
+                _logger.LogInformation("Found valid combination using preferred joins.");
+                return bestStrict;
+            }
+
+            // PASS 2: Permissive Joins (Fallback Mode)
+            // If preferred joins failed, allow ANY joinable table to connect with ANY other joinable table.
+            _logger.LogInformation("Pass 1 failed. Pass 2: Attempting to find combination using fully permissive joins.");
+            var permissiveAdjacency = BuildAdjacency(joinableTables, configuredJoins, usePermissiveFallback: true);
+            var bestPermissive = SearchForCombination(joinableTables, permissiveAdjacency, partySize);
+
+            if (bestPermissive != null)
+            {
+                _logger.LogInformation("Found valid combination using permissive fallback.");
+                return bestPermissive;
+            }
+
+            return null;
+        }
+
+        private Dictionary<int, HashSet<int>> BuildAdjacency(
+            List<Table> joinableTables, 
+            List<TablesJoin> configuredJoins, 
+            bool usePermissiveFallback)
+        {
             var adjacency = new Dictionary<int, HashSet<int>>();
             foreach (var table in joinableTables)
             {
                 adjacency[table.TableID] = new HashSet<int>();
             }
 
-            // If we have configured joins, use them (respects join rules)
-            if (configuredJoins.Any())
+            if (usePermissiveFallback)
             {
-                foreach (var join in configuredJoins)
-                {
-                    if (adjacency.ContainsKey(join.PrimaryTableID) && adjacency.ContainsKey(join.JoinedTableID))
-                    {
-                        adjacency[join.PrimaryTableID].Add(join.JoinedTableID);
-                        adjacency[join.JoinedTableID].Add(join.PrimaryTableID); // Bidirectional
-                    }
-                }
-            }
-            else
-            {
-                // If no configured joins exist, allow any joinable table to join with any other
-                // This is a fallback behavior
-                _logger.LogWarning("No configured joins found. Using permissive join logic.");
+                // Connect every joinable table to every other joinable table
                 foreach (var table1 in joinableTables)
                 {
                     foreach (var table2 in joinableTables)
@@ -413,11 +454,31 @@ namespace FYP.Services
                     }
                 }
             }
+            else
+            {
+                // Only connect tables based on configured joins
+                foreach (var join in configuredJoins)
+                {
+                    if (adjacency.ContainsKey(join.PrimaryTableID) && adjacency.ContainsKey(join.JoinedTableID))
+                    {
+                        adjacency[join.PrimaryTableID].Add(join.JoinedTableID);
+                        adjacency[join.JoinedTableID].Add(join.PrimaryTableID);
+                    }
+                }
+            }
 
+            return adjacency;
+        }
+
+        private List<Table>? SearchForCombination(
+            List<Table> joinableTables,
+            Dictionary<int, HashSet<int>> adjacency,
+            int partySize)
+        {
             List<Table>? bestCombination = null;
             int bestWaste = int.MaxValue;
 
-            // ========== Try pairs first (most common, least waste) =========
+            // Search Pairs
             for (int i = 0; i < joinableTables.Count; i++)
             {
                 for (int j = i + 1; j < joinableTables.Count; j++)
@@ -425,7 +486,6 @@ namespace FYP.Services
                     var table1 = joinableTables[i];
                     var table2 = joinableTables[j];
 
-                    // Check if these two tables can join
                     if (adjacency[table1.TableID].Contains(table2.TableID))
                     {
                         var totalCapacity = table1.Capacity + table2.Capacity;
@@ -436,28 +496,16 @@ namespace FYP.Services
                             {
                                 bestWaste = waste;
                                 bestCombination = new List<Table> { table1, table2 };
-                                
-                                // If exact fit, return immediately
-                                if (waste == 0)
-                                {
-                                    _logger.LogInformation("Found exact fit with 2 tables: {T1}, {T2}", 
-                                        table1.TableID, table2.TableID);
-                                    return bestCombination;
-                                }
+                                if (waste == 0) return bestCombination;
                             }
                         }
                     }
                 }
             }
+            
+            if (bestCombination != null) return bestCombination;
 
-            // If we found a good pair, return it
-            if (bestCombination != null)
-            {
-                _logger.LogInformation("Best pair found with {Waste} wasted seats", bestWaste);
-                return bestCombination;
-            }
-
-            // ========== Try triplets (3 tables) ==========
+            // Search Triplets
             for (int i = 0; i < joinableTables.Count; i++)
             {
                 for (int j = i + 1; j < joinableTables.Count; j++)
@@ -468,11 +516,7 @@ namespace FYP.Services
                         var table2 = joinableTables[j];
                         var table3 = joinableTables[k];
 
-                        // Check if all three form a connected group
-                        // A valid triplet requires connectivity: each table connects to at least one other
-                        bool canJoin = IsConnectedGroup(new[] { table1.TableID, table2.TableID, table3.TableID }, adjacency);
-
-                        if (canJoin)
+                        if (IsConnectedGroup(new[] { table1.TableID, table2.TableID, table3.TableID }, adjacency))
                         {
                             var totalCapacity = table1.Capacity + table2.Capacity + table3.Capacity;
                             if (totalCapacity >= partySize)
@@ -482,13 +526,7 @@ namespace FYP.Services
                                 {
                                     bestWaste = waste;
                                     bestCombination = new List<Table> { table1, table2, table3 };
-                                    
-                                    // If exact fit, return immediately
-                                    if (waste == 0)
-                                    {
-                                        _logger.LogInformation("Found exact fit with 3 tables");
-                                        return bestCombination;
-                                    }
+                                    if (waste == 0) return bestCombination;
                                 }
                             }
                         }
@@ -496,34 +534,17 @@ namespace FYP.Services
                 }
             }
 
-            // If we found a triplet, return it
-            if (bestCombination != null)
-            {
-                _logger.LogInformation("Best triplet found with {Waste} wasted seats", bestWaste);
-                return bestCombination;
-            }
+            if (bestCombination != null) return bestCombination;
 
-            // ========== Try larger combinations (4+ tables) if needed ==========
-            // For performance reasons, limit to 4 tables max
-            var largerCombination = FindLargerCombination(joinableTables, adjacency, partySize, maxTables: 4);
-            if (largerCombination != null)
-            {
-                _logger.LogInformation("Found larger combination with {Count} tables", largerCombination.Count);
-                return largerCombination;
-            }
-
-            _logger.LogWarning("No valid joinable combination found for party of {PartySize}", partySize);
-            return null;
+            // Search Quads
+            return FindLargerCombination(joinableTables, adjacency, partySize, 4);
         }
 
-        /// <summary>
-        /// Check if a group of tables forms a connected graph (all tables can physically join)
-        /// </summary>
+
         private bool IsConnectedGroup(int[] tableIds, Dictionary<int, HashSet<int>> adjacency)
         {
             if (tableIds.Length <= 1) return true;
 
-            // Use BFS to check connectivity
             var visited = new HashSet<int>();
             var queue = new Queue<int>();
             queue.Enqueue(tableIds[0]);
@@ -542,21 +563,16 @@ namespace FYP.Services
                     }
                 }
             }
-
-            // All tables in the group must be reachable
             return visited.Count == tableIds.Length;
         }
 
-        /// <summary>
-        /// Find larger combinations (4+ tables) using recursive approach
-        /// </summary>
+
         private List<Table>? FindLargerCombination(
             List<Table> joinableTables,
             Dictionary<int, HashSet<int>> adjacency,
             int partySize,
             int maxTables)
         {
-            // Try 4-table combinations
             if (joinableTables.Count >= 4)
             {
                 for (int i = 0; i < joinableTables.Count; i++)
@@ -587,9 +603,6 @@ namespace FYP.Services
             return null;
         }
 
-        /// <summary>
-        /// Create reservation with allocated tables (transactional)
-        /// </summary>
         public async Task<Reservation> CreateReservationAsync(
             AllocationResult allocation,
             int? customerId,
@@ -618,7 +631,6 @@ namespace FYP.Services
                         CustomerID = customerId,
                         GuestID = guestId,
                         RestaurantID = restaurantId,
-                        ReservationDate = reservationDate.Date,
                         ReservationTime = reservationTime,
                         ReservedFor = new DateTime(reservationDate.Year, reservationDate.Month, reservationDate.Day, reservationTime.Hours, reservationTime.Minutes, 0, DateTimeKind.Utc),
                         ReservedAt = DateTime.UtcNow,
@@ -653,7 +665,6 @@ namespace FYP.Services
 
                     await _context.SaveChangesAsync();
 
-                    // Log the action
                     await LogReservationActionAsync(
                         reservation.ReservationID,
                         "Created",
@@ -708,7 +719,6 @@ namespace FYP.Services
                     catch (Exception emailEx)
                     {
                         _logger.LogWarning(emailEx, "Failed to send allocation email for reservation {ReservationId}", reservation.ReservationID);
-                        // Don't fail the reservation if email fails
                     }
 
                     _logger.LogInformation(
@@ -728,9 +738,6 @@ namespace FYP.Services
             });
         }
 
-        /// <summary>
-        /// Log reservation action to audit trail
-        /// </summary>
         private async Task LogReservationActionAsync(int reservationId, string actionName, string? details, string userId)
         {
             var actionType = await _context.ActionTypes.FirstOrDefaultAsync(a => a.ActionTypeName == actionName);
@@ -764,9 +771,6 @@ namespace FYP.Services
             await _context.SaveChangesAsync();
         }
 
-        /// <summary>
-        /// Override table assignment for an existing reservation (manager function)
-        /// </summary>
         public async Task<bool> OverrideTableAssignmentAsync(
             int reservationId,
             List<int> newTableIds,

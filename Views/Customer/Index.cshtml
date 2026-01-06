@@ -47,12 +47,6 @@
             </p>
         </div>
         <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-top: 0.5rem;">
-            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="~/" method="post" class="d-inline">
-                <button type="submit" class="btn btn-logout">
-                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">logout</span>
-                    @L["Logout"]
-                </button>
-            </form>
             <a asp-action="EditProfile" asp-controller="Customer" class="profile-picture-small">
                 @if (Model.PictureBytes != null && Model.PictureBytes.Length > 0)
                 {
@@ -75,13 +69,13 @@
         @{
             var upcoming = ViewBag.Reservations != null ? 
                 ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations)
-                .Count(r => r.ReservationDate >= DateTime.UtcNow.Date && 
+                .Count(r => r.ReservedFor.Date >= DateTime.UtcNow.Date && 
                            (r.ReservationStatus.StatusName == "Pending" || 
                             r.ReservationStatus.StatusName == "Confirmed")) : 0;
 
             var past = ViewBag.Reservations != null ? 
                 ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations)
-                .Count(r => r.ReservationDate < DateTime.UtcNow.Date || 
+                .Count(r => r.ReservedFor.Date < DateTime.UtcNow.Date || 
                            r.ReservationStatus.StatusName == "Completed") : 0;
 
             var sList = new[] {
@@ -137,14 +131,9 @@
         else
         {
             <div class="row g-4">
-                @foreach (var reservation in ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations).OrderByDescending(r => r.ReservationDate).ThenByDescending(r => r.ReservationTime).Take(6))
+                @foreach (var reservation in ((IEnumerable<FYP.Models.Reservation>)ViewBag.Reservations).OrderByDescending(r => r.ReservedFor).ThenByDescending(r => r.ReservationTime).Take(6))
                 {
-                    var isPastReservation = new DateTime(
-                        reservation.ReservationDate.Year,
-                        reservation.ReservationDate.Month,
-                        reservation.ReservationDate.Day,
-                        reservation.ReservationTime.Hours,
-                        reservation.ReservationTime.Minutes, 0) < DateTime.Now;
+                    var isPastReservation = reservation.ReservedFor < DateTime.Now;
 
                     var canCancel = !isPastReservation &&
                                    (reservation.ReservationStatus.StatusName == "Pending" ||
@@ -165,7 +154,7 @@
                             <div class="reservation-item-header">
                                 <div class="reservation-item-date">
                                     <span class="material-symbols-outlined">event</span>
-                                    <strong>@reservation.ReservationDate.ToString("dd/MM/yyyy")</strong>
+                                    <strong>@reservation.ReservedFor.ToString("dd/MM/yyyy")</strong>
                                 </div>
                                 <span class="reservation-status-badge @statusClass">
                                     @reservation.ReservationStatus.StatusName
@@ -374,21 +363,6 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-}
-
-.stat-cube-label-large {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.2;
-}
-
-.stat-cube-sublabel {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 0;
-    font-weight: 600;
 }
 
 /* Book Cube - Square like Admin */

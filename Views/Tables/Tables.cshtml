@@ -16,10 +16,13 @@
 
     ViewBag.SearchPlaceholder = "Search tables...";
     ViewBag.SearchInputId = "TablesSearchInput";
+
+    // Choose back target based on role so admins don't hit manager-only routes
+    var backController = User.IsInRole("admin") ? "Admin" : "Manager";
 }
 
 <div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1400px; margin: 0 auto;">
-    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index", backController)" />
 
     @if (TempData["Success"] != null)
     {

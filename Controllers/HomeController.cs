@@ -1,10 +1,12 @@
 using FYP.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace FYP.Controllers
 {
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -23,24 +25,13 @@ namespace FYP.Controllers
                 {
                     return RedirectToAction("Index", "Customer");
                 }
-                else if (User.IsInRole("employee") || User.IsInRole("manager"))
-                {
-                    return RedirectToAction("Index", "Employee");
-                }
-                // Don't auto-redirect admin - let them see the home page
-                // Admins can manually navigate to /Admin/Index
+                // Don't auto-redirect let them see the home page
             }
 
             // If not authenticated or is admin, show welcome page
             return View();
         }
 
-        // Landing route that always shows the public home page (used by header/logo and back links)
-        [HttpGet]
-        public IActionResult Landing()
-        {
-            return View("Index");
-        }
 
 
         [HttpGet] // Optional, but good practice for simple page views

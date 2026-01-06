@@ -89,7 +89,7 @@ namespace FYP.Areas.Identity.Pages.Account
                 var employee = await _context.Employees.FirstOrDefaultAsync(e => e.ApplicationUserId == user.Id);
                 if (employee == null || !employee.IsActive)
                 {
-                    ModelState.AddModelError(string.Empty, "Your account is inactive. Please contact an administrator.");
+                    ModelState.AddModelError(string.Empty, "Your account is inactive. Wait for it to be activated or contact an administrator.");
                     return Page();
                 }
             }
@@ -107,16 +107,25 @@ namespace FYP.Areas.Identity.Pages.Account
 
                 // Redirect based on role (Runs ONLY on successful login)
                 if (await _userManager.IsInRoleAsync(user, "customer"))
+                {
                     return RedirectToAction("Index", "Customer", new { area = "" });
+                }
 
-                else if (await _userManager.IsInRoleAsync(user, "employee"))
+                // Employees go to Employee index; managers go to Manager reservations view
+                if (await _userManager.IsInRoleAsync(user, "employee"))
+                {
                     return RedirectToAction("Index", "Employee", new { area = "" });
+                }
 
-                else if (await _userManager.IsInRoleAsync(user, "manager"))
+                if (await _userManager.IsInRoleAsync(user, "manager"))
+                {
                     return RedirectToAction("Index", "Manager", new { area = "" });
+                }
 
-                else if (await _userManager.IsInRoleAsync(user, "admin"))
+                if (await _userManager.IsInRoleAsync(user, "admin"))
+                {
                     return RedirectToAction("Index", "Admin", new { area = "" });
+                }
 
                 // fallback
                 return LocalRedirect(returnUrl);

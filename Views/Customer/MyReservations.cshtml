@@ -37,9 +37,9 @@
 
     @if (Model != null && Model.Any())
     {
-        var upcoming = Model.Where(r => r.ReservationDate >= DateTime.UtcNow.Date && 
+        var upcoming = Model.Where(r => r.ReservedFor.Date >= DateTime.UtcNow.Date && 
                                         (r.ReservationStatus.StatusName == "Pending" || r.ReservationStatus.StatusName == "Confirmed")).Count();
-        var past = Model.Where(r => r.ReservationDate < DateTime.UtcNow.Date || 
+        var past = Model.Where(r => r.ReservedFor.Date < DateTime.UtcNow.Date || 
                                      r.ReservationStatus.StatusName == "Completed").Count();
         var cancelled = Model.Where(r => r.ReservationStatus.StatusName == "Cancelled").Count();
 
@@ -81,9 +81,9 @@
         </div>
 
         <!-- Upcoming Reservations -->
-        var upcomingReservations = Model.Where(r => r.ReservationDate >= DateTime.UtcNow.Date && 
+        var upcomingReservations = Model.Where(r => r.ReservedFor.Date >= DateTime.UtcNow.Date && 
                                                     (r.ReservationStatus.StatusName != "Completed" && r.ReservationStatus.StatusName != "Cancelled"))
-                                        .OrderBy(r => r.ReservationDate).ThenBy(r => r.ReservationTime);
+                                        .OrderBy(r => r.ReservedFor).ThenBy(r => r.ReservationTime);
 
         @if (upcomingReservations.Any())
         {
@@ -176,10 +176,10 @@
         }
 
         <!-- Past & Cancelled Reservations -->
-        var pastReservations = Model.Where(r => r.ReservationDate < DateTime.UtcNow.Date || 
+        var pastReservations = Model.Where(r => r.ReservedFor.Date < DateTime.UtcNow.Date || 
                                                 r.ReservationStatus.StatusName == "Completed" ||
                                                 r.ReservationStatus.StatusName == "Cancelled")
-                                    .OrderByDescending(r => r.ReservationDate).ThenByDescending(r => r.ReservationTime);
+                                    .OrderByDescending(r => r.ReservedFor).ThenByDescending(r => r.ReservationTime);
 
         @if (pastReservations.Any())
         {
@@ -215,7 +215,7 @@
 
                             <tr>
                                 <td data-label="@L["Date"]">
-                                    <strong>@reservation.ReservationDate.ToString("dd/MM/yyyy")</strong>
+                                    <strong>@reservation.ReservedFor.ToString("dd/MM/yyyy")</strong>
                                 </td>
                                 <td data-label="@L["Time"]">
                                     @reservation.ReservationTime.ToString(@"HH\:mm")

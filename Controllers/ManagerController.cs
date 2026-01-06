@@ -26,99 +26,25 @@ namespace FYP.Controllers
             _reportService = reportService;
             _userManager = userManager;
         }
-
-        public async Task<IActionResult> Tables()
-        {
-            var tables = await _context.Tables
-                .Include(t => t.Restaurant)
-                .OrderBy(t => t.TableNumber)
-                .ToListAsync();
-
-            return View("Tables", tables);
-        }
         public IActionResult Index()
         {
             return View("Index");
         }
-
-        public async Task<IActionResult> CreateTable()
+        public IActionResult Tables()
         {
-            return View("CreateTable");
+            return RedirectToAction("Tables", "Tables");
+        }
+
+        public IActionResult CreateTable()
+        {
+            return RedirectToAction("CreateTable", "Tables");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTable(FYP.Models.Table model)
+        public IActionResult CreateTable(FYP.Models.Table model)
         {
-            try
-            {
-                ModelState.Remove("CreatedBy");
-                ModelState.Remove("CreatedAt");
-                ModelState.Remove("UpdatedBy");
-                ModelState.Remove("UpdatedAt");
-                ModelState.Remove("Restaurant");
-                ModelState.Remove("RestaurantID");
-
-                if (!ModelState.IsValid)
-                {
-                    return View("CreateTable", model);
-                }
-
-                var restaurant = await _context.Restaurants.FirstOrDefaultAsync();
-                if (restaurant == null)
-                {
-                    var settings = await _context.Settings.FirstOrDefaultAsync();
-                    if (settings == null)
-                    {
-                        settings = new FYP.Models.Settings
-                        {
-                            Key = "Name",
-                            Value = "Fine O Dine",
-                            CreatedBy = User.Identity?.Name ?? "manager",
-                            UpdatedBy = User.Identity?.Name ?? "manager",
-                            CreatedAt = DateTime.UtcNow,
-                            UpdatedAt = DateTime.UtcNow
-                        };
-                        _context.Settings.Add(settings);
-                        await _context.SaveChangesAsync();
-                    }
-
-                    restaurant = new FYP.Models.Restaurant
-                    {
-                        SettingsID = settings.SettingsID,
-                        CreatedBy = User.Identity?.Name ?? "manager",
-                        UpdatedBy = User.Identity?.Name ?? "manager",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Restaurants.Add(restaurant);
-                    await _context.SaveChangesAsync();
-                }
-
-                if (await _context.Tables.AnyAsync(t => t.TableNumber == model.TableNumber && t.RestaurantID == restaurant.RestaurantID))
-                {
-                    ModelState.AddModelError("TableNumber", "A table with this number already exists.");
-                    return View("CreateTable", model);
-                }
-
-                model.RestaurantID = restaurant.RestaurantID;
-                model.Restaurant = restaurant;
-                model.CreatedBy = User.Identity?.Name ?? "manager";
-                model.UpdatedBy = User.Identity?.Name ?? "manager";
-                model.CreatedAt = DateTime.UtcNow;
-                model.UpdatedAt = DateTime.UtcNow;
-
-                _context.Tables.Add(model);
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = $"Table {model.TableNumber} created successfully!";
-                return RedirectToAction(nameof(Tables));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = ex.Message;
-                return View("CreateTable", model);
-            }
+            return RedirectToAction("CreateTable", "Tables");
         }
 
         public async Task<IActionResult> EditTable(int id)
@@ -191,62 +117,21 @@ namespace FYP.Controllers
             return RedirectToAction(nameof(Tables));
         }
 
-        public async Task<IActionResult> TableJoins()
+        public IActionResult TableJoins()
         {
-            var joins = await _context.TablesJoins
-                .Include(tj => tj.PrimaryTable)
-                .Include(tj => tj.JoinedTable)
-                .OrderBy(tj => tj.TablesJoinID)
-                .ToListAsync();
-
-            ViewBag.Tables = await _context.Tables.OrderBy(t => t.TableNumber).ToListAsync();
-            return View("~/Views/Manager/TableJoins.cshtml", joins);
+            return RedirectToAction("TableJoins", "Tables");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTableJoin(int primaryTableId, int joinedTableId, int totalCapacity)
+        public IActionResult CreateTableJoin(int primaryTableId, int joinedTableId)
         {
-            if (primaryTableId == joinedTableId)
-            {
-                TempData["Error"] = "Cannot join a table to itself.";
-                return RedirectToAction(nameof(TableJoins));
-            }
-
-            var exists = await _context.TablesJoins.AnyAsync(tj => (tj.PrimaryTableID == primaryTableId && tj.JoinedTableID == joinedTableId) || (tj.PrimaryTableID == joinedTableId && tj.JoinedTableID == primaryTableId));
-            if (exists)
-            {
-                TempData["Error"] = "This join already exists.";
-                return RedirectToAction(nameof(TableJoins));
-            }
-
-            var join = new FYP.Models.TablesJoin
-            {
-                PrimaryTableID = primaryTableId,
-                JoinedTableID = joinedTableId,
-                TotalCapacity = totalCapacity,
-                CreatedBy = User.Identity?.Name ?? "manager",
-                UpdatedBy = User.Identity?.Name ?? "manager",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            _context.TablesJoins.Add(join);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Table join created.";
-            return RedirectToAction(nameof(TableJoins));
+            return RedirectToAction("TableJoins", "Tables");
         }
 
-        public async Task<IActionResult> DeleteTableJoin(int id)
+        public IActionResult DeleteTableJoin(int id)
         {
-            var join = await _context.TablesJoins.FindAsync(id);
-            if (join == null) return NotFound();
-
-            _context.TablesJoins.Remove(join);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Table join removed.";
-            return RedirectToAction(nameof(TableJoins));
+            return RedirectToAction("TableJoins", "Tables");
         }
 
         // View all reservations with date filter (manager view)
@@ -260,12 +145,37 @@ namespace FYP.Controllers
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
-                .Where(r => r.ReservationDate == date)
+                // Compare by range on ReservedFor to avoid translating unmapped members or Date property
+                .Where(r => r.ReservedFor >= date && r.ReservedFor < date.AddDays(1))
                 .OrderBy(r => r.ReservationTime)
                 .ToListAsync();
 
             ViewBag.FilterDate = date;
-            return View("Reservations", reservations);
+
+            // Try to get the manager's employee record so the view can show the manager name
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Challenge();
+
+                var employee = await _context.Employees.FirstOrDefaultAsync(e => e.ApplicationUserId == user.Id);
+                if (employee == null)
+                {
+                    // No employee record for manager; redirect to employee creation flow
+                    return RedirectToAction("Create", "Employee");
+                }
+
+                ViewBag.TodayReservations = reservations;
+                ViewBag.TodayDate = date;
+                return View("Reservations", employee);
+            }
+            catch
+            {
+                // Fallback: render reservations list view directly if any error occurs
+                ViewBag.TodayReservations = reservations;
+                ViewBag.TodayDate = date;
+                return View("Reservations", null);
+            }
         }
 
         [HttpPost]

@@ -15,6 +15,10 @@
   <data name="Book a Table Now" xml:space="preserve"><value>Book a Table Now</value></data>
   <data name="Make a Reservation" xml:space="preserve"><value>Make a Reservation</value></data>
   <data name="Guest Reservation Subtitle" xml:space="preserve"><value>We look forward to welcoming you. Please provide the following details to secure your reservation.</value></data>
+  <data name="Please provide your email." xml:space="preserve"><value>Please provide your email.</value></data>
+  <data name="Please provide your first name." xml:space="preserve"><value>Please provide your first name.</value></data>
+  <data name="Please provide your last name." xml:space="preserve"><value>Please provide your last name.</value></data>
+  <data name="Please select a valid party size, date and time." xml:space="preserve"><value>Please select a valid party size, date and time.</value></data>
   <data name="About Us" xml:space="preserve"><value>About Us</value></data>
   <data name="Contact" xml:space="preserve"><value>Contact</value></data>
   <data name="Explore More" xml:space="preserve"><value>Explore More</value></data>

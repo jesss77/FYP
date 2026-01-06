@@ -44,7 +44,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     // Cookie will persist only if "Remember Me" is checked
     options.Cookie.IsEssential = true;
     options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // In development, allow cookies over HTTP if HTTPS certificate issues occur
+    // In production, always require HTTPS
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() 
+        ? CookieSecurePolicy.SameAsRequest 
+        : CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
@@ -59,9 +63,22 @@ builder.Services.AddControllersWithViews()
             factory.Create(typeof(SharedResource));
     });
 
+// Require authentication by default for all endpoints unless explicitly allowed
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
 // Global exception handling is done via middleware (UseExceptionHandler and status code pages)
 
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options =>
+{
+    // Allow anonymous access to all Identity pages (Login, Register, etc.)
+    // This prevents redirect loops when accessing the login page
+    options.Conventions.AllowAnonymousToAreaFolder("Identity", "/");
+});
 
 // Supported cultures
 builder.Services.Configure<RequestLocalizationOptions>(options =>

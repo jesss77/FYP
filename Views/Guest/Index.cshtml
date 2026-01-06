@@ -46,15 +46,15 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">
-                            @L["First Name"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                            @L["First Name"] <span style="color: var(--color-primary-red);">*</span>
                         </label>
-                        <input name="FirstName" type="text" class="form-control" placeholder="@L["First Name"]" />
+                        <input name="FirstName" type="text" class="form-control" placeholder="@L["First Name"]" required />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">
-                            @L["Last Name"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
+                            @L["Last Name"] <span style="color: var(--color-primary-red);">*</span>
                         </label>
-                        <input name="LastName" type="text" class="form-control" placeholder="@L["Last Name"]" />
+                        <input name="LastName" type="text" class="form-control" placeholder="@L["Last Name"]" required />
                     </div>
                 </div>
                 <div class="col-md-6">

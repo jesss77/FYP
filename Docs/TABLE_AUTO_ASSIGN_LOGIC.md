@@ -64,14 +64,19 @@ RETURN AllocationResult {
 adjacency[TableID] = HashSet<TableID>
 ```
 
-**With Configured Joins:**
-- Reads `TablesJoins` table
-- Builds bidirectional adjacency graph
-- Respects physical layout constraints
+**Prioritized Join Strategy (Two-Pass Logic):**
 
-**Without Configured Joins (Fallback):**
-- All joinable tables can join with any other joinable table
-- Warning logged for review
+The system attempts to find a solution in two passes, prioritizing your preferences but never blocking a valid physical combination.
+
+**Pass 1: Preferred Joins (Strict)**
+- Attempts to form a combination using **ONLY** the join rules configured in `TablesJoins`.
+- This ensures optimal layouts (e.g., joining adjacent booths) are prioritized.
+- If a valid combination is found, it is returned immediately.
+
+**Pass 2: Permissive Joins (Fallback)**
+- If Pass 1 fails (e.g., preferred tables are occupied or capacity isn't met), the system attempts to form a combination using **ANY** tables marked `IsJoinable`.
+- In this pass, any joinable table can theoretically join with any other joinable table.
+- This ensures that if space exists, the reservation is accepted, even if the layout isn't "standard".
 
 #### Connectivity Check (BFS Algorithm)
 ```csharp
@@ -190,8 +195,8 @@ await _allocationService.OverrideTableAssignmentAsync(
    - Indexed joins for efficiency
 
 2. **Algorithm Complexity:**
-   - Pairs: O(n²)
-   - Triplets: O(n³)
+   - Pairs: O(nï¿½)
+   - Triplets: O(nï¿½)
    - Limited to 4 tables max ? O(n4) worst case
    - Early termination on exact fit
 

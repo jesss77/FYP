@@ -21,8 +21,8 @@ namespace FYP.Services
         public async Task<List<PartySizeDistributionVM>> GetPartySizeDistributionAsync(DateTime? from = null, DateTime? to = null)
         {
             var q = _context.Reservations.AsQueryable();
-            if (from.HasValue) q = q.Where(r => r.ReservationDate >= from.Value.Date);
-            if (to.HasValue) q = q.Where(r => r.ReservationDate <= to.Value.Date);
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
             var data = await q.GroupBy(r => r.PartySize)
                 .Select(g => new PartySizeDistributionVM { PartySize = g.Key, Count = g.Count() })
@@ -35,14 +35,14 @@ namespace FYP.Services
         public async Task<List<WeekdayHeatmapVM>> GetWeekdayHeatmapAsync(DateTime? from = null, DateTime? to = null)
         {
             var q = _context.Reservations.AsQueryable();
-            if (from.HasValue) q = q.Where(r => r.ReservationDate >= from.Value.Date);
-            if (to.HasValue) q = q.Where(r => r.ReservationDate <= to.Value.Date);
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
-            // Materialize minimal columns to client and perform grouping in memory to avoid EF translation issues
-            var list = await q.Select(r => new { r.ReservationDate, r.ReservationTime }).ToListAsync();
+            // Materialize minimal columns to client and perform grouping in memory
+            var list = await q.Select(r => new { Date = r.ReservedFor, r.ReservationTime }).ToListAsync();
 
             var grouped = list
-                .GroupBy(x => new { Weekday = x.ReservationDate.DayOfWeek, Hour = x.ReservationTime.Hours })
+                .GroupBy(x => new { Weekday = x.Date.DayOfWeek, Hour = x.ReservationTime.Hours })
                 .Select(g => new WeekdayHeatmapVM { Weekday = (int)g.Key.Weekday, Hour = g.Key.Hour, Count = g.Count() })
                 .ToList();
 
@@ -52,8 +52,8 @@ namespace FYP.Services
         public async Task<List<PeakTimeReportVM>> GetPeakTimesAsync(DateTime? from = null, DateTime? to = null)
         {
             var q = _context.Reservations.AsQueryable();
-            if (from.HasValue) q = q.Where(r => r.ReservationDate >= from.Value.Date);
-            if (to.HasValue) q = q.Where(r => r.ReservationDate <= to.Value.Date);
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
             var data = await q
                 .GroupBy(r => r.ReservationTime.Hours)
@@ -69,14 +69,14 @@ namespace FYP.Services
             var tablesTotal = await _context.Tables.SumAsync(t => t.Capacity);
 
             var q = _context.Reservations.AsQueryable();
-            if (from.HasValue) q = q.Where(r => r.ReservationDate >= from.Value.Date);
-            if (to.HasValue) q = q.Where(r => r.ReservationDate <= to.Value.Date);
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
             var data = await q
-                .GroupBy(r => r.ReservationDate)
+                .GroupBy(r => new { r.ReservedFor.Year, r.ReservedFor.Month, r.ReservedFor.Day })
                 .Select(g => new CapacityAvailabilityVM
                 {
-                    Date = g.Key,
+                    Date = new DateTime(g.Key.Year, g.Key.Month, g.Key.Day),
                     ReservedSeats = g.Sum(r => r.PartySize),
                     TotalCapacity = tablesTotal
                 })
@@ -88,13 +88,14 @@ namespace FYP.Services
 
         public async Task<List<PeakTableVM>> GetPeakTablesAsync(DateTime? from = null, DateTime? to = null)
         {
+
             var q = _context.ReservationTables
                 .Include(rt => rt.Table)
                 .Include(rt => rt.Reservation)
                 .AsQueryable();
 
-            if (from.HasValue) q = q.Where(rt => rt.Reservation.ReservationDate >= from.Value.Date);
-            if (to.HasValue) q = q.Where(rt => rt.Reservation.ReservationDate <= to.Value.Date);
+            if (from.HasValue) q = q.Where(rt => rt.Reservation.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(rt => rt.Reservation.ReservedFor < to.Value.Date.AddDays(1));
 
             var data = await q
                 .GroupBy(rt => rt.Table.TableNumber)
@@ -108,8 +109,8 @@ namespace FYP.Services
         public async Task<AveragePartySizeVM> GetAveragePartySizeAsync(DateTime? from = null, DateTime? to = null)
         {
             var q = _context.Reservations.AsQueryable();
-            if (from.HasValue) q = q.Where(r => r.ReservationDate >= from.Value.Date);
-            if (to.HasValue) q = q.Where(r => r.ReservationDate <= to.Value.Date);
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
             var overallCount = await q.CountAsync();
             var overallAvg = overallCount == 0 ? 0 : await q.AverageAsync(r => (double)r.PartySize);
@@ -128,8 +129,8 @@ namespace FYP.Services
                 .Include(r => r.Customer)
                 .AsQueryable();
 
-            if (from.HasValue) q = q.Where(r => r.ReservationDate >= from.Value.Date);
-            if (to.HasValue) q = q.Where(r => r.ReservationDate <= to.Value.Date);
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
             var data = await q
                 .Where(r => r.CustomerID != null)
@@ -162,8 +163,8 @@ namespace FYP.Services
 
             // KPIs
             var rQuery = _context.Reservations.AsQueryable();
-            if (from.HasValue) rQuery = rQuery.Where(r => r.ReservationDate >= from.Value.Date);
-            if (to.HasValue) rQuery = rQuery.Where(r => r.ReservationDate <= to.Value.Date);
+            if (from.HasValue) rQuery = rQuery.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) rQuery = rQuery.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
             full.TotalReservations = await rQuery.CountAsync();
             full.TotalGuests = await rQuery.SumAsync(r => r.PartySize);

@@ -19,7 +19,7 @@
 }
 
 <div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1400px; margin: 0 auto;">
-    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Manager")" />
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Admin")" />
 
     @if (TempData["Success"] != null)
     {
@@ -58,6 +58,13 @@
             {
                 @Html.Partial("~/Views/Shared/_StatCube.cshtml", s)
             }
+        </div>
+
+        <div style="padding: 0 var(--spacing-md); margin-bottom: var(--spacing-xl);">
+            <a asp-controller="Manager" asp-action="TableJoins" class="btn btn-gold" role="button" style="margin-bottom: var(--spacing-sm);">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.4rem;">link</span>
+                Join Tables
+            </a>
         </div>
 
         <!-- Table Cards Grid -->
@@ -114,24 +121,28 @@
                         </div>
 
                         <div class="table-card-footer">
-                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("EditTable", "Admin", new { id = table.TableID })">
+                            <a class="btn btn-sm btn-outline-primary table-action" href="@Url.Action("EditTable", "Admin", new { id = table.TableID })">
                                 <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">edit</span>
+                                <span class="action-text">Edit</span>
                             </a>
                             @if (table.IsAvailable)
                             {
-                                <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
+                                <a class="btn btn-sm btn-outline-secondary table-action" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })" title="@L["Make unavailable"]">
                                     <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">block</span>
+                                    <span class="action-text">@L["Make unavailable"]</span>
                                 </a>
                             }
                             else
                             {
-                                <a class="btn btn-sm btn-outline-success" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })">
+                                <a class="btn btn-sm btn-outline-success table-action" href="@Url.Action("ToggleTableAvailability", "Admin", new { id = table.TableID })" title="@L["Make available"]">
                                     <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">check</span>
+                                    <span class="action-text">@L["Make available"]</span>
                                 </a>
                             }
-                            <button class="btn btn-sm btn-outline-danger" 
+                            <button class="btn btn-sm btn-outline-danger table-action"
                                     onclick="if(confirm('@L["Are you sure you want to delete Table {0}? This action cannot be undone.", table.TableNumber]')) window.location.href='@Url.Action("DeleteTable", "Admin", new { id = table.TableID })'">
                                 <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">delete</span>
+                                <span class="action-text">Delete</span>
                             </button>
                         </div>
                     </div>
@@ -282,9 +293,56 @@
 }
 
 .table-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-    border-color: var(--color-primary-gold);
+    /* No visual fill on hover — keep card appearance stable. */
+}
+
+.table-card .table-action .material-symbols-outlined {
+    font-size: 0.9rem; /* slightly smaller icon */
+}
+
+/* tooltip-style popup for action text */
+.table-card-footer .btn { position: relative; }
+.table-card .action-text {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    white-space: nowrap;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease-in-out;
+}
+.table-card .action-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--bg-card);
+}
+.table-card .table-action:hover .action-text {
+    display: block;
+    opacity: 1;
+}
+
+/* make action buttons more compact */
+.table-card-footer .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
 }
 
 .table-card-header {
@@ -435,3 +493,31 @@
     margin-bottom: var(--spacing-xl);
 }
 </style>
+
+@section Scripts {
+    <script>
+        (function(){
+            var toggle = document.getElementById('join-toggle');
+            var panel = document.getElementById('join-panel');
+            if(panel){
+                // show panel when join button clicked
+                var joinBtn = document.getElementById('join-toggle');
+                if(joinBtn){
+                    joinBtn.addEventListener('click', function(){
+                        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+                    });
+                }
+            }
+
+            // show action text only for the hovered button
+            document.querySelectorAll('.table-card .table-action').forEach(function(btn){
+                btn.addEventListener('mouseenter', function(){
+                    var txt = this.querySelector('.action-text'); if(txt) txt.style.display = 'inline-block';
+                });
+                btn.addEventListener('mouseleave', function(){
+                    var txt = this.querySelector('.action-text'); if(txt) txt.style.display = 'none';
+                });
+            });
+        })();
+    </script>
+}

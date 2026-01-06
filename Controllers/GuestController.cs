@@ -43,7 +43,7 @@ namespace FYP.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reserve(int PartySize, DateTime ReservationDate, TimeSpan ReservationTime, string? Notes, int? Duration,
-            string? FirstName, string? LastName, string GuestEmail, string? GuestPhone)
+            string FirstName, string LastName, string GuestEmail, string? GuestPhone)
         {
             // Server-side validation
             if (PartySize < 1 || ReservationDate == default || ReservationTime == default)
@@ -58,9 +58,21 @@ namespace FYP.Controllers
                 return RedirectToAction("Index");
             }
 
+            if (string.IsNullOrWhiteSpace(FirstName))
+            {
+                TempData["Error"] = _localizer["Please provide your first name."].Value;
+                return RedirectToAction("Index");
+            }
+
+            if (string.IsNullOrWhiteSpace(LastName))
+            {
+                TempData["Error"] = _localizer["Please provide your last name."].Value;
+                return RedirectToAction("Index");
+            }
+
             // Use provided first and last names (already separate)
-            string? firstName = string.IsNullOrWhiteSpace(FirstName) ? null : FirstName.Trim();
-            string? lastName = string.IsNullOrWhiteSpace(LastName) ? null : LastName.Trim();
+            string firstName = FirstName.Trim();
+            string lastName = LastName.Trim();
 
             var selectedDateTimeUtc = new DateTime(
                 ReservationDate.Year, ReservationDate.Month, ReservationDate.Day,
@@ -103,15 +115,9 @@ namespace FYP.Controllers
             }
             else
             {
-                // Update guest info if provided (only update if new values are not null/empty)
-                if (!string.IsNullOrWhiteSpace(firstName))
-                {
-                    guest.FirstName = firstName;
-                }
-                if (!string.IsNullOrWhiteSpace(lastName))
-                {
-                    guest.LastName = lastName;
-                }
+                // Update guest info
+                guest.FirstName = firstName;
+                guest.LastName = lastName;
                 guest.PhoneNumber = string.IsNullOrWhiteSpace(GuestPhone) ? null : GuestPhone.Trim();
                 guest.UpdatedBy = "guest";
                 guest.UpdatedAt = DateTime.UtcNow;

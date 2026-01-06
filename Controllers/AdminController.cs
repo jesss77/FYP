@@ -1,6 +1,7 @@
 using FYP.Data;
 using FYP.Models;
 using FYP.Services;
+using FYP.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -19,533 +20,248 @@ namespace FYP.Controllers
         private readonly IEmailService _emailService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminController(ApplicationDbContext context, IEmailService emailService, UserManager<ApplicationUser> userManager)
+        public AdminController(
+            ApplicationDbContext context,
+            IEmailService emailService,
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _emailService = emailService;
             _userManager = userManager;
         }
 
-        public class CreateEmployeeViewModel
-        {
-            [Required, EmailAddress]
-            public string Email { get; set; }
-
-            [Required, StringLength(100, MinimumLength = 6), DataType(DataType.Password)]
-            public string Password { get; set; }
-
-            [Required, StringLength(100), MinLength(2)]
-            public string FirstName { get; set; }
-
-            [Required, StringLength(100), MinLength(2)]
-            public string LastName { get; set; }
-
-            [Phone, StringLength(20)]
-            public string? PhoneNumber { get; set; }
-        }
-
-        public class EditEmployeeViewModel
-        {
-            public int EmployeeID { get; set; }
-
-            [Required, StringLength(100), MinLength(2)]
-            public string FirstName { get; set; }
-
-            [Required, StringLength(100), MinLength(2)]
-            public string LastName { get; set; }
-
-            [Phone, StringLength(20)]
-            public string? PhoneNumber { get; set; }
-        }
 
         // ================== SETTINGS ==================
-
-        // GET: /Admin/Settings
-        [HttpGet]
         public async Task<IActionResult> Settings(string search)
         {
             var query = _context.Settings.AsQueryable();
+
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var normalized = search.Trim();
-                query = query.Where(s => EF.Functions.Like(s.Key, $"%{normalized}%"));
-                ViewBag.Search = normalized;
+                query = query.Where(s => EF.Functions.Like(s.Key, $"%{search.Trim()}%"));
+                ViewBag.Search = search.Trim();
             }
 
-            var settings = await query.OrderBy(s => s.Key).ToListAsync();
-            return View(settings);
+            return View(await query.OrderBy(s => s.Key).ToListAsync());
         }
 
-        private static readonly string[] ProtectedSettingKeys = new[] { "Name", "Opening Hours", "Phone", "Staff Number" };
-
-        // GET: /Admin/CreateSetting
-        public IActionResult CreateSetting()
-        {
-            // Creating new settings is not allowed: keys are fixed by system
-            TempData["Error"] = "Creating new settings is not allowed. Contact system administrator.";
-            return RedirectToAction(nameof(Settings));
-        }
-
-        // POST: /Admin/CreateSetting
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateSetting(Settings model)
-        {
-            TempData["Error"] = "Creating new settings is not allowed.";
-            return RedirectToAction(nameof(Settings));
-        }
-
-        // GET: /Admin/EditSetting/5
         public async Task<IActionResult> EditSetting(int id)
         {
             var setting = await _context.Settings.FindAsync(id);
             if (setting == null) return NotFound();
 
-            // We don't allow changing keys. Pass flag to view.
             ViewBag.IsKeyEditable = false;
             return View(setting);
         }
 
-        // POST: /Admin/EditSetting/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditSetting(int id, Settings model)
         {
             if (id != model.SettingsID) return BadRequest();
 
-            // Remove audit fields from validation since they're set programmatically
+            ModelState.Remove("Key");
             ModelState.Remove("CreatedBy");
             ModelState.Remove("CreatedAt");
             ModelState.Remove("UpdatedBy");
             ModelState.Remove("UpdatedAt");
-            // Also remove Key from modelstate so it cannot be modified via post
-            ModelState.Remove("Key");
 
-            if (ModelState.IsValid)
-            {
-                var setting = await _context.Settings.FindAsync(id);
-                if (setting == null) return NotFound();
+            if (!ModelState.IsValid) return View(model);
 
-                // Only update the Value; keys are fixed
-                setting.Value = model.Value;
-                setting.UpdatedBy = User.Identity?.Name ?? "system";
-                setting.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Setting updated successfully!";
-                return RedirectToAction(nameof(Settings));
-            }
-
-            return View(model);
-        }
-
-        // GET: /Admin/DeleteSetting/5
-        public async Task<IActionResult> DeleteSetting(int id)
-        {
             var setting = await _context.Settings.FindAsync(id);
             if (setting == null) return NotFound();
 
-            // Deleting settings is not allowed
-            TempData["Error"] = "Deleting settings is not allowed.";
+            setting.Value = model.Value;
+            setting.UpdatedBy = User.Identity?.Name ?? "admin";
+            setting.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Setting updated successfully!";
             return RedirectToAction(nameof(Settings));
         }
 
-        // ================== EMPLOYEES ==================
-
-        // GET: /Admin/Employees
-        public async Task<IActionResult> Employees()
+        // Redirect table management to centralized TablesController
+        public IActionResult Tables()
         {
-            var employees = await _context.Employees
-                .Include(e => e.ApplicationUser)
-                .ToListAsync();
-
-            return View(employees);
+            return RedirectToAction("Tables", "Tables");
         }
 
-        // GET: /Admin/CreateEmployee
-        public IActionResult CreateEmployee()
+        public IActionResult CreateTable()
         {
-            return View(new CreateEmployeeViewModel());
+            return RedirectToAction("CreateTable", "Tables");
         }
 
-        // POST: /Admin/CreateEmployee
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEmployee(CreateEmployeeViewModel model)
+        public IActionResult CreateTable(Table model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            return RedirectToAction("CreateTable", "Tables");
+        }
 
-            // Create ApplicationUser
-            var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-            var identityResult = await _userManager.CreateAsync(user, model.Password);
+        public IActionResult TableJoins()
+        {
+            return RedirectToAction("TableJoins", "Tables");
+        }
 
-            if (!identityResult.Succeeded)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateTableJoin(int primaryTableId, int joinedTableId)
+        {
+            return RedirectToAction("TableJoins", "Tables");
+        }
+
+        public IActionResult DeleteTableJoin(int id)
+        {
+            return RedirectToAction("TableJoins", "Tables");
+        }
+
+        // View all reservations with date filter (manager view)
+        public async Task<IActionResult> Reservations(DateTime? filterDate)
+        {
+            var date = filterDate ?? DateTime.UtcNow.Date;
+
+            var reservations = await _context.Reservations
+                .Include(r => r.Customer)
+                .Include(r => r.Guest)
+                .Include(r => r.ReservationStatus)
+                .Include(r => r.ReservationTables)
+                    .ThenInclude(rt => rt.Table)
+                // Use ReservedFor range instead of the unmapped ReservationDate computed property
+                .Where(r => r.ReservedFor >= date && r.ReservedFor < date.AddDays(1))
+                .OrderBy(r => r.ReservationTime)
+                .ToListAsync();
+
+            ViewBag.FilterDate = date;
+            return View("Reservations", reservations);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int reservationId, int statusId, string? returnTo = null)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var reservation = await _context.Reservations
+                .Include(r => r.ReservationStatus)
+                .Include(r => r.Customer)
+                .Include(r => r.Guest)
+                .FirstOrDefaultAsync(r => r.ReservationID == reservationId);
+
+            if (reservation == null)
             {
-                foreach (var error in identityResult.Errors)
-                    ModelState.AddModelError(string.Empty, error.Description);
-                return View(model);
+                TempData["Error"] = "Reservation not found.";
+                return RedirectAfterStatusChange(returnTo);
             }
 
-            // Add user to Employee role
-            await _userManager.AddToRoleAsync(user, "employee");
-
-            // Auto-confirm email for employees created by admin
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            await _userManager.ConfirmEmailAsync(user, token);
-
-            // Get the first restaurant (or create one if none exists)
-            var restaurant = await _context.Restaurants.FirstOrDefaultAsync();
-            if (restaurant == null)
+            var newStatus = await _context.ReservationStatuses.FindAsync(statusId);
+            if (newStatus == null)
             {
-                // If no restaurant exists, get or create settings first
-                var settings = await _context.Settings.FirstOrDefaultAsync();
-                if (settings == null)
-                {
-                    // Create default settings if none exist
-                    settings = new Settings
-                    {
-                        Key = "Name",
-                        Value = "Fine O Dine",
-                        CreatedBy = User.Identity?.Name ?? "admin",
-                        UpdatedBy = User.Identity?.Name ?? "admin",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Settings.Add(settings);
-                    await _context.SaveChangesAsync();
-                }
+                TempData["Error"] = "Invalid status.";
+                return RedirectAfterStatusChange(returnTo);
+            }
 
-                // Create default restaurant
-                restaurant = new Restaurant
+            var oldStatus = reservation.ReservationStatus.StatusName;
+            reservation.ReservationStatusID = statusId;
+            reservation.UpdatedBy = user?.Id ?? User.Identity?.Name ?? "manager";
+            reservation.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            await LogReservationAction(reservationId, "StatusChanged", $"From {oldStatus} to {newStatus.StatusName}", user?.Id ?? "manager");
+
+            TempData["Message"] = $"Reservation status updated to {newStatus.StatusName}.";
+            return RedirectAfterStatusChange(returnTo);
+        }
+
+        private IActionResult RedirectAfterStatusChange(string? returnTo)
+        {
+            if (string.Equals(returnTo, "Calendar", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("Index", "ReservationCalendar");
+            }
+
+            return RedirectToAction("Reservations");
+        }
+
+        // Override table assignment (manager can change assigned table)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> OverrideTable(int reservationId, int newTableId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var reservation = await _context.Reservations
+                .Include(r => r.ReservationTables)
+                .FirstOrDefaultAsync(r => r.ReservationID == reservationId);
+
+            if (reservation == null)
+            {
+                TempData["Error"] = "Reservation not found.";
+                return RedirectToAction("Reservations");
+            }
+
+            var newTable = await _context.Tables.FindAsync(newTableId);
+            if (newTable == null || !newTable.IsAvailable)
+            {
+                TempData["Error"] = "Table not available.";
+                return RedirectToAction("Reservations");
+            }
+
+            var oldAssignment = reservation.ReservationTables.FirstOrDefault();
+            if (oldAssignment != null)
+            {
+                _context.ReservationTables.Remove(oldAssignment);
+            }
+
+            var newAssignment = new ReservationTables
+            {
+                ReservationID = reservationId,
+                TableID = newTableId,
+                CreatedBy = user?.Id ?? User.Identity?.Name ?? "manager",
+                UpdatedBy = user?.Id ?? User.Identity?.Name ?? "manager",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.ReservationTables.Add(newAssignment);
+
+            await _context.SaveChangesAsync();
+            await LogReservationAction(reservationId, "TableChanged", $"To Table {newTable.TableNumber}", user?.Id ?? "manager");
+
+            TempData["Message"] = $"Table changed to {newTable.TableNumber}.";
+            return RedirectToAction("Reservations");
+        }
+
+        // Helper: Log reservation actions
+        private async Task LogReservationAction(int reservationId, string actionName, string? oldValue, string userId)
+        {
+            var actionType = await _context.ActionTypes.FirstOrDefaultAsync(a => a.ActionTypeName == actionName);
+            if (actionType == null)
+            {
+                actionType = new ActionType
                 {
-                    SettingsID = settings.SettingsID,
-                    CreatedBy = User.Identity?.Name ?? "admin",
-                    UpdatedBy = User.Identity?.Name ?? "admin",
+                    ActionTypeName = actionName,
+                    Description = $"Reservation {actionName}",
+                    CreatedBy = "system",
+                    UpdatedBy = "system",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                _context.Restaurants.Add(restaurant);
+                _context.ActionTypes.Add(actionType);
                 await _context.SaveChangesAsync();
             }
 
-            // Create Employee record
-            var employee = new Employee
+            var log = new ReservationLog
             {
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                PhoneNumber = model.PhoneNumber,
-                ApplicationUserId = user.Id,
-                RestaurantID = restaurant.RestaurantID,
-                Restaurant = restaurant,
-                IsActive = true, // Auto-activate
-                CreatedBy = User.Identity?.Name ?? "admin",
-                UpdatedBy = User.Identity?.Name ?? "admin",
+                ReservationID = reservationId,
+                ActionTypeID = actionType.ActionTypeID,
+                OldValue = oldValue,
+                CreatedBy = userId,
+                UpdatedBy = userId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
-            _context.Employees.Add(employee);
+            _context.ReservationLogs.Add(log);
             await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Employee {model.FirstName} {model.LastName} created successfully!";
-            return RedirectToAction(nameof(Employees));
-        }
-
-        // GET: /Admin/EditEmployee/5
-        public async Task<IActionResult> EditEmployee(int id)
-        {
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null) return NotFound();
-
-            var model = new EditEmployeeViewModel
-            {
-                EmployeeID = employee.EmployeeID,
-                FirstName = employee.FirstName,
-                LastName = employee.LastName,
-                PhoneNumber = employee.PhoneNumber
-            };
-
-            return View(model);
-        }
-
-        // POST: /Admin/EditEmployee/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditEmployee(int id, EditEmployeeViewModel model)
-        {
-            if (id != model.EmployeeID) return BadRequest();
-
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null) return NotFound();
-
-            employee.FirstName = model.FirstName;
-            employee.LastName = model.LastName;
-            employee.PhoneNumber = model.PhoneNumber;
-            employee.UpdatedBy = User.Identity?.Name ?? "admin";
-            employee.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Employee {model.FirstName} {model.LastName} updated successfully!";
-            return RedirectToAction(nameof(Employees));
-        }
-
-        // GET: /Admin/DeleteEmployee/5
-        public async Task<IActionResult> DeleteEmployee(int id)
-        {
-            var employee = await _context.Employees
-                .Include(e => e.ApplicationUser)
-                .FirstOrDefaultAsync(e => e.EmployeeID == id);
-
-            if (employee == null) return NotFound();
-
-            // Store user info before deletion
-            var userId = employee.ApplicationUserId;
-            var employeeName = $"{employee.FirstName} {employee.LastName}";
-
-            // First, delete the Employee record
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
-
-            // Then delete the ApplicationUser from AspNetUsers table
-            if (!string.IsNullOrEmpty(userId))
-            {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user != null)
-                {
-                    // Clear the EmployeeID reference first
-                    user.EmployeeID = null;
-                    await _userManager.UpdateAsync(user);
-
-                    // Now delete the user
-                    var deleteResult = await _userManager.DeleteAsync(user);
-                    if (!deleteResult.Succeeded)
-                    {
-                        // If UserManager delete fails, try direct context deletion
-                        _context.Users.Remove(user);
-                        await _context.SaveChangesAsync();
-                    }
-                }
-            }
-
-            TempData["Success"] = $"Employee {employeeName} deleted successfully!";
-            return RedirectToAction(nameof(Employees));
-        }
-
-        // GET: /Admin/ToggleActivateEmployee/5
-        public async Task<IActionResult> ToggleActivateEmployee(int id)
-        {
-            var employee = await _context.Employees
-                .Include(e => e.ApplicationUser)
-                .FirstOrDefaultAsync(e => e.EmployeeID == id);
-
-            if (employee == null) return NotFound();
-
-            employee.IsActive = !employee.IsActive;
-            employee.UpdatedBy = User.Identity?.Name ?? "admin";
-            employee.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            string action = employee.IsActive ? "activated" : "deactivated";
-            TempData["Success"] = $"Employee {employee.FirstName} {employee.LastName} {action} successfully!";
-            return RedirectToAction(nameof(Employees));
-        }
-
-        // ================== TABLES ==================
-
-        // GET: /Admin/Tables
-        public async Task<IActionResult> Tables()
-        {
-            var tables = await _context.Tables
-                .Include(t => t.Restaurant)
-                .OrderBy(t => t.TableNumber)
-                .ToListAsync();
-
-            return View(tables);
-        }
-
-        // GET: /Admin/CreateTable
-        public IActionResult CreateTable()
-        {
-            return View();
-        }
-
-        // POST: /Admin/CreateTable
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTable(Table model)
-        {
-            try
-            {
-                ModelState.Remove("CreatedBy");
-                ModelState.Remove("CreatedAt");
-                ModelState.Remove("UpdatedBy");
-                ModelState.Remove("UpdatedAt");
-                ModelState.Remove("Restaurant");
-                ModelState.Remove("RestaurantID");
-                
-                if (!ModelState.IsValid)
-                {
-                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        Console.WriteLine($"Validation Error: {error.ErrorMessage}");
-                    }
-                    return View(model);
-                }
-                
-                if (ModelState.IsValid)
-                {
-                // Get the first restaurant (or create one if none exists)
-                var restaurant = await _context.Restaurants.FirstOrDefaultAsync();
-                if (restaurant == null)
-                {
-                    // If no restaurant exists, get or create settings first
-                    var settings = await _context.Settings.FirstOrDefaultAsync();
-                    if (settings == null)
-                    {
-                        // Create default settings if none exist
-                        settings = new Settings
-                        {
-                            Key = "Name",
-                            Value = "Fine O Dine",
-                            CreatedBy = User.Identity?.Name ?? "admin",
-                            UpdatedBy = User.Identity?.Name ?? "admin",
-                            CreatedAt = DateTime.UtcNow,
-                            UpdatedAt = DateTime.UtcNow
-                        };
-                        _context.Settings.Add(settings);
-                        await _context.SaveChangesAsync();
-                    }
-
-                    // Create default restaurant
-                    restaurant = new Restaurant
-                    {
-                        SettingsID = settings.SettingsID,
-                        CreatedBy = User.Identity?.Name ?? "admin",
-                        UpdatedBy = User.Identity?.Name ?? "admin",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Restaurants.Add(restaurant);
-                    await _context.SaveChangesAsync();
-                }
-
-                // Check for duplicate table number
-                if (await _context.Tables.AnyAsync(t => t.TableNumber == model.TableNumber && t.RestaurantID == restaurant.RestaurantID))
-                {
-                    ModelState.AddModelError("TableNumber", "A table with this number already exists.");
-                    return View(model);
-                }
-
-                model.RestaurantID = restaurant.RestaurantID;
-                model.Restaurant = restaurant;
-                model.CreatedBy = User.Identity?.Name ?? "admin";
-                model.UpdatedBy = User.Identity?.Name ?? "admin";
-                model.CreatedAt = DateTime.UtcNow;
-                model.UpdatedAt = DateTime.UtcNow;
-
-                _context.Tables.Add(model);
-                await _context.SaveChangesAsync();
-
-                    TempData["Success"] = $"Table {model.TableNumber} created successfully!";
-                    return RedirectToAction(nameof(Tables));
-                }
-
-                return View(model);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating table: {ex.Message}");
-                TempData["Error"] = $"Error creating table: {ex.Message}";
-                return View(model);
-            }
-        }
-
-        // GET: /Admin/EditTable/5
-        public async Task<IActionResult> EditTable(int id)
-        {
-            var table = await _context.Tables.FindAsync(id);
-            if (table == null) return NotFound();
-
-            return View(table);
-        }
-
-        // POST: /Admin/EditTable/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditTable(int id, Table model)
-        {
-            if (id != model.TableID) return BadRequest();
-
-            // Remove audit fields and restaurant from validation since they're set programmatically
-            ModelState.Remove("CreatedBy");
-            ModelState.Remove("CreatedAt");
-            ModelState.Remove("UpdatedBy");
-            ModelState.Remove("UpdatedAt");
-            ModelState.Remove("Restaurant");
-            ModelState.Remove("RestaurantID");
-            
-            if (ModelState.IsValid)
-            {
-                var table = await _context.Tables.FindAsync(id);
-                if (table == null) return NotFound();
-
-                // Check for duplicate table number
-                if (await _context.Tables.AnyAsync(t => t.TableNumber == model.TableNumber && t.RestaurantID == table.RestaurantID && t.TableID != id))
-                {
-                    ModelState.AddModelError("TableNumber", "A table with this number already exists.");
-                    return View(model);
-                }
-
-                table.TableNumber = model.TableNumber;
-                table.Capacity = model.Capacity;
-                table.IsJoinable = model.IsJoinable;
-                table.IsAvailable = model.IsAvailable;
-                table.UpdatedBy = User.Identity?.Name ?? "admin";
-                table.UpdatedAt = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = $"Table {model.TableNumber} updated successfully!";
-                return RedirectToAction(nameof(Tables));
-            }
-
-            return View(model);
-        }
-
-        // GET: /Admin/DeleteTable/5
-        public async Task<IActionResult> DeleteTable(int id)
-        {
-            var table = await _context.Tables.FindAsync(id);
-            if (table == null) return NotFound();
-
-            _context.Tables.Remove(table);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Table {table.TableNumber} deleted successfully!";
-            return RedirectToAction(nameof(Tables));
-        }
-
-        // GET: /Admin/ToggleTableAvailability/5
-        public async Task<IActionResult> ToggleTableAvailability(int id)
-        {
-            var table = await _context.Tables.FindAsync(id);
-            if (table == null) return NotFound();
-
-            table.IsAvailable = !table.IsAvailable;
-            table.UpdatedBy = User.Identity?.Name ?? "admin";
-            table.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            string action = table.IsAvailable ? "made available" : "made unavailable";
-            TempData["Success"] = $"Table {table.TableNumber} {action} successfully!";
-            return RedirectToAction(nameof(Tables));
         }
 
         // ================== USER MANAGEMENT ==================
@@ -557,7 +273,7 @@ namespace FYP.Controllers
             {
                 var employees = await _context.Employees
                     .Include(e => e.ApplicationUser)
-                    .Where(e => e.ApplicationUserId != null) // Filter out employees without linked users
+                    .Where(e => e.ApplicationUserId != null)
                     .ToListAsync();
 
                 var managerUsers = await _userManager.GetUsersInRoleAsync("manager");
@@ -566,15 +282,19 @@ namespace FYP.Controllers
                 var managerUserIds = managerUsers.Select(u => u.Id).ToHashSet();
                 var employeeUserIds = employeeUsers.Select(u => u.Id).ToHashSet();
 
-                var managers = employees.Where(e => e.ApplicationUserId != null && managerUserIds.Contains(e.ApplicationUserId)).ToList();
-                var staff = employees.Where(e => e.ApplicationUserId != null && employeeUserIds.Contains(e.ApplicationUserId)).ToList();
+                var managers = employees
+                    .Where(e => e.ApplicationUserId != null && managerUserIds.Contains(e.ApplicationUserId))
+                    .ToList();
+
+                var staff = employees
+                    .Where(e => e.ApplicationUserId != null && employeeUserIds.Contains(e.ApplicationUserId))
+                    .ToList();
 
                 var customers = await _context.Customers
                     .OrderBy(c => c.FirstName ?? "")
                     .ThenBy(c => c.LastName ?? "")
                     .ToListAsync();
 
-                // Apply search filtering if provided
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     var normalized = search.Trim();
@@ -612,18 +332,18 @@ namespace FYP.Controllers
             }
             catch (Exception ex)
             {
-                // Log the error for debugging
                 Console.WriteLine($"Error in ManageUsers: {ex.Message}");
-                TempData["Error"] = "An error occurred while loading users. Please contact support.";
+                TempData["Error"] = "An error occurred while loading users.";
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        // GET: /Admin/CreateUser?role=manager|employee
+        // GET: /Admin/CreateUser
         public IActionResult CreateUser(string role)
         {
             role = (role ?? "").ToLowerInvariant();
             if (role != "manager" && role != "employee") return BadRequest();
+
             ViewBag.Role = role;
             return View(new CreateEmployeeViewModel());
         }
@@ -642,42 +362,31 @@ namespace FYP.Controllers
                 return View(model);
             }
 
-            var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email
+            };
+
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
                     ModelState.AddModelError(string.Empty, error.Description);
+
                 ViewBag.Role = role;
                 return View(model);
             }
 
             await _userManager.AddToRoleAsync(user, role);
 
-            // Auto-confirm email for staff created by admin
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             await _userManager.ConfirmEmailAsync(user, token);
 
-            // Ensure restaurant exists
             var restaurant = await _context.Restaurants.FirstOrDefaultAsync();
             if (restaurant == null)
             {
                 var settings = await _context.Settings.FirstOrDefaultAsync();
-                if (settings == null)
-                {
-                    settings = new Settings
-                    {
-                        Key = "Name",
-                        Value = "Fine O Dine",
-                        CreatedBy = User.Identity?.Name ?? "admin",
-                        UpdatedBy = User.Identity?.Name ?? "admin",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Settings.Add(settings);
-                    await _context.SaveChangesAsync();
-                }
-
                 restaurant = new Restaurant
                 {
                     SettingsID = settings.SettingsID,
@@ -690,7 +399,7 @@ namespace FYP.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            var emp = new Employee
+            var employee = new Employee
             {
                 Email = model.Email,
                 FirstName = model.FirstName,
@@ -705,71 +414,14 @@ namespace FYP.Controllers
                 UpdatedAt = DateTime.UtcNow
             };
 
-            _context.Employees.Add(emp);
+            _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = role == "manager"
-                ? $"Manager {model.FirstName} {model.LastName} created successfully!"
-                : $"Employee {model.FirstName} {model.LastName} created successfully!";
-
-            return RedirectToAction(nameof(ManageUsers), new { category = role == "manager" ? "managers" : "employees" });
+            TempData["Success"] = $"{role.ToUpper()} created successfully!";
+            return RedirectToAction(nameof(ManageUsers), new { category = role + "s" });
         }
 
-        // GET: /Admin/EditUser?id=5&role=manager|employee
-        public async Task<IActionResult> EditUser(int id, string role)
-        {
-            role = (role ?? "").ToLowerInvariant();
-            if (role != "manager" && role != "employee") return BadRequest();
-
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null) return NotFound();
-
-            var model = new EditEmployeeViewModel
-            {
-                EmployeeID = employee.EmployeeID,
-                FirstName = employee.FirstName,
-                LastName = employee.LastName,
-                PhoneNumber = employee.PhoneNumber
-            };
-
-            ViewBag.Role = role;
-            return View(model);
-        }
-
-        // POST: /Admin/EditUser
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditUser(int id, string role, EditEmployeeViewModel model)
-        {
-            role = (role ?? "").ToLowerInvariant();
-            if (role != "manager" && role != "employee") return BadRequest();
-            if (id != model.EmployeeID) return BadRequest();
-
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Role = role;
-                return View(model);
-            }
-
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null) return NotFound();
-
-            employee.FirstName = model.FirstName;
-            employee.LastName = model.LastName;
-            employee.PhoneNumber = model.PhoneNumber;
-            employee.UpdatedBy = User.Identity?.Name ?? "admin";
-            employee.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = role == "manager"
-                ? $"Manager {model.FirstName} {model.LastName} updated successfully!"
-                : $"Employee {model.FirstName} {model.LastName} updated successfully!";
-
-            return RedirectToAction(nameof(ManageUsers), new { category = role == "manager" ? "managers" : "employees" });
-        }
-
-        // Toggle status for manager/employee
+        // Toggle status
         public async Task<IActionResult> ToggleUserStatus(int id, string role)
         {
             role = (role ?? "").ToLowerInvariant();
@@ -781,23 +433,27 @@ namespace FYP.Controllers
             employee.IsActive = !employee.IsActive;
             employee.UpdatedBy = User.Identity?.Name ?? "admin";
             employee.UpdatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"{(role == "manager" ? "Manager" : "Employee")} {employee.FirstName} {employee.LastName} {(employee.IsActive ? "activated" : "deactivated")} successfully!";
-            return RedirectToAction(nameof(ManageUsers), new { category = role == "manager" ? "managers" : "employees" });
+            TempData["Success"] = $"{role.ToUpper()} status updated!";
+            return RedirectToAction(nameof(ManageUsers), new { category = role + "s" });
         }
 
-        // Delete for manager/employee/customer
+        // DELETE (Manager / Employee / Customer)
         public async Task<IActionResult> DeleteUser(int id, string role)
         {
             role = (role ?? "").ToLowerInvariant();
+
             if (role == "manager" || role == "employee")
             {
-                var emp = await _context.Employees.Include(e => e.ApplicationUser).FirstOrDefaultAsync(e => e.EmployeeID == id);
+                var emp = await _context.Employees
+                    .Include(e => e.ApplicationUser)
+                    .FirstOrDefaultAsync(e => e.EmployeeID == id);
+
                 if (emp == null) return NotFound();
 
                 var userId = emp.ApplicationUserId;
-                var name = $"{emp.FirstName} {emp.LastName}";
                 _context.Employees.Remove(emp);
                 await _context.SaveChangesAsync();
 
@@ -806,100 +462,30 @@ namespace FYP.Controllers
                     var user = await _userManager.FindByIdAsync(userId);
                     if (user != null)
                     {
-                        user.EmployeeID = null;
-                        await _userManager.UpdateAsync(user);
-                        var del = await _userManager.DeleteAsync(user);
-                        if (!del.Succeeded)
-                        {
-                            _context.Users.Remove(user);
-                            await _context.SaveChangesAsync();
-                        }
+                        await _userManager.DeleteAsync(user);
                     }
                 }
 
-                TempData["Success"] = $"{(role == "manager" ? "Manager" : "Employee")} {name} deleted successfully!";
-                return RedirectToAction(nameof(ManageUsers), new { category = role == "manager" ? "managers" : "employees" });
+                TempData["Success"] = $"{role.ToUpper()} deleted successfully!";
+                return RedirectToAction(nameof(ManageUsers), new { category = role + "s" });
             }
-            else if (role == "customer")
-            {
-                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.CustomerID == id);
-                if (customer == null) return NotFound();
-                var name = $"{customer.FirstName} {customer.LastName}";
 
-                // Also try to delete linked ApplicationUser
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.CustomerID == customer.CustomerID);
-                if (user != null)
-                {
-                    user.CustomerID = null;
-                    await _userManager.UpdateAsync(user);
-                    var del = await _userManager.DeleteAsync(user);
-                    if (!del.Succeeded)
-                    {
-                        _context.Users.Remove(user);
-                    }
-                }
+            if (role == "customer")
+            {
+                var customer = await _context.Customers.FindAsync(id);
+                if (customer == null) return NotFound();
 
                 _context.Customers.Remove(customer);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = $"Customer {name} deleted successfully!";
+                TempData["Success"] = "Customer deleted successfully!";
                 return RedirectToAction(nameof(ManageUsers), new { category = "customers" });
             }
 
             return BadRequest();
         }
 
-        // GET: /Admin/EditCustomer/5
-        public async Task<IActionResult> EditCustomer(int id)
-        {
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer == null) return NotFound();
-            return View(customer);
-        }
-
-        // POST: /Admin/EditCustomer
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditCustomer(Customer model)
-        {
-            var customer = await _context.Customers.FindAsync(model.CustomerID);
-            if (customer == null) return NotFound();
-
-            // validate selectively
-            ModelState.Remove("ApplicationUser");
-            ModelState.Remove("PictureBytes");
-            ModelState.Remove("Email");
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            customer.FirstName = model.FirstName;
-            customer.LastName = model.LastName;
-            customer.PhoneNumber = model.PhoneNumber;
-            customer.PreferredLanguage = model.PreferredLanguage;
-            customer.UpdatedBy = User.Identity?.Name ?? "admin";
-            customer.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Customer updated successfully!";
-            return RedirectToAction(nameof(ManageUsers), new { category = "customers" });
-        }
-
-        // ================== DASHBOARD ==================
-
-        public IActionResult Dashboard()
-        {
-            return View();
-        }
-
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        // Toggle status for customer
+        // Toggle customer status
         public async Task<IActionResult> ToggleCustomerStatus(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
@@ -908,11 +494,16 @@ namespace FYP.Controllers
             customer.IsActive = !customer.IsActive;
             customer.UpdatedBy = User.Identity?.Name ?? "admin";
             customer.UpdatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
 
-            var action = customer.IsActive ? "activated" : "deactivated";
-            TempData["Success"] = $"Customer {customer.FirstName} {customer.LastName} {action} successfully!";
+            TempData["Success"] = "Customer status updated!";
             return RedirectToAction(nameof(ManageUsers), new { category = "customers" });
         }
+
+        // ================== DASHBOARD ==================
+
+        public IActionResult Dashboard() => View();
+        public IActionResult Index() => View();
     }
 }

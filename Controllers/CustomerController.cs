@@ -177,7 +177,7 @@ namespace FYP.Controllers
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
                 .Where(r => r.CustomerID == customer.CustomerID)
-                .OrderByDescending(r => r.ReservationDate)
+                .OrderByDescending(r => r.ReservedFor)
                 .ThenByDescending(r => r.ReservationTime)
                 .ToListAsync();
 
@@ -485,7 +485,21 @@ namespace FYP.Controllers
         // Keep MyReservations for backward compatibility (optional)
         public async Task<IActionResult> MyReservations()
         {
-            return RedirectToAction("Index");
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToPage("/Account/Login", new { area = "Identity" });
+
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.ApplicationUserId == user.Id);
+            if (customer == null) return RedirectToAction("Create");
+
+            var reservations = await _context.Reservations
+                .Include(r => r.ReservationStatus)
+                .Include(r => r.ReservationTables).ThenInclude(rt => rt.Table)
+                .Where(r => r.CustomerID == customer.CustomerID)
+                .OrderByDescending(r => r.ReservedFor).ThenByDescending(r => r.ReservationTime)
+                .ToListAsync();
+
+            return View("MyReservations", reservations);
         }
 
         // Cancel reservation

@@ -1,16 +1,45 @@
-﻿@model FYP.Models.Employee
+﻿@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
     ViewData["Title"] = L["Employee Dashboard"];
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
-    <h2>@L["Welcome to your Dashboard, {0}!", Model.FirstName]</h2>
-    <p class="lead">@L["This is your employee dashboard page."]</p>
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1200px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="margin-bottom: var(--spacing-3xl); text-align: center;">
+        <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">
+            @L["Employee Dashboard"]
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.125rem;">
+            @L["Manage your reservations"]
+        </p>
+    </div>
 
-    <div class="mt-4">
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@L["Back to Home"]</a>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@L["Log out"]</a>
+    <!-- Action Cubes -->
+    <div class="admin-cubes-container">
+        <div class="admin-cube" onclick="location.href='@Url.Action("Reservations", "Employee")'" role="button" tabindex="0">
+            <div class="admin-cube-icon" style="background: linear-gradient(135deg, #3498DB, #2980B9);">
+                <span class="material-symbols-outlined">group</span>
+            </div>
+            <h3 class="admin-cube-title">@L["Check Reservations"]</h3>
+            <p class="admin-cube-description">@L["Manage reservations"]</p>
+            <div class="admin-cube-link">
+                @L["See current reservations"]
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </div>
 
+        <div class="admin-cube" onclick="location.href='@Url.Action("CreateWalkIn", "Employee")'" role="button" tabindex="0">
+            <div class="admin-cube-icon" style="background: linear-gradient(135deg, #D4AF37, #B8941E);">
+                <span class="material-symbols-outlined">table_restaurant</span>
+            </div>
+            <h3 class="admin-cube-title">@L["Create Reservation"]</h3>
+            <p class="admin-cube-description">@L["Manage reservations and create walk-ins"]</p>
+            <div class="admin-cube-link">
+                @L["Manage reservations"]
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+        </div>
     </div>
 </div>

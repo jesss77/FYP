@@ -5,6 +5,7 @@
 }
 
 <div class="container mt-5">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index", "Employee")" />
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <h2 class="gold-heading mb-0">Reservations - @filterDate.ToString("MMMM dd, yyyy")</h2>
         <div class="d-flex gap-2 flex-wrap align-items-center">
