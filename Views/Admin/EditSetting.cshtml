@@ -1,4 +1,4 @@
-﻿@model FYP.Models.Settings
+@model FYP.Models.Settings
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
@@ -23,21 +23,36 @@
                 <input type="hidden" asp-for="SettingsID" />
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                <div class="mb-4">
-                    <label asp-for="Value" class="form-label fw-semibold"></label>
-                    <textarea asp-for="Value" class="form-control" rows="6" placeholder="Enter setting value"></textarea>
-                    <span asp-validation-for="Value" class="text-danger"></span>
-                </div>
+                @if (string.Equals(Model.Key, "Staff Number", StringComparison.OrdinalIgnoreCase))
+                {
+                    <div class="alert alert-info mb-4">@L["Staff number is computed automatically from manager and employee accounts."]</div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">@L["Value"]</label>
+                        <textarea class="form-control" rows="2" disabled>@Model.Value</textarea>
+                        <small class="text-muted">@L["This setting cannot be edited."]</small>
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-4">
+                        <label asp-for="Value" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Value" class="form-control" rows="6" placeholder="Enter setting value"></textarea>
+                        <span asp-validation-for="Value" class="text-danger"></span>
+                    </div>
+                }
 
                 <div class="d-flex justify-content-end gap-3">
                     <a class="btn btn-secondary flex-fill" href="@Url.Action("Settings", "Admin")">
                         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">cancel</span>
                         @L["Cancel"]
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">save</span>
-                        @L["Save Changes"]
-                    </button>
+                    @if (!string.Equals(Model.Key, "Staff Number", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">save</span>
+                            @L["Save Changes"]
+                        </button>
+                    }
                 </div>
             </form>
         </div>

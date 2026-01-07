@@ -1,4 +1,4 @@
-﻿/* ensure Material Symbols use correct font-family and variations */
+/* ensure Material Symbols use correct font-family and variations */
 .material-symbols-outlined {
     font-family: 'Material Symbols Outlined', 'Material Icons', sans-serif !important;
     speak: none;
@@ -398,6 +398,26 @@ body {
     flex: 1;
     line-height: 1.5;
     font-size: 0.875rem;
+}
+
+/* Compact filter controls used across manager/employee reservation lists */
+.filter-compact .form-control-sm,
+.filter-compact .form-select-sm {
+    padding: 0.25rem 0.5rem;
+    height: 32px;
+    line-height: 1.2;
+    font-size: 0.875rem;
+    border-radius: 8px;
+}
+.filter-compact label {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+.filter-compact .btn-sm {
+    height: 32px;
+    line-height: 1.2;
+    font-size: 0.875rem;
+    border-radius: 8px;
 }
 
 .admin-cube-link {

@@ -141,39 +141,20 @@ namespace FYP.Controllers
             return View(employee);
         }
 
-        // Index redirects to Dashboard or shows today's reservations in full view
+        // Index should act as the main dashboard: go straight to Reservations list view
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-
-            // Get the employee record for the current user
             var employee = await _context.Employees
                 .FirstOrDefaultAsync(e => e.ApplicationUserId == user.Id);
-
             if (employee == null)
             {
                 return RedirectToAction("Create");
             }
-
-            // Populate today's reservations so the Index (employee) view can show a dashboard-like summary
-            var today = DateTime.UtcNow.Date;
-            var todayReservations = await _context.Reservations
-                .Include(r => r.ReservationStatus)
-                .Include(r => r.Customer)
-                .Include(r => r.Guest)
-                .Include(r => r.ReservationTables)
-                    .ThenInclude(rt => rt.Table)
-                .Where(r => r.ReservedFor >= today && r.ReservedFor < today.AddDays(1))
-                .OrderBy(r => r.ReservationTime)
-                .ToListAsync();
-
-            ViewBag.TodayReservations = todayReservations;
-            ViewBag.TodayDate = today;
-
-            // Render the employee Index view (acts as the dashboard)
-            return View("Index", employee);
+            return RedirectToAction(nameof(Reservations));
         }
 
+        // Reservations list view (simple single-date filter)
         public async Task<IActionResult> Reservations(DateTime? filterDate)
         {
             var date = filterDate ?? DateTime.UtcNow.Date;
@@ -184,7 +165,6 @@ namespace FYP.Controllers
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
-                // Compare by range on ReservedFor to avoid translating the Date property which EF may not support
                 .Where(r => r.ReservedFor >= date && r.ReservedFor < date.AddDays(1))
                 .OrderBy(r => r.ReservationTime)
                 .ToListAsync();

@@ -1,11 +1,16 @@
-﻿@using System.Globalization
+@using System.Globalization
+@using Microsoft.EntityFrameworkCore
+@inject FYP.Data.ApplicationDbContext Db
+@{
+    var brandName = Db.Settings.AsNoTracking().FirstOrDefault(s => s.Key == "Name")?.Value ?? "Fine O Dine";
+}
 
 <!DOCTYPE html>
 <html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" data-theme="light">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - @L["BrandName"]</title>
+    <title>@ViewData["Title"] - @brandName</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

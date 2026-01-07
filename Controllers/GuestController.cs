@@ -48,8 +48,17 @@ namespace FYP.Controllers
             // Server-side validation
             if (PartySize < 1 || ReservationDate == default || ReservationTime == default)
             {
-                TempData["Error"] = _localizer["Please select a valid party size, date and time."].Value;
-                return RedirectToAction("Index");
+                ModelState.AddModelError("", _localizer["Please select a valid party size, date and time."].Value);
+                
+                ViewBag.FirstName = FirstName;
+                ViewBag.LastName = LastName;
+                ViewBag.GuestEmail = GuestEmail;
+                ViewBag.GuestPhone = GuestPhone;
+                ViewBag.PartySize = PartySize;
+                ViewBag.ReservationTime = ReservationTime == default ? "" : ReservationTime.ToString(@"HH\:mm");
+                ViewBag.Notes = Notes;
+                
+                return View("Index");
             }
 
             if (string.IsNullOrWhiteSpace(GuestEmail))
@@ -77,10 +86,21 @@ namespace FYP.Controllers
             var selectedDateTimeUtc = new DateTime(
                 ReservationDate.Year, ReservationDate.Month, ReservationDate.Day,
                 ReservationTime.Hours, ReservationTime.Minutes, 0, DateTimeKind.Utc);
+            
             if (selectedDateTimeUtc < DateTime.UtcNow)
             {
-                TempData["Error"] = _localizer["Date and time cannot be in the past."].Value;
-                return RedirectToAction("Index");
+                ModelState.AddModelError("ReservationTime", _localizer["Date and time cannot be in the past."].Value);
+                
+                ViewBag.FirstName = FirstName;
+                ViewBag.LastName = LastName;
+                ViewBag.GuestEmail = GuestEmail;
+                ViewBag.GuestPhone = GuestPhone;
+                ViewBag.PartySize = PartySize;
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.Notes = Notes;
+                ViewBag.ReservationDate = ReservationDate;
+                
+                return View("Index");
             }
 
             // Business hours check (10:00 - 22:00)
@@ -88,8 +108,19 @@ namespace FYP.Controllers
             var close = new TimeSpan(22, 0, 0);
             if (ReservationTime < open || ReservationTime > close)
             {
-                TempData["Error"] = _localizer["Selected time is outside business hours."].Value;
-                return RedirectToAction("Index");
+                var errorMsg = _localizer["Selected time is outside business hours."].Value + $" ({open:hh\\:mm} - {close:hh\\:mm})";
+                ModelState.AddModelError("ReservationTime", errorMsg);
+                
+                ViewBag.FirstName = FirstName;
+                ViewBag.LastName = LastName;
+                ViewBag.GuestEmail = GuestEmail;
+                ViewBag.GuestPhone = GuestPhone;
+                ViewBag.PartySize = PartySize;
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.Notes = Notes;
+                ViewBag.ReservationDate = ReservationDate;
+                
+                return View("Index");
             }
 
             // Get or create guest

@@ -72,16 +72,24 @@ namespace FYP.Services
             if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
             if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
-            var data = await q
-                .GroupBy(r => new { r.ReservedFor.Year, r.ReservedFor.Month, r.ReservedFor.Day })
-                .Select(g => new CapacityAvailabilityVM
+            // Use DateDiffDay grouping key so EF can translate to SQL
+            var anchor = new DateTime(2000, 1, 1);
+            var grouped = await q
+                .GroupBy(r => EF.Functions.DateDiffDay(anchor, r.ReservedFor))
+                .Select(g => new
                 {
-                    Date = new DateTime(g.Key.Year, g.Key.Month, g.Key.Day),
-                    ReservedSeats = g.Sum(r => r.PartySize),
-                    TotalCapacity = tablesTotal
+                    DayIndex = g.Key,
+                    ReservedSeats = g.Sum(r => r.PartySize)
                 })
-                .OrderBy(d => d.Date)
+                .OrderBy(x => x.DayIndex)
                 .ToListAsync();
+
+            var data = grouped.Select(x => new CapacityAvailabilityVM
+            {
+                Date = anchor.AddDays(x.DayIndex),
+                ReservedSeats = x.ReservedSeats,
+                TotalCapacity = tablesTotal
+            }).ToList();
 
             return data;
         }

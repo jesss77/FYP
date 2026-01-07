@@ -42,6 +42,11 @@ namespace FYP.Controllers
                 ViewBag.Search = search.Trim();
             }
 
+            // Compute staff count (managers + employees)
+            var managers = await _userManager.GetUsersInRoleAsync("manager");
+            var employees = await _userManager.GetUsersInRoleAsync("employee");
+            ViewBag.StaffCount = (managers?.Count ?? 0) + (employees?.Count ?? 0);
+
             return View(await query.OrderBy(s => s.Key).ToListAsync());
         }
 
@@ -70,6 +75,13 @@ namespace FYP.Controllers
 
             var setting = await _context.Settings.FindAsync(id);
             if (setting == null) return NotFound();
+
+            // Prevent editing for computed setting
+            if (string.Equals(setting.Key, "Staff Number", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "Staff Number is computed automatically and cannot be edited.";
+                return RedirectToAction(nameof(Settings));
+            }
 
             setting.Value = model.Value;
             setting.UpdatedBy = User.Identity?.Name ?? "admin";

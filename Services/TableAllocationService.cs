@@ -294,20 +294,12 @@ namespace FYP.Services
 
             _logger.LogInformation("Found {Count} available tables", availableTables.Count);
 
-            // Collect all table ids that participate in any configured join.
-            // Use union of two projections so EF can translate to SQL rather than creating an array in the expression.
-            var primaryIdsQuery = _context.TablesJoins.Select(tj => tj.PrimaryTableID);
-            var joinedIdsQuery = _context.TablesJoins.Select(tj => tj.JoinedTableID);
-            var tablesInJoins = await primaryIdsQuery
-                .Union(joinedIdsQuery)
-                .ToListAsync();
-
-            var standaloneTables = availableTables
-                .Where(t => !tablesInJoins.Contains(t.TableID))
-                .ToList();
-
-            var exactFitTable = standaloneTables
-                .FirstOrDefault(t => t.Capacity == partySize);
+            // ========== PRIORITY RULE 1: Exact Match (Single Table) =========
+            // Prefer non-joinable tables to preserve joinable combinations for larger groups
+            var exactFitTable = availableTables
+                .Where(t => t.Capacity == partySize)
+                .OrderBy(t => t.IsJoinable)
+                .FirstOrDefault();
 
             if (exactFitTable != null)
             {
@@ -320,9 +312,11 @@ namespace FYP.Services
                 return result;
             }
 
-             var singleTableFit = standaloneTables
+            // ========== PRIORITY RULE 2: Minimal Waste (Single Table) =========
+            var singleTableFit = availableTables
                 .Where(t => t.Capacity >= partySize)
                 .OrderBy(t => t.Capacity)
+                .ThenBy(t => t.IsJoinable)
                 .FirstOrDefault();
 
             if (singleTableFit != null)
@@ -331,30 +325,8 @@ namespace FYP.Services
                 result.AllocatedTableIds = new List<int> { singleTableFit.TableID };
                 result.TotalCapacity = singleTableFit.Capacity;
                 result.WastedSeats = singleTableFit.Capacity - partySize;
-                result.AllocationStrategy = $"Single standalone table: Table {singleTableFit.TableNumber} (capacity {singleTableFit.Capacity}, {result.WastedSeats} seats unused)";
-                _logger.LogInformation("Found single standalone table fit: Table {TableId} with {Wasted} wasted seats", singleTableFit.TableID, result.WastedSeats);
-                return result;
-            }
-
-            // Extract available table IDs for EF Core translation
-            var availableTableIds = availableTables.Select(t => t.TableID).ToList();
-            
-            var possibleJoins = await _context.TablesJoins
-                .Where(tj => availableTableIds.Contains(tj.PrimaryTableID) && 
-                             availableTableIds.Contains(tj.JoinedTableID))
-                .OrderBy(tj => tj.TotalCapacity)
-                .ToListAsync();
-
-            var joinFit = possibleJoins.FirstOrDefault(j => j.TotalCapacity >= partySize);
-            if (joinFit != null)
-            {
-                // allocate both tables from the join
-                result.Success = true;
-                result.AllocatedTableIds = new List<int> { joinFit.PrimaryTableID, joinFit.JoinedTableID };
-                result.TotalCapacity = joinFit.TotalCapacity;
-                result.WastedSeats = joinFit.TotalCapacity - partySize;
-                result.AllocationStrategy = $"Preconfigured join: Tables {joinFit.PrimaryTableID} + {joinFit.JoinedTableID} (total capacity {joinFit.TotalCapacity}, {result.WastedSeats} seats unused)";
-                _logger.LogInformation("Found preconfigured join fit: Tables {Primary}+{Joined} capacity {Cap}", joinFit.PrimaryTableID, joinFit.JoinedTableID, joinFit.TotalCapacity);
+                result.AllocationStrategy = $"Single table: Table {singleTableFit.TableNumber} (capacity {singleTableFit.Capacity}, {result.WastedSeats} seats unused)";
+                _logger.LogInformation("Found single table fit: Table {TableId} with {Wasted} wasted seats", singleTableFit.TableID, result.WastedSeats);
                 return result;
             }
 

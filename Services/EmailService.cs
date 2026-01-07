@@ -1,4 +1,4 @@
-﻿using FYP.Models;
+using FYP.Models;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -13,10 +13,12 @@ namespace FYP.Services
     public class EmailService : IEmailService
     {
         private readonly EmailSettings _emailSettings;
+        private readonly FYP.Data.ApplicationDbContext _db;
 
-        public EmailService(IOptions<EmailSettings> options)
+        public EmailService(IOptions<EmailSettings> options, FYP.Data.ApplicationDbContext db)
         {
             _emailSettings = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _db = db ?? throw new ArgumentNullException(nameof(db));
         }
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
@@ -70,6 +72,8 @@ namespace FYP.Services
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var callbackUrl = $"{_emailSettings.ConfirmationUrl}?userId={user.Id}&code={encodedToken}";
 
+            var brand = _db.Settings.FirstOrDefault(s => s.Key == "Name")?.Value ?? _emailSettings.SenderName ?? "Fine O Dine";
+            var year = DateTime.Now.Year;
             string message = $@"
                 <html>
                 <body>
@@ -78,6 +82,7 @@ namespace FYP.Services
                     <br>
                     <p><a href='{callbackUrl}' style='padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;'>Confirm Email</a></p>
                     <br><br>
+                    <p style='color:#888;font-size:0.9em;'>© {year} {brand}. All Rights Reserved</p>
                 </body>
                 </html>";
 
@@ -89,6 +94,8 @@ namespace FYP.Services
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentNullException(nameof(email));
 
+            var brand = _db.Settings.FirstOrDefault(s => s.Key == "Name")?.Value ?? _emailSettings.SenderName ?? "Fine O Dine";
+            var year = DateTime.Now.Year;
             string message = $@"
                 <html>
                 <head>
@@ -111,7 +118,7 @@ namespace FYP.Services
                         </div>
                         <div class='content'>
                             <p>Dear {customerName},</p>
-                            <p>Great news! Your table has been allocated for your upcoming reservation at <strong>Fine O Dine</strong>.</p>
+                            <p>Great news! Your table has been allocated for your upcoming reservation at <strong>{brand}</strong>.</p>
                             
                             <div class='detail-row'>
                                 <span class='label'>📅 Date:</span>
@@ -135,8 +142,8 @@ namespace FYP.Services
                             <p><strong>Need to make changes?</strong> Please contact us as soon as possible.</p>
                         </div>
                         <div class='footer'>
-                            <p>Fine O Dine - Where flavors meet elegance</p>
-                            <p>© 2025 Fine O Dine. All Rights Reserved</p>
+                            <p>{brand} - Where flavors meet elegance</p>
+                            <p>© {year} {brand}. All Rights Reserved</p>
                         </div>
                     </div>
                 </body>

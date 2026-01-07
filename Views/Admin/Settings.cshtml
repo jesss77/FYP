@@ -1,4 +1,4 @@
-﻿@model IEnumerable<FYP.Models.Settings>
+@model IEnumerable<FYP.Models.Settings>
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
@@ -63,7 +63,14 @@
                                 </div>
                                 <div>
                                     <h3 class="admin-cube-title" style="font-size:1.125rem; margin:0;">@setting.Key</h3>
-                                    <div style="color:var(--text-secondary); font-size:0.875rem;">@setting.Value</div>
+                                    @{
+                                        var displayValue = setting.Value;
+                                        if (string.Equals(setting.Key, "Staff Number", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            displayValue = (ViewBag.StaffCount != null ? ViewBag.StaffCount.ToString() : "0");
+                                        }
+                                    }
+                                    <div style="color:var(--text-secondary); font-size:0.875rem;">@displayValue</div>
                                 </div>
                             </div>
 
@@ -91,10 +98,17 @@
                         </div>
 
                         <div class="table-card-footer">
-                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("EditSetting", "Admin", new { id = setting.SettingsID })">
-                                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">edit</span>
-                                <span class="ms-1">@L["Edit"]</span>
-                            </a>
+                            @if (!string.Equals(setting.Key, "Staff Number", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <a class="btn btn-sm btn-outline-primary" href="@Url.Action("EditSetting", "Admin", new { id = setting.SettingsID })">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">edit</span>
+                                    <span class="ms-1">@L["Edit"]</span>
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" disabled title="Computed automatically">@L["Automatic"]</button>
+                            }
                         </div>
                     </div>
                 </div>

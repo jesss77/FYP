@@ -162,3 +162,13 @@
 .theme-transitioning * {
     transition: none !important;
 }
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-check-label,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] label {
+    color: var(--text-primary) !important;
+}

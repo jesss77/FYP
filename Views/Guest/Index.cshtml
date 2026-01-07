@@ -1,4 +1,4 @@
-﻿@using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Localization
 @inject IStringLocalizer<FYP.Localization.SharedResource> L
 @{
     ViewData["Title"] = L["Guest Reservation"];
@@ -48,13 +48,13 @@
                         <label class="form-label fw-semibold">
                             @L["First Name"] <span style="color: var(--color-primary-red);">*</span>
                         </label>
-                        <input name="FirstName" type="text" class="form-control" placeholder="@L["First Name"]" required />
+                        <input name="FirstName" type="text" class="form-control" placeholder="@L["First Name"]" required value="@ViewBag.FirstName" />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">
                             @L["Last Name"] <span style="color: var(--color-primary-red);">*</span>
                         </label>
-                        <input name="LastName" type="text" class="form-control" placeholder="@L["Last Name"]" required />
+                        <input name="LastName" type="text" class="form-control" placeholder="@L["Last Name"]" required value="@ViewBag.LastName" />
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -66,12 +66,15 @@
                         <input type="text" class="form-control" required 
                                placeholder="DD/MM/YYYY"
                                id="reservationDateInput" 
+                               value="@(ViewBag.ReservationDate != null && ViewBag.ReservationDate != default(DateTime) ? ((DateTime)ViewBag.ReservationDate).ToString("dd/MM/yyyy") : "")"
                                style="padding-right: 45px;" />
                         <input type="date" 
                                id="reservationDatePicker" 
                                style="position: absolute; opacity: 0; pointer-events: none;"
-                               min="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                        <input type="hidden" id="reservationDateHidden" name="ReservationDate" />
+                               min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                               value="@(ViewBag.ReservationDate != null && ViewBag.ReservationDate != default(DateTime) ? ((DateTime)ViewBag.ReservationDate).ToString("yyyy-MM-dd") : "")" />
+                        <input type="hidden" id="reservationDateHidden" name="ReservationDate" 
+                               value="@(ViewBag.ReservationDate != null && ViewBag.ReservationDate != default(DateTime) ? ((DateTime)ViewBag.ReservationDate).ToString("yyyy-MM-dd") : "")" />
                         <button type="button" 
                                 class="btn btn-link" 
                                 id="calendarIconBtn"
@@ -86,7 +89,8 @@
                         <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">schedule</span>
                         @L["Time"] <span style="color: var(--color-primary-red);">*</span>
                     </label>
-                    <input name="ReservationTime" type="time" class="form-control" required />
+                    <input name="ReservationTime" type="time" class="form-control" required value="@ViewBag.ReservationTime" />
+                    @* Validation handled by browser tooltip *@
                 </div>
             </div>
 
@@ -96,7 +100,7 @@
                     @L["Party Size"] <span style="color: var(--color-primary-red);">*</span>
                 </label>
                 <input name="PartySize" type="number" min="1" max="20" class="form-control" 
-                       placeholder="Number of guests" value="2" required />
+                       placeholder="Number of guests" value="@(ViewBag.PartySize ?? 2)" required />
             </div>
 
             <!-- Guest-specific fields -->
@@ -105,14 +109,14 @@
                     <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">email</span>
                     @L["Email"] <span style="color: var(--color-primary-red);">*</span>
                 </label>
-                <input name="GuestEmail" type="email" class="form-control" placeholder="name@example.com" required />
+                <input name="GuestEmail" type="email" class="form-control" placeholder="name@example.com" required value="@ViewBag.GuestEmail" />
             </div>
             <div class="row g-3 mt-0">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">
                         @L["Phone"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
                     </label>
-                    <input name="GuestPhone" type="tel" class="form-control" placeholder="+1 555 123 4567" />
+                    <input name="GuestPhone" type="tel" class="form-control" placeholder="+1 555 123 4567" value="@ViewBag.GuestPhone" />
                 </div>
             </div>
             <div class="form-group mb-4">
@@ -121,7 +125,7 @@
                     @L["Notes"] <small style="color: var(--text-muted);">(@L["Optional"])</small>
                 </label>
                 <textarea name="Notes" class="form-control" rows="4" 
-                          placeholder="@L["Any dietary restrictions or special occasions?"]"></textarea>
+                          placeholder="@L["Any dietary restrictions or special occasions?"]">@ViewBag.Notes</textarea>
             </div>
 
             <!-- More Options (Collapsible) -->
@@ -281,6 +285,72 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Time Validation Logic
+    const timeInput = document.querySelector('input[name="ReservationTime"]');
+    
+    function validateTime() {
+        if (!timeInput || !timeInput.value) {
+             if (timeInput) timeInput.setCustomValidity(""); // Reset
+             return; 
+        }
+
+        // 1. Business Hours Check (10:00 - 22:00)
+        const [hours, minutes] = timeInput.value.split(':').map(Number);
+        const totalMinutes = hours * 60 + minutes;
+        const open = 10 * 60; // 10:00
+        const close = 22 * 60; // 22:00
+
+        if (totalMinutes < open || totalMinutes > close) {
+            timeInput.setCustomValidity("Selected time is outside business hours (10:00 AM - 10:00 PM).");
+        } 
+        else {
+             // 2. Past Time Check
+             let isPast = false;
+             
+             if (dateHidden && dateHidden.value) {
+                const dateParts = dateHidden.value.split('-'); // yyyy-MM-dd
+                if (dateParts.length === 3) {
+                    const year = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]) - 1; 
+                    const day = parseInt(dateParts[2]);
+                    
+                    const selectedDateTime = new Date(year, month, day, hours, minutes);
+                    const now = new Date();
+
+                    if (selectedDateTime < now) {
+                        isPast = true;
+                    }
+                }
+             }
+             
+             if (isPast) {
+                 timeInput.setCustomValidity("Date and time cannot be in the past.");
+             } else {
+                 timeInput.setCustomValidity(""); // Valid
+             }
+        }
+    }
+
+    if (timeInput) {
+        timeInput.addEventListener('input', validateTime);
+        timeInput.addEventListener('change', validateTime);
+        
+        // Trigger on load
+        validateTime();
+        
+        // Also trigger when date changes
+        if (datePicker) {
+            datePicker.addEventListener('change', validateTime);
+        }
+        
+        // Trigger when manual date input changes
+        if (dateInput) {
+            dateInput.addEventListener('input', validateTime);
+            dateInput.addEventListener('blur', validateTime);
+        }
+    }
+
 });
 </script>
 

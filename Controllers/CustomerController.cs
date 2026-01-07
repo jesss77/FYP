@@ -389,10 +389,19 @@ namespace FYP.Controllers
             var selectedDateTimeUtc = new DateTime(
                 ReservationDate.Year, ReservationDate.Month, ReservationDate.Day,
                 ReservationTime.Hours, ReservationTime.Minutes, 0, DateTimeKind.Utc);
+            
             if (selectedDateTimeUtc < DateTime.UtcNow)
             {
-                TempData["Error"] = _localizer["Date and time cannot be in the past."].Value;
-                return RedirectToAction("MakeReservation");
+                ModelState.AddModelError("ReservationTime", _localizer["Date and time cannot be in the past."].Value);
+                
+                // Repopulate form data for the view
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.PartySize = PartySize;
+                ViewBag.Notes = Notes;
+                // Date handling might need JS support, but we can try setting it
+                ViewBag.ReservationDate = ReservationDate; 
+
+                return View("MakeReservation", customer);
             }
 
             // Business hours check (10:00 - 22:00)
@@ -400,8 +409,16 @@ namespace FYP.Controllers
             var close = new TimeSpan(22, 0, 0);
             if (ReservationTime < open || ReservationTime > close)
             {
-                TempData["Error"] = _localizer["Selected time is outside business hours."].Value;
-                return RedirectToAction("MakeReservation");
+                var errorMsg = _localizer["Selected time is outside business hours."].Value + $" ({open:hh\\:mm} - {close:hh\\:mm})";
+                ModelState.AddModelError("ReservationTime", errorMsg);
+                
+                // Repopulate form data for the view
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.PartySize = PartySize;
+                ViewBag.Notes = Notes;
+                ViewBag.ReservationDate = ReservationDate;
+
+                return View("MakeReservation", customer);
             }
 
             // Ensure Confirmed status exists

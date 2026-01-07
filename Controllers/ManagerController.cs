@@ -19,12 +19,14 @@ namespace FYP.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IReportService _reportService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly FYP.Services.TableAllocationService _allocationService;
 
-        public ManagerController(ApplicationDbContext context, IReportService reportService, UserManager<ApplicationUser> userManager)
+        public ManagerController(ApplicationDbContext context, IReportService reportService, UserManager<ApplicationUser> userManager, FYP.Services.TableAllocationService allocationService)
         {
             _context = context;
             _reportService = reportService;
             _userManager = userManager;
+            _allocationService = allocationService;
         }
         public IActionResult Index()
         {
@@ -134,48 +136,240 @@ namespace FYP.Controllers
             return RedirectToAction("TableJoins", "Tables");
         }
 
-        // View all reservations with date filter (manager view)
-        public async Task<IActionResult> Reservations(DateTime? filterDate)
+        // Create walk-in reservation (manager)
+        public IActionResult CreateWalkIn()
         {
-            var date = filterDate ?? DateTime.UtcNow.Date;
+            return View("CreateWalkIn");
+        }
 
-            var reservations = await _context.Reservations
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateWalkIn(int PartySize, string? Notes, int? Duration, string? GuestName, string? GuestPhone)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (PartySize < 1)
+            {
+                TempData["Error"] = "Please select a valid party size.";
+                return RedirectToAction("CreateWalkIn");
+            }
+
+            var confirmedStatus = await _context.ReservationStatuses
+                .FirstOrDefaultAsync(s => s.StatusName == "Confirmed");
+            if (confirmedStatus == null)
+            {
+                TempData["Error"] = "Reservation status not configured.";
+                return RedirectToAction("CreateWalkIn");
+            }
+
+            var restaurant = await _context.Restaurants.FirstOrDefaultAsync();
+            if (restaurant == null)
+            {
+                TempData["Error"] = "Restaurant not configured.";
+                return RedirectToAction("CreateWalkIn");
+            }
+
+            var effectiveDuration = Duration ?? 90;
+            var now = DateTime.Now;
+
+            var allocation = await _allocationService.FindBestAllocationAsync(
+                restaurant.RestaurantID,
+                now.Date,
+                new TimeSpan(now.Hour, now.Minute, 0),
+                effectiveDuration,
+                PartySize);
+
+            if (!allocation.Success)
+            {
+                TempData["Error"] = allocation.ErrorMessage ?? "No tables available.";
+                return RedirectToAction("CreateWalkIn");
+            }
+
+            try
+            {
+                int? customerId = null;
+                int? guestId = null;
+                bool isGuest = !string.IsNullOrWhiteSpace(GuestName);
+
+                if (isGuest)
+                {
+                    var nameParts = GuestName!.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                    var firstName = nameParts.Length > 0 ? nameParts[0] : "Walk-in";
+                    var lastName = nameParts.Length > 1 ? nameParts[1] : "Guest";
+
+                    var guest = new Guest
+                    {
+                        Email = $"walkin_{Guid.NewGuid():N}@system.local",
+                        FirstName = firstName,
+                        LastName = lastName,
+                        PhoneNumber = string.IsNullOrWhiteSpace(GuestPhone) ? null : GuestPhone,
+                        IsActive = true,
+                        CreatedBy = user?.Id ?? "manager",
+                        UpdatedBy = user?.Id ?? "manager",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.Guests.Add(guest);
+                    await _context.SaveChangesAsync();
+                    guestId = guest.GuestID;
+                }
+                else
+                {
+                    customerId = await FYP.Data.WalkInCustomerSeeder.EnsureWalkInCustomerAsync(HttpContext.RequestServices);
+                }
+
+                var reservation = await _allocationService.CreateReservationAsync(
+                    allocation,
+                    customerId,
+                    guestId,
+                    restaurant.RestaurantID,
+                    now.Date,
+                    new TimeSpan(now.Hour, now.Minute, 0),
+                    effectiveDuration,
+                    PartySize,
+                    Notes,
+                    confirmedStatus.ReservationStatusID,
+                    true,
+                    user?.Id ?? "manager");
+
+                var tableInfo = allocation.AllocatedTableIds.Count > 1
+                    ? $"{allocation.AllocatedTableIds.Count} joined tables ({string.Join(", ", allocation.AllocatedTableIds)})"
+                    : $"Table {allocation.AllocatedTableIds[0]}";
+
+                TempData["Message"] = $"Walk-in reservation created! {tableInfo} assigned. {allocation.AllocationStrategy}";
+                return RedirectToAction("Reservations");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Failed to create walk-in: {ex.Message}";
+                return RedirectToAction("CreateWalkIn");
+            }
+        }
+
+        // View all reservations with sorting, search, and optional date range filters
+        public async Task<IActionResult> Reservations(
+            string sortBy = "date",
+            string sortDir = "desc",
+            string? search = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            string? status = null)
+        {
+            // Base query including related entities needed for display
+            var query = _context.Reservations
                 .Include(r => r.Customer)
                 .Include(r => r.Guest)
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.ReservationTables)
                     .ThenInclude(rt => rt.Table)
-                // Compare by range on ReservedFor to avoid translating unmapped members or Date property
-                .Where(r => r.ReservedFor >= date && r.ReservedFor < date.AddDays(1))
+                .AsQueryable();
+
+            // Date range filter (optional)
+            if (fromDate.HasValue || toDate.HasValue)
+            {
+                var start = (fromDate ?? DateTime.MinValue).Date;
+                var endExclusive = ((toDate ?? DateTime.MaxValue).Date).AddDays(1);
+                query = query.Where(r => r.ReservedFor >= start && r.ReservedFor < endExclusive);
+            }
+
+            // Status filter (optional)
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                var s = status.Trim();
+                query = query.Where(r => r.ReservationStatus != null && r.ReservationStatus.StatusName == s);
+            }
+
+            // Search by customer/guest name, email, or phone (optional)
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                query = query.Where(r =>
+                    (r.Guest != null && (
+                        EF.Functions.Like(r.Guest.FirstName ?? "", $"%{s}%") ||
+                        EF.Functions.Like(r.Guest.LastName ?? "", $"%{s}%") ||
+                        EF.Functions.Like(r.Guest.Email ?? "", $"%{s}%") ||
+                        EF.Functions.Like(r.Guest.PhoneNumber ?? "", $"%{s}%")
+                    )) ||
+                    (r.Customer != null && (
+                        EF.Functions.Like(r.Customer.FirstName ?? "", $"%{s}%") ||
+                        EF.Functions.Like(r.Customer.LastName ?? "", $"%{s}%") ||
+                        EF.Functions.Like(r.Customer.PhoneNumber ?? "", $"%{s}%")
+                    ))
+                );
+            }
+
+            // Materialize so we can apply flexible sorting keys
+            var allReservations = await query.ToListAsync();
+
+            // Helper functions for sorting keys
+            string NameOf(Reservation r)
+                => r.Guest != null
+                    ? $"{r.Guest.FirstName} {r.Guest.LastName}".Trim()
+                    : r.Customer != null
+                        ? $"{r.Customer.FirstName} {r.Customer.LastName}".Trim()
+                        : "";
+
+            int PrimaryTableNumber(Reservation r)
+                => (r.ReservationTables != null && r.ReservationTables.Any())
+                    ? r.ReservationTables.Select(rt => rt.Table?.TableNumber ?? 0).DefaultIfEmpty(0).Min()
+                    : 0;
+
+            // Default sort: by date/time descending (most recent first)
+            IOrderedEnumerable<Reservation> ordered = (sortBy?.ToLowerInvariant()) switch
+            {
+                "name" => (sortDir?.ToLowerInvariant() == "asc")
+                    ? allReservations.OrderBy(NameOf).ThenBy(r => r.ReservedFor).ThenBy(r => r.ReservationTime)
+                    : allReservations.OrderByDescending(NameOf).ThenByDescending(r => r.ReservedFor).ThenByDescending(r => r.ReservationTime),
+                "status" => (sortDir?.ToLowerInvariant() == "asc")
+                    ? allReservations.OrderBy(r => r.ReservationStatus?.StatusName ?? "")
+                    : allReservations.OrderByDescending(r => r.ReservationStatus?.StatusName ?? ""),
+                "party" => (sortDir?.ToLowerInvariant() == "asc")
+                    ? allReservations.OrderBy(r => r.PartySize)
+                    : allReservations.OrderByDescending(r => r.PartySize),
+                "table" => (sortDir?.ToLowerInvariant() == "asc")
+                    ? allReservations.OrderBy(PrimaryTableNumber)
+                    : allReservations.OrderByDescending(PrimaryTableNumber),
+                _ => (sortDir?.ToLowerInvariant() == "asc")
+                    ? allReservations.OrderBy(r => r.ReservedFor).ThenBy(r => r.ReservationTime)
+                    : allReservations.OrderByDescending(r => r.ReservedFor).ThenByDescending(r => r.ReservationTime)
+            };
+
+            var orderedList = ordered.ToList();
+
+            // Today's summary for dashboard section
+            var today = DateTime.UtcNow.Date;
+            var todayReservations = orderedList
+                .Where(r => r.ReservedFor.Date == today)
                 .OrderBy(r => r.ReservationTime)
+                .ToList();
+
+            // Populate viewbags
+            ViewBag.AllReservations = orderedList;
+            ViewBag.TodayReservations = todayReservations;
+            ViewBag.TodayDate = today;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortDir = sortDir;
+            ViewBag.Search = search ?? "";
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+            ViewBag.Status = status ?? "";
+
+            // Load statuses for filter dropdown
+            ViewBag.Statuses = await _context.ReservationStatuses
+                .OrderBy(s => s.StatusName)
                 .ToListAsync();
 
-            ViewBag.FilterDate = date;
+            // Get manager's employee record to render header
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
-            // Try to get the manager's employee record so the view can show the manager name
-            try
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.ApplicationUserId == user.Id);
+            if (employee == null)
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null) return Challenge();
-
-                var employee = await _context.Employees.FirstOrDefaultAsync(e => e.ApplicationUserId == user.Id);
-                if (employee == null)
-                {
-                    // No employee record for manager; redirect to employee creation flow
-                    return RedirectToAction("Create", "Employee");
-                }
-
-                ViewBag.TodayReservations = reservations;
-                ViewBag.TodayDate = date;
-                return View("Reservations", employee);
+                return RedirectToAction("Create", "Employee");
             }
-            catch
-            {
-                // Fallback: render reservations list view directly if any error occurs
-                ViewBag.TodayReservations = reservations;
-                ViewBag.TodayDate = date;
-                return View("Reservations", null);
-            }
+
+            return View("Reservations", employee);
         }
 
         [HttpPost]

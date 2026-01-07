@@ -5,7 +5,6 @@
 }
 
 <div class="container mt-5">
-    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index", "Employee")" />
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <h2 class="gold-heading mb-0">Reservations - @filterDate.ToString("MMMM dd, yyyy")</h2>
         <div class="d-flex gap-2 flex-wrap align-items-center">
@@ -37,7 +36,7 @@
         <div class="alert alert-success">@TempData["Message"]</div>
     }
 
-    <!-- Date Filter -->
+    <!-- Date Filter (original simple filter) -->
     <div class="card mb-4">
         <div class="card-body">
             <form asp-action="Reservations" method="get" class="row g-3 align-items-end">
