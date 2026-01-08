@@ -55,9 +55,26 @@ namespace FYP.Controllers
                 ViewBag.GuestEmail = GuestEmail;
                 ViewBag.GuestPhone = GuestPhone;
                 ViewBag.PartySize = PartySize;
-                ViewBag.ReservationTime = ReservationTime == default ? "" : ReservationTime.ToString(@"HH\:mm");
+                ViewBag.ReservationTime = ReservationTime == default ? "" : ReservationTime.ToString(@"HH\\:mm");
                 ViewBag.Notes = Notes;
                 
+                return View("Index");
+            }
+
+            // Enforce guest party size maximum of 20
+            if (PartySize > 20)
+            {
+                ModelState.AddModelError("PartySize", _localizer["For parties larger than 20, please sign in or create an account to continue."].Value);
+
+                ViewBag.FirstName = FirstName;
+                ViewBag.LastName = LastName;
+                ViewBag.GuestEmail = GuestEmail;
+                ViewBag.GuestPhone = GuestPhone;
+                ViewBag.PartySize = PartySize;
+                ViewBag.ReservationTime = ReservationTime == default ? "" : ReservationTime.ToString(@"HH\\:mm");
+                ViewBag.Notes = Notes;
+                ViewBag.ReservationDate = ReservationDate;
+
                 return View("Index");
             }
 
@@ -96,7 +113,7 @@ namespace FYP.Controllers
                 ViewBag.GuestEmail = GuestEmail;
                 ViewBag.GuestPhone = GuestPhone;
                 ViewBag.PartySize = PartySize;
-                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\\:mm");
                 ViewBag.Notes = Notes;
                 ViewBag.ReservationDate = ReservationDate;
                 
@@ -116,7 +133,7 @@ namespace FYP.Controllers
                 ViewBag.GuestEmail = GuestEmail;
                 ViewBag.GuestPhone = GuestPhone;
                 ViewBag.PartySize = PartySize;
-                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\\:mm");
                 ViewBag.Notes = Notes;
                 ViewBag.ReservationDate = ReservationDate;
                 

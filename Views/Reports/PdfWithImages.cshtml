@@ -35,13 +35,19 @@
     }
 
     <hr />
-    <h3>Tables Data</h3>
+    <h3>Key Performance Indicators</h3>
     <table style="width:100%; border-collapse:collapse;">
-        <thead><tr><th style="border:1px solid #ddd; padding:8px;">Name</th><th style="border:1px solid #ddd; padding:8px;">Value</th></tr></thead>
+        <thead><tr><th style="border:1px solid #ddd; padding:8px;">Metric</th><th style="border:1px solid #ddd; padding:8px;">Value</th></tr></thead>
         <tbody>
             <tr><td style="border:1px solid #ddd; padding:8px;">Total Reservations</td><td style="border:1px solid #ddd; padding:8px;">@Model.TotalReservations</td></tr>
             <tr><td style="border:1px solid #ddd; padding:8px;">Total Guests</td><td style="border:1px solid #ddd; padding:8px;">@Model.TotalGuests</td></tr>
-            <tr><td style="border:1px solid #ddd; padding:8px;">Total Customers</td><td style="border:1px solid #ddd; padding:8px;">@Model.TotalCustomers</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Confirmed Reservations</td><td style="border:1px solid #ddd; padding:8px;">@Model.ConfirmedReservations</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Cancellation Rate</td><td style="border:1px solid #ddd; padding:8px;">@Model.CancellationRate%</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Average Lead Time</td><td style="border:1px solid #ddd; padding:8px;">@Model.AverageLeadTimeDays days</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Average Party Size</td><td style="border:1px solid #ddd; padding:8px;">@Model.AveragePartySize.AveragePartySize</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Walk-in Count</td><td style="border:1px solid #ddd; padding:8px;">@Model.WalkInCount</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">Pre-booked Count</td><td style="border:1px solid #ddd; padding:8px;">@Model.PreBookedCount</td></tr>
+            <tr><td style="border:1px solid #ddd; padding:8px;">No-show Rate</td><td style="border:1px solid #ddd; padding:8px;">@Model.NoShowRate%</td></tr>
         </tbody>
     </table>
 </div>

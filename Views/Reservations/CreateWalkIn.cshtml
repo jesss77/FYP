@@ -89,8 +89,8 @@
                         <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">schedule</span>
                         Reservation Time <span style="color: var(--color-primary-red);">*</span>
                     </label>
-                    <input name="ReservationTime" type="time" class="form-control" required 
-                           value="@(ViewBag.ReservationTime ?? DateTime.Now.ToString("HH:mm"))" />
+                    <input id="walkinTimePicker" type="text" class="form-control" placeholder="HH:mm" required />
+                    <input type="hidden" id="walkinTimeHidden" name="ReservationTime" value="@(ViewBag.ReservationTime ?? DateTime.Now.ToString("HH:mm"))" />
                 </div>
 
                 <div class="col-md-4">
@@ -168,7 +168,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Business hours validation
     const dateInput = document.querySelector('input[name="ReservationDate"]');
-    const timeInput = document.querySelector('input[name="ReservationTime"]');
+    const timeInput = document.getElementById('walkinTimePicker');
+    const timeHidden = document.getElementById('walkinTimeHidden');
     const form = document.querySelector('form');
 
     // Business hours: 10:00 - 22:00 (default, should match server-side)
@@ -208,16 +209,42 @@ document.addEventListener('DOMContentLoaded', function() {
         dateInput.addEventListener('change', validateDateTime);
     }
 
+    // Initialize Flatpickr for time only, 24-hour format
     if (timeInput) {
+        flatpickr(timeInput, {
+            enableTime: true,
+            noCalendar: true,
+            // Submit 24-hour to hidden; show 12-hour with AM/PM in visible input
+            dateFormat: 'H:i',
+            altInput: true,
+            altFormat: 'h:i K',
+            time_24hr: false,
+            defaultDate: timeHidden?.value || null,
+            onChange: function(selectedDates, dateStr) {
+                if (timeHidden) timeHidden.value = dateStr;
+                validateDateTime();
+            },
+            onClose: function(selectedDates, dateStr) {
+                if (timeHidden) timeHidden.value = dateStr;
+                validateDateTime();
+            }
+        });
+        timeInput.addEventListener('input', function(e){ e.preventDefault(); return false; });
         timeInput.addEventListener('change', validateDateTime);
         timeInput.addEventListener('blur', validateDateTime);
     }
 
     if (form) {
         form.addEventListener('submit', function(e) {
+            if (timeHidden && !timeHidden.value) {
+                e.preventDefault();
+                alert('Please select a valid time.');
+                return false;
+            }
             if (!validateDateTime()) {
                 e.preventDefault();
-                timeInput.reportValidity();
+                // show a simple alert for cross-browser consistency
+                alert(timeInput.validationMessage || 'Invalid reservation time.');
                 return false;
             }
         });

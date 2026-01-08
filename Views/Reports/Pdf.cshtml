@@ -71,25 +71,119 @@
         </tbody>
     </table>
 
-    <h3>Average Party Size</h3>
-    <p>Average: <strong>@Model.AveragePartySize.AveragePartySize</strong> (Based on @Model.AveragePartySize.Count reservations)</p>
-
-    <h3>Guests vs Customer Reservations</h3>
+    <h3>Key Performance Indicators</h3>
     <table style="width:100%; border-collapse: collapse; margin-top:8px;">
         <thead>
             <tr>
-                <th style="border:1px solid #ddd; padding:8px;">Customer</th>
-                <th style="border:1px solid #ddd; padding:8px;">Total Reservations</th>
+                <th style="border:1px solid #ddd; padding:8px; background-color: #f2f2f2;">Metric</th>
+                <th style="border:1px solid #ddd; padding:8px; background-color: #f2f2f2;">Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Total Reservations</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.TotalReservations</strong></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Total Guests Served</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.TotalGuests</strong></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Confirmed Reservations</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.ConfirmedReservations</strong></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Cancellation Rate</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.CancellationRate%</strong></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Average Booking Lead Time</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.AverageLeadTimeDays days</strong></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Average Party Size</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.AveragePartySize.AveragePartySize</strong> (Based on @Model.AveragePartySize.Count reservations)</td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Walk-in Reservations</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.WalkInCount</strong></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">Pre-booked Reservations</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.PreBookedCount</strong></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">No-show Rate</td>
+                <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.NoShowRate%</strong></td>
+            </tr>
+            @if(Model.BusiestDay != null)
+            {
+                <tr>
+                    <td style="border:1px solid #ddd; padding:8px;">Busiest Day</td>
+                    <td style="border:1px solid #ddd; padding:8px;"><strong>@Model.BusiestDay.Date.ToString("dd/MM/yyyy") (@Model.BusiestDay.DayOfWeek)</strong> - @Model.BusiestDay.ReservationCount reservations</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Reservation Time Distribution</h3>
+    <table style="width:100%; border-collapse: collapse; margin-top:8px;">
+        <thead>
+            <tr>
+                <th style="border:1px solid #ddd; padding:8px;">Time Period</th>
+                <th style="border:1px solid #ddd; padding:8px;">Reservations</th>
                 <th style="border:1px solid #ddd; padding:8px;">Total Guests</th>
             </tr>
         </thead>
         <tbody>
-            @foreach(var g in Model.GuestVsCustomer)
+            @foreach(var time in Model.ReservationTimeDistribution)
             {
                 <tr>
-                    <td style="border:1px solid #ddd; padding:8px;">@g.CustomerName</td>
-                    <td style="border:1px solid #ddd; padding:8px;">@g.TotalReservations</td>
-                    <td style="border:1px solid #ddd; padding:8px;">@g.TotalGuests</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@time.TimeLabel</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@time.Count</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@time.TotalGuests</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Booking Lead Time Distribution</h3>
+    <table style="width:100%; border-collapse: collapse; margin-top:8px;">
+        <thead>
+            <tr>
+                <th style="border:1px solid #ddd; padding:8px;">Timeframe</th>
+                <th style="border:1px solid #ddd; padding:8px;">Count</th>
+                <th style="border:1px solid #ddd; padding:8px;">Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var lead in Model.BookingLeadTime)
+            {
+                <tr>
+                    <td style="border:1px solid #ddd; padding:8px;">@lead.TimeframeLabel</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@lead.Count</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@lead.Percentage%</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Reservation Status Distribution</h3>
+    <table style="width:100%; border-collapse: collapse; margin-top:8px;">
+        <thead>
+            <tr>
+                <th style="border:1px solid #ddd; padding:8px;">Status</th>
+                <th style="border:1px solid #ddd; padding:8px;">Count</th>
+                <th style="border:1px solid #ddd; padding:8px;">Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var status in Model.StatusDistribution)
+            {
+                <tr>
+                    <td style="border:1px solid #ddd; padding:8px;">@status.StatusName</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@status.Count</td>
+                    <td style="border:1px solid #ddd; padding:8px;">@status.Percentage%</td>
                 </tr>
             }
         </tbody>

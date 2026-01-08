@@ -89,7 +89,8 @@
                         <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">schedule</span>
                         @L["Time"] <span style="color: var(--color-primary-red);">*</span>
                     </label>
-                    <input name="ReservationTime" type="time" class="form-control" required value="@ViewBag.ReservationTime" />
+                    <input id="guestTimePicker" type="text" class="form-control" placeholder="HH:mm" required />
+                    <input type="hidden" id="guestTimeHidden" name="ReservationTime" value="@ViewBag.ReservationTime" />
                     @* Validation handled by browser tooltip *@
                 </div>
             </div>
@@ -99,8 +100,9 @@
                     <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">groups</span>
                     @L["Party Size"] <span style="color: var(--color-primary-red);">*</span>
                 </label>
-                <input name="PartySize" type="number" min="1" max="20" class="form-control" 
+                <input id="guestPartySize" name="PartySize" type="number" min="1" max="20" class="form-control" 
                        placeholder="Number of guests" value="@(ViewBag.PartySize ?? 2)" required />
+                <small class="form-text" style="color: var(--color-primary-gold);">@L["Guests can reserve up to 20 people. Sign in to request larger parties."]</small>
             </div>
 
             <!-- Guest-specific fields -->
@@ -287,7 +289,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Time Validation Logic
-    const timeInput = document.querySelector('input[name="ReservationTime"]');
+    const timeInput = document.getElementById('guestTimePicker');
+    const timeHidden = document.getElementById('guestTimeHidden');
     
     function validateTime() {
         if (!timeInput || !timeInput.value) {
@@ -333,7 +336,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (timeInput) {
-        timeInput.addEventListener('input', validateTime);
+        flatpickr(timeInput, {
+            enableTime: true,
+            noCalendar: true,
+            // Hidden field keeps 24-hour HH:mm, visible shows 12-hour AM/PM
+            dateFormat: 'H:i',
+            altInput: true,
+            altFormat: 'h:i K',
+            time_24hr: false,
+            defaultDate: timeHidden?.value || null,
+            onChange: function(selectedDates, dateStr) {
+                if (timeHidden) timeHidden.value = dateStr;
+                validateTime();
+            },
+            onClose: function(selectedDates, dateStr) {
+                if (timeHidden) timeHidden.value = dateStr;
+                validateTime();
+            }
+        });
+        timeInput.addEventListener('input', function(e){ e.preventDefault(); return false; });
         timeInput.addEventListener('change', validateTime);
         
         // Trigger on load
@@ -349,6 +370,32 @@ document.addEventListener('DOMContentLoaded', function() {
             dateInput.addEventListener('input', validateTime);
             dateInput.addEventListener('blur', validateTime);
         }
+    }
+
+    // Party Size validation with alert
+    const partySizeInput = document.getElementById('guestPartySize');
+    if (partySizeInput) {
+        partySizeInput.addEventListener('input', function() {
+            const value = parseInt(this.value, 10);
+            if (value > 20) {
+                this.setCustomValidity('Maximum party size for guests is 20.');
+                alert('For parties larger than 20 people, please sign in or create an account to continue.\n\nCreating an account allows you to:\n• Reserve larger parties\n• Manage your reservations\n• Track reservation history');
+                this.value = 20; // Reset to max allowed
+            } else if (value < 1) {
+                this.setCustomValidity('Party size must be at least 1.');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        partySizeInput.addEventListener('blur', function() {
+            const value = parseInt(this.value, 10);
+            if (isNaN(value) || value < 1) {
+                this.value = 2; // Reset to default
+            } else if (value > 20) {
+                this.value = 20;
+            }
+        });
     }
 
 });

@@ -46,14 +46,16 @@
         <input type="hidden" name="chart4" />
     </form>
 
-    <!-- Top stat cubes (like admin dashboard) -->
+    <!-- Top stat cubes with IMPROVED KPIs -->
     <div class="stats-row-container" style="margin-bottom:var(--spacing-2xl);">
         @{ 
             var stats = new List<FYP.ViewModels.AdminStatViewModel>();
-            var totalReservations = Model.PeakTimes?.Sum(p => p.Count) ?? 0;
-            var topTable = Model.PeakTables?.FirstOrDefault();
-            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "calendar_month", Number = totalReservations.ToString(), Label = "TotalReservations", ColorClass = "stat-cube-gold" });
-            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "table_restaurant", Number = topTable != null ? topTable.TimesUsed.ToString() : "0", Label = "TopTableUses", ColorClass = "stat-cube-green" });
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "calendar_month", Number = Model.TotalReservations.ToString(), Label = "Total Reservations", ColorClass = "stat-cube-gold" });
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "groups", Number = Model.TotalGuests.ToString(), Label = "Total Guests", ColorClass = "stat-cube-blue" });
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "schedule", Number = Model.AverageLeadTimeDays.ToString("F1") + " days", Label = "Avg Booking Lead Time", ColorClass = "stat-cube-purple" });
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "cancel", Number = Model.CancellationRate.ToString("F1") + "%", Label = "Cancellation Rate", ColorClass = "stat-cube-red" });
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "event_available", Number = Model.ConfirmedReservations.ToString(), Label = "Confirmed", ColorClass = "stat-cube-green" });
+            stats.Add(new FYP.ViewModels.AdminStatViewModel { Icon = "table_restaurant", Number = Model.TopTable != null ? Model.TopTable.TimesUsed.ToString() : "0", Label = "Top Table Uses", ColorClass = "stat-cube-orange" });
         }
         @foreach(var s in stats)
         {
@@ -64,57 +66,97 @@
     <div class="row g-4">
         <div class="col-12 col-md-6">
             <div class="admin-stat-card p-3">
-                <h3 class="mb-3">Peak Reservation Times</h3>
+                <h3 class="mb-3 gold-heading">Peak Reservation Times</h3>
                 <div class="chart-wrapper"><canvas id="peakTimesChart"></canvas></div>
-                <div class="mt-2 text-muted small">Data visualisation: peak reservations by hour</div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">Peak reservations by hour of day</div>
             </div>
         </div>
 
         <div class="col-12 col-md-6">
             <div class="admin-stat-card p-3">
-                <h3 class="mb-3">Capacity vs Availability</h3>
+                <h3 class="mb-3 gold-heading">Reservation Time Distribution</h3>
+                <div class="chart-wrapper"><canvas id="timeDistributionChart"></canvas></div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">When customers dine: Breakfast, Lunch, Dinner</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3 gold-heading">Booking Lead Time</h3>
+                <div class="chart-wrapper"><canvas id="leadTimeChart"></canvas></div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">How far in advance reservations are made</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3 gold-heading">Reservation Status</h3>
+                <div class="chart-wrapper"><canvas id="statusChart"></canvas></div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">Distribution by status (Confirmed, Cancelled, etc.)</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3 gold-heading">Capacity vs Availability</h3>
                 <div class="chart-wrapper"><canvas id="capacityChart"></canvas></div>
-                <div class="mt-2 text-muted small">Capacity vs reserved seats over time</div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">Capacity vs reserved seats over time</div>
             </div>
         </div>
 
         <div class="col-12 col-md-6">
             <div class="admin-stat-card p-3">
-                <h3 class="mb-3">Most Frequently Used Tables</h3>
+                <h3 class="mb-3 gold-heading">Most Frequently Used Tables</h3>
                 <div class="chart-wrapper"><canvas id="peakTablesChart"></canvas></div>
-                <div class="mt-2 text-muted small">Most frequently used tables</div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">Table usage frequency</div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="admin-stat-card p-3">
+                <h3 class="mb-3 gold-heading">Busiest Days</h3>
+                <div class="chart-wrapper"><canvas id="peakDaysChart"></canvas></div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">Days with most reservations</div>
             </div>
         </div>
 
         <div class="col-12 col-md-6">
             <div class="admin-stat-card p-3 text-center">
-                <h3 class="mb-3">Average Party Size</h3>
+                <h3 class="mb-3 gold-heading">Average Party Size</h3>
                 <div class="stat-number" style="font-size:2.5rem;">@Model.AveragePartySize.AveragePartySize</div>
                 <div class="text-muted">Based on @Model.AveragePartySize.Count reservations</div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-around">
+                        <div>
+                            <div class="text-muted small">Walk-in</div>
+                            <div class="fw-bold">@Model.WalkInCount</div>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Pre-booked</div>
+                            <div class="fw-bold">@Model.PreBookedCount</div>
+                        </div>
+                        <div>
+                            <div class="text-muted small">No-show Rate</div>
+                            <div class="fw-bold">@Model.NoShowRate%</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="col-12 col-md-6">
             <div class="admin-stat-card p-3">
-                <h3 class="mb-3">Guests vs Customer Reservations</h3>
-                <div class="chart-wrapper"><canvas id="guestCustomerChart"></canvas></div>
-                <div class="mt-2 text-muted small">Reservations and guest counts per customer</div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6">
-            <div class="admin-stat-card p-3">
-                <h3 class="mb-3">Party Size Distribution</h3>
+                <h3 class="mb-3 gold-heading">Party Size Distribution</h3>
                 <div class="chart-wrapper"><canvas id="partySizeChart"></canvas></div>
-                <div class="mt-2 text-muted small">How often each party size occurs</div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">How often each party size occurs</div>
             </div>
         </div>
 
         <div class="col-12 col-md-6">
             <div class="admin-stat-card p-3">
-                <h3 class="mb-3">Weekday × Hour Heatmap</h3>
+                <h3 class="mb-3 gold-heading">Weekday × Hour Heatmap</h3>
                 <div class="chart-wrapper"><canvas id="weekdayHeatmapChart"></canvas></div>
-                <div class="mt-2 text-muted small">Reservations volume by weekday and hour</div>
+                <div class="mt-2 small" style="color: var(--color-primary-gold);">Reservations volume by weekday and hour</div>
             </div>
         </div>
     </div>
@@ -127,9 +169,15 @@
             const peakTimes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PeakTimes));
             const capacity = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CapacityAvailability));
             const peakTables = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PeakTables));
-            const guestCustomer = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GuestVsCustomer));
             const partySize = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PartySizeDistribution));
             const weekdayHeat = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeekdayHeatmap));
+            
+            // NEW METRICS
+            const timeDistribution = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReservationTimeDistribution));
+            const leadTime = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BookingLeadTime));
+            const statusDist = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StatusDistribution));
+            const peakDays = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PeakDays));
+            
             // read theme CSS variables
             function cssVar(name, fallback){
                 try{ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback; } catch { return fallback; }
@@ -140,6 +188,8 @@
             const colorBlue = cssVar('--color-primary-blue', '#3498DB');
             const colorGreen = cssVar('--color-primary-green', '#2ECC71');
             const colorMuted = cssVar('--text-muted', '#6c757d');
+            const colorPurple = '#9B59B6';
+            const colorOrange = '#F39C12';
 
             const commonOptions = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true, position:'bottom', labels:{ boxWidth:12 } }, tooltip: { mode:'index', intersect:false } } };
 
@@ -154,6 +204,57 @@
                     options: Object.assign({}, commonOptions, { scales:{ x: { stacked:false }, y: { beginAtZero:true, ticks:{ precision:0 } } } })
                 });
                 bindResponsive(chart1);
+            })();
+
+            // NEW: Reservation Time Distribution (Breakfast/Lunch/Dinner)
+            (function(){
+                const ctx = document.getElementById('timeDistributionChart').getContext('2d');
+                const labels = timeDistribution.map(t => t.TimeLabel || t.timeLabel);
+                const counts = timeDistribution.map(t => t.Count || t.count);
+                const chart = new Chart(ctx, {
+                    type:'doughnut',
+                    data:{ labels, datasets:[{ data: counts, backgroundColor: [
+                        Chart.helpers.color(colorGold).alpha(0.9).rgbString(),
+                        Chart.helpers.color(colorBlue).alpha(0.9).rgbString(),
+                        Chart.helpers.color(colorPrimary).alpha(0.9).rgbString(),
+                        Chart.helpers.color(colorMuted).alpha(0.7).rgbString()
+                    ] }] },
+                    options: Object.assign({}, commonOptions, { plugins: { legend:{ position:'right' } } })
+                });
+                bindResponsive(chart);
+            })();
+
+            // NEW: Booking Lead Time
+            (function(){
+                const ctx = document.getElementById('leadTimeChart').getContext('2d');
+                const labels = leadTime.map(l => l.TimeframeLabel || l.timeframeLabel);
+                const counts = leadTime.map(l => l.Count || l.count);
+                const chart = new Chart(ctx, {
+                    type:'bar',
+                    data:{ labels, datasets:[{ label:'Reservations', data: counts, backgroundColor: Chart.helpers.color(colorPurple).alpha(0.85).rgbString(), borderColor: colorPurple, borderWidth:1 }] },
+                    options: Object.assign({}, commonOptions, { scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } }, plugins:{ legend:{ display:false } } })
+                });
+                bindResponsive(chart);
+            })();
+
+            // NEW: Status Distribution
+            (function(){
+                const ctx = document.getElementById('statusChart').getContext('2d');
+                const labels = statusDist.map(s => s.StatusName || s.statusName);
+                const counts = statusDist.map(s => s.Count || s.count);
+                const colors = labels.map(l => {
+                    if(l === 'Confirmed') return Chart.helpers.color(colorGreen).alpha(0.9).rgbString();
+                    if(l === 'Cancelled') return Chart.helpers.color(colorPrimary).alpha(0.9).rgbString();
+                    if(l === 'Seated') return Chart.helpers.color(colorBlue).alpha(0.9).rgbString();
+                    if(l === 'Completed') return Chart.helpers.color(colorMuted).alpha(0.7).rgbString();
+                    return Chart.helpers.color(colorOrange).alpha(0.8).rgbString();
+                });
+                const chart = new Chart(ctx, {
+                    type:'pie',
+                    data:{ labels, datasets:[{ data: counts, backgroundColor: colors }] },
+                    options: Object.assign({}, commonOptions, { plugins:{ legend:{ position:'right' } } })
+                });
+                bindResponsive(chart);
             })();
 
             // Capacity Line
@@ -180,16 +281,17 @@
                 bindResponsive(chart3);
             })();
 
-            // Guest vs Customer
+            // NEW: Peak Days
             (function(){
-                const ctx = document.getElementById('guestCustomerChart').getContext('2d');
-                const labels4 = guestCustomer.map(g => (g.CustomerName !== undefined ? g.CustomerName : g.customerName));
-                const chart4 = new Chart(ctx, {
+                const ctx = document.getElementById('peakDaysChart').getContext('2d');
+                const labels = peakDays.map(d => new Date(d.Date || d.date).toLocaleDateString() + ' (' + (d.DayOfWeek || d.dayOfWeek) + ')');
+                const counts = peakDays.map(d => d.ReservationCount || d.reservationCount);
+                const chart = new Chart(ctx, {
                     type:'bar',
-                    data:{ labels: labels4, datasets:[ { label:'Reservations', data: guestCustomer.map(g => (g.TotalReservations !== undefined ? g.TotalReservations : g.totalReservations)), backgroundColor: Chart.helpers.color(colorMuted).alpha(0.85).rgbString() }, { label:'Guests', data: guestCustomer.map(g => (g.TotalGuests !== undefined ? g.TotalGuests : g.totalGuests)), backgroundColor: Chart.helpers.color(colorBlue).alpha(0.75).rgbString() } ] },
-                    options: Object.assign({}, commonOptions, { scales:{ x:{ ticks: { maxRotation: 45, minRotation: 30 } }, y:{ beginAtZero:true } } })
+                    data:{ labels, datasets:[{ label:'Reservations', data: counts, backgroundColor: Chart.helpers.color(colorOrange).alpha(0.85).rgbString(), borderColor: colorOrange, borderWidth:1 }] },
+                    options: Object.assign({}, commonOptions, { scales:{ x:{ ticks:{ maxRotation: 45, minRotation: 30 } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }, plugins:{ legend:{ display:false } } })
                 });
-                bindResponsive(chart4);
+                bindResponsive(chart);
             })();
 
             // Ensure charts resize inside their wrappers and avoid overflow
@@ -236,7 +338,7 @@
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = payload.title.replace(/\s+/g, '') + '.pdf';
+                        a.download = 'Report.pdf';
                         document.body.appendChild(a);
                         a.click();
                         a.remove();

@@ -155,6 +155,134 @@ namespace FYP.Services
             return data;
         }
 
+        // NEW: Reservation Time Distribution (when reservations are FOR - breakfast/lunch/dinner)
+        public async Task<List<ReservationTimeDistributionVM>> GetReservationTimeDistributionAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var q = _context.Reservations.AsQueryable();
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
+
+            var reservations = await q.Select(r => new { r.ReservationTime, r.PartySize }).ToListAsync();
+
+            var distribution = new List<ReservationTimeDistributionVM>
+            {
+                new ReservationTimeDistributionVM { TimeLabel = "Breakfast (6-10 AM)", Count = 0, TotalGuests = 0 },
+                new ReservationTimeDistributionVM { TimeLabel = "Lunch (11 AM-3 PM)", Count = 0, TotalGuests = 0 },
+                new ReservationTimeDistributionVM { TimeLabel = "Dinner (4-10 PM)", Count = 0, TotalGuests = 0 },
+                new ReservationTimeDistributionVM { TimeLabel = "Late Night (After 10 PM)", Count = 0, TotalGuests = 0 }
+            };
+
+            foreach (var r in reservations)
+            {
+                var hour = r.ReservationTime.Hours;
+                if (hour >= 6 && hour < 11)
+                {
+                    distribution[0].Count++;
+                    distribution[0].TotalGuests += r.PartySize;
+                }
+                else if (hour >= 11 && hour < 16)
+                {
+                    distribution[1].Count++;
+                    distribution[1].TotalGuests += r.PartySize;
+                }
+                else if (hour >= 16 && hour < 22)
+                {
+                    distribution[2].Count++;
+                    distribution[2].TotalGuests += r.PartySize;
+                }
+                else
+                {
+                    distribution[3].Count++;
+                    distribution[3].TotalGuests += r.PartySize;
+                }
+            }
+
+            return distribution.Where(d => d.Count > 0).ToList();
+        }
+
+        // NEW: Booking Lead Time (how far in advance are reservations made)
+        public async Task<List<BookingLeadTimeVM>> GetBookingLeadTimeAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var q = _context.Reservations.AsQueryable();
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
+
+            var reservations = await q.Select(r => new { r.CreatedAt, r.ReservedFor }).ToListAsync();
+            var total = reservations.Count;
+            if (total == 0) return new List<BookingLeadTimeVM>();
+
+            var leadTimes = new List<BookingLeadTimeVM>
+            {
+                new BookingLeadTimeVM { TimeframeLabel = "Same Day", Count = 0 },
+                new BookingLeadTimeVM { TimeframeLabel = "1-3 Days Ahead", Count = 0 },
+                new BookingLeadTimeVM { TimeframeLabel = "4-7 Days Ahead", Count = 0 },
+                new BookingLeadTimeVM { TimeframeLabel = "1-2 Weeks Ahead", Count = 0 },
+                new BookingLeadTimeVM { TimeframeLabel = "2+ Weeks Ahead", Count = 0 }
+            };
+
+            foreach (var r in reservations)
+            {
+                var days = (r.ReservedFor.Date - r.CreatedAt.Date).TotalDays;
+                if (days < 1) leadTimes[0].Count++;
+                else if (days <= 3) leadTimes[1].Count++;
+                else if (days <= 7) leadTimes[2].Count++;
+                else if (days <= 14) leadTimes[3].Count++;
+                else leadTimes[4].Count++;
+            }
+
+            leadTimes.ForEach(lt => lt.Percentage = Math.Round((double)lt.Count / total * 100, 1));
+            return leadTimes.Where(lt => lt.Count > 0).ToList();
+        }
+
+        // NEW: Status Distribution
+        public async Task<List<ReservationStatusDistributionVM>> GetStatusDistributionAsync(DateTime? from = null, DateTime? to = null)
+        {
+            var q = _context.Reservations.Include(r => r.ReservationStatus).AsQueryable();
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
+
+            var total = await q.CountAsync();
+            if (total == 0) return new List<ReservationStatusDistributionVM>();
+
+            var distribution = await q
+                .GroupBy(r => r.ReservationStatus.StatusName)
+                .Select(g => new ReservationStatusDistributionVM
+                {
+                    StatusName = g.Key,
+                    Count = g.Count(),
+                    Percentage = Math.Round((double)g.Count() / total * 100, 1)
+                })
+                .OrderByDescending(x => x.Count)
+                .ToListAsync();
+
+            return distribution;
+        }
+
+        // NEW: Peak Days
+        public async Task<List<PeakDayVM>> GetPeakDaysAsync(DateTime? from = null, DateTime? to = null, int topCount = 10)
+        {
+            var q = _context.Reservations.AsQueryable();
+            if (from.HasValue) q = q.Where(r => r.ReservedFor >= from.Value.Date);
+            if (to.HasValue) q = q.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
+
+            var reservations = await q.Select(r => new { r.ReservedFor, r.PartySize }).ToListAsync();
+
+            var peakDays = reservations
+                .GroupBy(r => r.ReservedFor.Date)
+                .Select(g => new PeakDayVM
+                {
+                    Date = g.Key,
+                    DayOfWeek = g.Key.DayOfWeek.ToString(),
+                    ReservationCount = g.Count(),
+                    TotalGuests = g.Sum(x => x.PartySize)
+                })
+                .OrderByDescending(x => x.ReservationCount)
+                .Take(topCount)
+                .ToList();
+
+            return peakDays;
+        }
+
         public async Task<FullReportVM> GetFullReportAsync(DateTime? from = null, DateTime? to = null)
         {
             var full = new FullReportVM
@@ -163,23 +291,63 @@ namespace FYP.Services
                 CapacityAvailability = await GetCapacityAvailabilityAsync(from, to),
                 PeakTables = await GetPeakTablesAsync(from, to),
                 AveragePartySize = await GetAveragePartySizeAsync(from, to),
-                GuestVsCustomer = await GetGuestVsCustomerAsync(from, to)
+                PartySizeDistribution = await GetPartySizeDistributionAsync(from, to),
+                WeekdayHeatmap = await GetWeekdayHeatmapAsync(from, to),
+                
+                // NEW Metrics
+                ReservationTimeDistribution = await GetReservationTimeDistributionAsync(from, to),
+                BookingLeadTime = await GetBookingLeadTimeAsync(from, to),
+                StatusDistribution = await GetStatusDistributionAsync(from, to),
+                PeakDays = await GetPeakDaysAsync(from, to, 7) // Top 7 days
             };
 
             full.FromDate = from;
             full.ToDate = to;
 
-            // KPIs
-            var rQuery = _context.Reservations.AsQueryable();
+            // Improved KPIs
+            var rQuery = _context.Reservations.Include(r => r.ReservationStatus).AsQueryable();
             if (from.HasValue) rQuery = rQuery.Where(r => r.ReservedFor >= from.Value.Date);
             if (to.HasValue) rQuery = rQuery.Where(r => r.ReservedFor < to.Value.Date.AddDays(1));
 
-            full.TotalReservations = await rQuery.CountAsync();
-            full.TotalGuests = await rQuery.SumAsync(r => r.PartySize);
-            full.TotalCustomers = await rQuery.Where(r => r.CustomerID != null).Select(r => r.CustomerID).Distinct().CountAsync();
+            var allReservations = await rQuery.ToListAsync();
+            var total = allReservations.Count;
+
+            full.TotalReservations = total;
+            full.TotalGuests = allReservations.Sum(r => r.PartySize);
+            full.ConfirmedReservations = allReservations.Count(r => r.ReservationStatus.StatusName == "Confirmed");
+            full.CancelledReservations = allReservations.Count(r => r.ReservationStatus.StatusName == "Cancelled");
+            full.CancellationRate = total > 0 ? Math.Round((double)full.CancelledReservations / total * 100, 1) : 0;
+            
+            // Booking lead time average
+            if (allReservations.Any())
+            {
+                var leadTimes = allReservations.Select(r => (r.ReservedFor.Date - r.CreatedAt.Date).TotalDays);
+                full.AverageLeadTimeDays = Math.Round(leadTimes.Average(), 1);
+            }
+
             full.TopTable = full.PeakTables.FirstOrDefault();
-            full.PartySizeDistribution = await GetPartySizeDistributionAsync(from, to);
-            full.WeekdayHeatmap = await GetWeekdayHeatmapAsync(from, to);
+            full.BusiestDay = full.PeakDays.FirstOrDefault();
+            
+            // Table turnovers
+            full.TotalTableTurnovers = await _context.ReservationTables
+                .Where(rt => from.HasValue ? rt.Reservation.ReservedFor >= from.Value.Date : true)
+                .Where(rt => to.HasValue ? rt.Reservation.ReservedFor < to.Value.Date.AddDays(1) : true)
+                .CountAsync();
+
+            // Average guests per day
+            if (from.HasValue && to.HasValue)
+            {
+                var days = (to.Value.Date - from.Value.Date).Days + 1;
+                full.AverageGuestsPerDay = days > 0 ? Math.Round((double)full.TotalGuests / days, 1) : 0;
+            }
+
+            // Walk-in vs Pre-booked
+            full.WalkInCount = allReservations.Count(r => r.ReservationType == false);
+            full.PreBookedCount = allReservations.Count(r => r.ReservationType == true);
+
+            // No-show rate (seated / confirmed ratio)
+            var seatedCount = allReservations.Count(r => r.ReservationStatus.StatusName == "Seated" || r.ReservationStatus.StatusName == "Completed");
+            full.NoShowRate = full.ConfirmedReservations > 0 ? Math.Round((1.0 - ((double)seatedCount / full.ConfirmedReservations)) * 100, 1) : 0;
 
             return full;
         }

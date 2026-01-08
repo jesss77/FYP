@@ -20,19 +20,22 @@ namespace FYP.Controllers
         private readonly IEmailService _emailService;
         private readonly IStringLocalizer<FYP.Localization.SharedResource> _localizer;
         private readonly TableAllocationService _allocationService;
+        private readonly ILogger<CustomerController>? _logger;
 
         public CustomerController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             IEmailService emailService,
             IStringLocalizer<FYP.Localization.SharedResource> localizer,
-            TableAllocationService allocationService)
+            TableAllocationService allocationService,
+            ILogger<CustomerController> logger = null)
         {
             _context = context;
             _userManager = userManager;
             _emailService = emailService;
             _localizer = localizer;
             _allocationService = allocationService;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -122,6 +125,12 @@ namespace FYP.Controllers
 
             _context.Customers.Add(model);
             await _context.SaveChangesAsync();
+
+            // **NEW: Link any existing guest reservations to this customer account**
+            if (!string.IsNullOrWhiteSpace(model.Email))
+            {
+                await LinkGuestReservationsToCustomerAsync(model.Email, model.CustomerID);
+            }
 
             return RedirectToPage("/Account/ConfirmEmail", new { area = "Identity", email = model.Email });
         }
@@ -395,7 +404,7 @@ namespace FYP.Controllers
                 ModelState.AddModelError("ReservationTime", _localizer["Date and time cannot be in the past."].Value);
                 
                 // Repopulate form data for the view
-                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\\:mm");
                 ViewBag.PartySize = PartySize;
                 ViewBag.Notes = Notes;
                 // Date handling might need JS support, but we can try setting it
@@ -413,13 +422,15 @@ namespace FYP.Controllers
                 ModelState.AddModelError("ReservationTime", errorMsg);
                 
                 // Repopulate form data for the view
-                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\:mm");
+                ViewBag.ReservationTime = ReservationTime.ToString(@"HH\\:mm");
                 ViewBag.PartySize = PartySize;
                 ViewBag.Notes = Notes;
                 ViewBag.ReservationDate = ReservationDate;
 
                 return View("MakeReservation", customer);
             }
+
+            // Defer capacity checks to allocation service which accounts for real-time availability and joinable configurations
 
             // Ensure Confirmed status exists
             var confirmedStatus = await _context.ReservationStatuses.FirstOrDefaultAsync(s => s.StatusName == "Confirmed");
@@ -466,7 +477,12 @@ namespace FYP.Controllers
 
             if (!allocation.Success)
             {
-                TempData["Error"] = _localizer[allocation.ErrorMessage ?? "No tables available"].Value;
+                var friendlyMsg = allocation.ErrorMessage;
+                if (string.IsNullOrWhiteSpace(friendlyMsg))
+                {
+                    friendlyMsg = "No tables available at the selected time. Consider joining tables or choosing a different time.";
+                }
+                TempData["Error"] = _localizer[friendlyMsg].Value;
                 return RedirectToAction("MakeReservation");
             }
 
@@ -636,6 +652,67 @@ namespace FYP.Controllers
 
             _context.ReservationLogs.Add(log);
             await _context.SaveChangesAsync();
+        }
+
+        // **NEW: Link existing guest reservations to customer account**
+        private async Task LinkGuestReservationsToCustomerAsync(string email, int customerId)
+        {
+            try
+            {
+                // Find guest record with matching email
+                var guest = await _context.Guests
+                    .Include(g => g.Reservations)
+                    .FirstOrDefaultAsync(g => g.Email.ToLower() == email.ToLower());
+
+                if (guest != null && guest.Reservations != null && guest.Reservations.Any())
+                {
+                    var reservationsLinked = 0;
+
+                    // Transfer all guest reservations to the customer
+                    foreach (var reservation in guest.Reservations.ToList())
+                    {
+                        // Update reservation to link to customer instead of guest
+                        reservation.CustomerID = customerId;
+                        reservation.GuestID = null;
+                        reservation.UpdatedBy = customerId.ToString();
+                        reservation.UpdatedAt = DateTime.UtcNow;
+
+                        reservationsLinked++;
+                    }
+
+                    if (reservationsLinked > 0)
+                    {
+                        await _context.SaveChangesAsync();
+
+                        // Log the linking action for audit trail
+                        foreach (var reservation in guest.Reservations)
+                        {
+                            await LogReservationAction(
+                                reservation.ReservationID,
+                                "LinkedToCustomer",
+                                $"Linked from Guest {guest.GuestID} to Customer {customerId}",
+                                customerId.ToString());
+                        }
+
+                        // Optionally deactivate the guest record since it's now linked to a customer
+                        guest.IsActive = false;
+                        guest.UpdatedBy = customerId.ToString();
+                        guest.UpdatedAt = DateTime.UtcNow;
+                        await _context.SaveChangesAsync();
+
+                        _logger?.LogInformation(
+                            "Linked {Count} guest reservations from {Email} to Customer ID {CustomerId}",
+                            reservationsLinked, email, customerId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail customer creation if linking fails
+                _logger?.LogError(ex,
+                    "Failed to link guest reservations for email {Email} to Customer ID {CustomerId}",
+                    email, customerId);
+            }
         }
     }
 }

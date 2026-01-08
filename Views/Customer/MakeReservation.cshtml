@@ -75,7 +75,8 @@
                         <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">schedule</span>
                         @L["Time"] <span style="color: var(--color-primary-red);">*</span>
                     </label>
-                    <input name="ReservationTime" type="time" class="form-control" required value="@ViewBag.ReservationTime" />
+                    <input id="customerTimePicker" type="text" class="form-control" placeholder="HH:mm" required />
+                    <input type="hidden" id="customerTimeHidden" name="ReservationTime" value="@ViewBag.ReservationTime" />
                     @* Validation handled by browser tooltip *@
                 </div>
             </div>
@@ -85,8 +86,9 @@
                     <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">groups</span>
                     @L["Party Size"] <span style="color: var(--color-primary-red);">*</span>
                 </label>
-                <input name="PartySize" type="number" min="1" max="20" class="form-control" 
+                <input name="PartySize" type="number" min="1" class="form-control" 
                        placeholder="Number of guests" value="@(ViewBag.PartySize ?? 2)" required />
+                <small class="form-text" style="color: var(--color-primary-gold);">@L["Large parties are allowed if capacity is available. Limits are enforced automatically."]</small>
             </div>
 
             <div class="form-group mb-4">
@@ -256,7 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Time Validation Logic
-    const timeInput = document.querySelector('input[name="ReservationTime"]');
+    const timeInput = document.getElementById('customerTimePicker');
+    const timeHidden = document.getElementById('customerTimeHidden');
     
     function validateTime() {
         if (!timeInput || !timeInput.value) {
@@ -302,7 +305,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (timeInput) {
-        timeInput.addEventListener('input', validateTime);
+        flatpickr(timeInput, {
+            enableTime: true,
+            noCalendar: true,
+            // Hidden field keeps 24-hour HH:mm, visible shows 12-hour AM/PM
+            dateFormat: 'H:i',
+            altInput: true,
+            altFormat: 'h:i K',
+            time_24hr: false,
+            defaultDate: timeHidden?.value || null,
+            onChange: function(selectedDates, dateStr) {
+                if (timeHidden) timeHidden.value = dateStr;
+                validateTime();
+            },
+            onClose: function(selectedDates, dateStr) {
+                if (timeHidden) timeHidden.value = dateStr;
+                validateTime();
+            }
+        });
+        timeInput.addEventListener('input', function(e){ e.preventDefault(); return false; });
         timeInput.addEventListener('change', validateTime);
         
         // Trigger on load

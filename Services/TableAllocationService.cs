@@ -365,8 +365,35 @@ namespace FYP.Services
 
             // ========== No suitable allocation found =========
             result.Success = false;
-            result.ErrorMessage = $"Cannot accommodate party of {partySize}. Largest available table capacity is {availableTables.Max(t => t.Capacity)}. Consider joining tables or choosing a different time.";
-            _logger.LogWarning("No suitable allocation found for party of {PartySize}", partySize);
+            
+            // Get restaurant phone number from settings for customer contact
+            var restaurantPhone = await _context.Settings
+                .Where(s => s.Key == "Phone")
+                .Select(s => s.Value)
+                .FirstOrDefaultAsync() ?? "+1 555 123 4567";
+            
+            // Build a helpful, customer-friendly error message
+            var maxSingleTable = availableTables.Max(t => t.Capacity);
+            var totalJoinableCapacity = joinableTables.Sum(t => t.Capacity);
+            
+            if (joinableTables.Any() && totalJoinableCapacity >= partySize)
+            {
+                // Joinable tables exist with enough capacity, but they can't be combined properly
+                result.ErrorMessage = $"We're unable to accommodate a party of {partySize} at the selected time. While we have tables available, they cannot be arranged together for your group size. Please try selecting a different time, or contact us directly at {restaurantPhone} for assistance with large party reservations.";
+            }
+            else if (joinableTables.Any())
+            {
+                // Joinable tables exist but don't have enough combined capacity
+                result.ErrorMessage = $"We're unable to accommodate a party of {partySize} at the selected time. Our maximum capacity for the available tables is {totalJoinableCapacity} guests. Please consider splitting your party, selecting a different time, or contacting us at {restaurantPhone} to discuss options for large groups.";
+            }
+            else
+            {
+                // No joinable tables at all
+                result.ErrorMessage = $"We're unable to accommodate a party of {partySize} at the selected time. Our largest available table seats {maxSingleTable} guests. For parties larger than {maxSingleTable}, please contact us directly at {restaurantPhone} to arrange special seating.";
+            }
+            
+            _logger.LogWarning("No suitable allocation found for party of {PartySize}. Max single: {MaxSingle}, Total joinable: {TotalJoinable}", 
+                partySize, maxSingleTable, totalJoinableCapacity);
             return result;
         }
         private List<Table>? FindBestJoinCombination(
@@ -374,6 +401,13 @@ namespace FYP.Services
             List<TablesJoin> configuredJoins,
             int partySize)
         {
+            _logger.LogInformation("FindBestJoinCombination called with {Count} joinable tables for party of {PartySize}", 
+                joinableTables.Count, partySize);
+            _logger.LogInformation("Joinable table IDs: {TableIds} with capacities: {Capacities}", 
+                string.Join(", ", joinableTables.Select(t => t.TableID)),
+                string.Join(", ", joinableTables.Select(t => t.Capacity)));
+            _logger.LogInformation("Configured joins count: {JoinCount}", configuredJoins.Count);
+            
             // PASS 1: Preferred Joins (Strict Mode)
             // Try to find a combination using ONLY the configured join rules.
             _logger.LogInformation("Pass 1: Attempting to find combination using preferred joins.");
@@ -382,7 +416,8 @@ namespace FYP.Services
 
             if (bestStrict != null)
             {
-                _logger.LogInformation("Found valid combination using preferred joins.");
+                _logger.LogInformation("Found valid combination using preferred joins: {TableIds}", 
+                    string.Join(", ", bestStrict.Select(t => t.TableID)));
                 return bestStrict;
             }
 
@@ -394,10 +429,12 @@ namespace FYP.Services
 
             if (bestPermissive != null)
             {
-                _logger.LogInformation("Found valid combination using permissive fallback.");
+                _logger.LogInformation("Found valid combination using permissive fallback: {TableIds}", 
+                    string.Join(", ", bestPermissive.Select(t => t.TableID)));
                 return bestPermissive;
             }
 
+            _logger.LogWarning("Both Pass 1 and Pass 2 failed to find a joinable combination for party of {PartySize}", partySize);
             return null;
         }
 
@@ -414,7 +451,9 @@ namespace FYP.Services
 
             if (usePermissiveFallback)
             {
-                // Connect every joinable table to every other joinable table
+                // In permissive mode, connect EVERY joinable table to EVERY other joinable table
+                // This allows the system to auto-create joins for any combination during booking
+                _logger.LogInformation("Permissive mode: Building fully connected graph for {Count} joinable tables", joinableTables.Count);
                 foreach (var table1 in joinableTables)
                 {
                     foreach (var table2 in joinableTables)
@@ -425,16 +464,19 @@ namespace FYP.Services
                         }
                     }
                 }
+                _logger.LogInformation("Permissive adjacency built: each table connected to {Count} others", joinableTables.Count - 1);
             }
             else
             {
-                // Only connect tables based on configured joins
+                // Only connect tables based on configured joins in TablesJoins table
+                _logger.LogInformation("Strict mode: Using only configured joins from TablesJoins table");
                 foreach (var join in configuredJoins)
                 {
                     if (adjacency.ContainsKey(join.PrimaryTableID) && adjacency.ContainsKey(join.JoinedTableID))
                     {
                         adjacency[join.PrimaryTableID].Add(join.JoinedTableID);
                         adjacency[join.JoinedTableID].Add(join.PrimaryTableID);
+                        _logger.LogDebug("Added join: Table {Primary} <-> Table {Joined}", join.PrimaryTableID, join.JoinedTableID);
                     }
                 }
             }
@@ -450,13 +492,18 @@ namespace FYP.Services
             List<Table>? bestCombination = null;
             int bestWaste = int.MaxValue;
 
+            _logger.LogInformation("SearchForCombination: Looking for combination for party of {PartySize} from {TableCount} joinable tables", 
+                partySize, joinableTables.Count);
+
             // Search Pairs
+            int pairChecks = 0;
             for (int i = 0; i < joinableTables.Count; i++)
             {
                 for (int j = i + 1; j < joinableTables.Count; j++)
                 {
                     var table1 = joinableTables[i];
                     var table2 = joinableTables[j];
+                    pairChecks++;
 
                     if (adjacency[table1.TableID].Contains(table2.TableID))
                     {
@@ -464,20 +511,31 @@ namespace FYP.Services
                         if (totalCapacity >= partySize)
                         {
                             var waste = totalCapacity - partySize;
+                            _logger.LogDebug("Pair found: Tables {T1}+{T2} = {Cap} capacity, {Waste} waste", 
+                                table1.TableNumber, table2.TableNumber, totalCapacity, waste);
                             if (waste < bestWaste)
                             {
                                 bestWaste = waste;
                                 bestCombination = new List<Table> { table1, table2 };
-                                if (waste == 0) return bestCombination;
+                                if (waste == 0)
+                                {
+                                    _logger.LogInformation("Perfect pair match found (0 waste): Tables {T1}+{T2}", 
+                                        table1.TableNumber, table2.TableNumber);
+                                    return bestCombination;
+                                }
                             }
                         }
                     }
                 }
             }
             
+            _logger.LogInformation("Checked {PairCount} pairs, best so far: {BestDesc}", 
+                pairChecks, bestCombination != null ? $"Tables {string.Join("+", bestCombination.Select(t => t.TableNumber))}" : "none");
+            
             if (bestCombination != null) return bestCombination;
 
             // Search Triplets
+            int tripletChecks = 0;
             for (int i = 0; i < joinableTables.Count; i++)
             {
                 for (int j = i + 1; j < joinableTables.Count; j++)
@@ -487,6 +545,7 @@ namespace FYP.Services
                         var table1 = joinableTables[i];
                         var table2 = joinableTables[j];
                         var table3 = joinableTables[k];
+                        tripletChecks++;
 
                         if (IsConnectedGroup(new[] { table1.TableID, table2.TableID, table3.TableID }, adjacency))
                         {
@@ -494,11 +553,18 @@ namespace FYP.Services
                             if (totalCapacity >= partySize)
                             {
                                 var waste = totalCapacity - partySize;
+                                _logger.LogDebug("Triplet found: Tables {T1}+{T2}+{T3} = {Cap} capacity, {Waste} waste", 
+                                    table1.TableNumber, table2.TableNumber, table3.TableNumber, totalCapacity, waste);
                                 if (waste < bestWaste)
                                 {
                                     bestWaste = waste;
                                     bestCombination = new List<Table> { table1, table2, table3 };
-                                    if (waste == 0) return bestCombination;
+                                    if (waste == 0)
+                                    {
+                                        _logger.LogInformation("Perfect triplet match found (0 waste): Tables {T1}+{T2}+{T3}", 
+                                            table1.TableNumber, table2.TableNumber, table3.TableNumber);
+                                        return bestCombination;
+                                    }
                                 }
                             }
                         }
@@ -506,10 +572,20 @@ namespace FYP.Services
                 }
             }
 
+            _logger.LogInformation("Checked {TripletCount} triplets, best so far: {BestDesc}", 
+                tripletChecks, bestCombination != null ? $"Tables {string.Join("+", bestCombination.Select(t => t.TableNumber))}" : "none");
+
             if (bestCombination != null) return bestCombination;
 
             // Search Quads
-            return FindLargerCombination(joinableTables, adjacency, partySize, 4);
+            _logger.LogInformation("Searching for 4-table combinations...");
+            var quadResult = FindLargerCombination(joinableTables, adjacency, partySize, 4);
+            if (quadResult != null)
+            {
+                _logger.LogInformation("Quad found: Tables {Tables} with capacity {Cap}", 
+                    string.Join("+", quadResult.Select(t => t.TableNumber)), quadResult.Sum(t => t.Capacity));
+            }
+            return quadResult;
         }
 
 

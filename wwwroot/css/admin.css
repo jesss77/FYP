@@ -90,8 +90,29 @@
 .save-btn { flex: 0 0 auto; min-width: 220px; }
 .action-group { display: flex; justify-content: flex-end; align-items: center; gap: var(--spacing-sm); margin-left: auto; }
 .action-group .btn { min-width: 0; flex: 1 1 0; padding: 0.75rem 1rem; }
-.logout-btn { background: var(--color-primary-red) !important; color: #fff !important; border-color: var(--color-primary-red) !important; }
-.cancel-btn { background: var(--bg-secondary) !important; color: var(--text-primary) !important; border-color: var(--border-primary) !important; }
+.logout-btn { 
+    background: var(--color-primary-red) !important; 
+    color: #fff !important; 
+    border-color: var(--color-primary-red) !important;
+    /* Match cancel button sizing */
+    padding: 0.625rem 1rem !important;
+    height: auto !important;
+    min-height: 2.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.cancel-btn { 
+    background: var(--bg-secondary) !important; 
+    color: var(--text-primary) !important; 
+    border-color: var(--border-primary) !important;
+    padding: 0.625rem 1rem !important;
+    height: auto !important;
+    min-height: 2.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
 
 /* Compact variant for settings cards */
 .setting-card-compact .setting-card-header { padding: calc(var(--spacing-md) * 0.6) !important; }
@@ -225,6 +246,70 @@
     .admin-search-form { max-width: 100%; }
     .search-input { min-width: 150px; }
     .stat-cube-inline { min-width: 100%; }
+}
+
+/* ====== PROFILE PICTURE STYLES ====== */
+/* Large profile picture for Create/Edit pages */
+.profile-picture-large {
+    width: 150px;
+    height: 150px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--color-primary-red), var(--color-primary-gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 4px solid var(--bg-card);
+    margin: 0 auto;
+    position: relative;
+}
+
+.profile-picture-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.profile-icon-default {
+    font-size: 4rem;
+    color: white;
+}
+
+/* Small profile picture for dashboard header */
+.profile-picture-small {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--color-primary-red), var(--color-primary-gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 3px solid var(--bg-card);
+    position: relative;
+}
+
+.profile-picture-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.profile-picture-small .material-symbols-outlined {
+    font-size: 2rem;
+    color: white;
+}
+
+/* Ensure consistent sizing across all profile picture displays */
+[data-theme="dark"] .profile-picture-large,
+[data-theme="dark"] .profile-picture-small {
+    border-color: rgba(58, 58, 58, 0.9);
 }
 
 /* Manager dashboard: use slightly smaller cubes to match admin size consistency */
