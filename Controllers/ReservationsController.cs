@@ -51,9 +51,22 @@ namespace FYP.Controllers
             // Date range filter (optional)
             if (fromDate.HasValue || toDate.HasValue)
             {
-                var start = (fromDate ?? DateTime.MinValue).Date;
-                var endExclusive = ((toDate ?? DateTime.MaxValue).Date).AddDays(1);
-                query = query.Where(r => r.ReservedFor >= start && r.ReservedFor < endExclusive);
+                if (fromDate.HasValue && toDate.HasValue)
+                {
+                    var start = fromDate.Value.Date;
+                    var endExclusive = toDate.Value.Date.AddDays(1);
+                    query = query.Where(r => r.ReservedFor >= start && r.ReservedFor < endExclusive);
+                }
+                else if (fromDate.HasValue)
+                {
+                    var start = fromDate.Value.Date;
+                    query = query.Where(r => r.ReservedFor >= start);
+                }
+                else if (toDate.HasValue)
+                {
+                    var endExclusive = toDate.Value.Date.AddDays(1);
+                    query = query.Where(r => r.ReservedFor < endExclusive);
+                }
             }
 
             // Status filter (optional)
@@ -142,10 +155,11 @@ namespace FYP.Controllers
             
             ViewBag.SortBy = sortBy;
             ViewBag.SortDir = sortDir;
-            ViewBag.Search = search ?? "";
-            ViewBag.FromDate = fromDate;
-            ViewBag.ToDate = toDate;
-            ViewBag.Status = status ?? "";
+            // Clear filters in the UI after applying search
+            ViewBag.Search = "";
+            ViewBag.FromDate = null;
+            ViewBag.ToDate = null;
+            ViewBag.Status = "";
 
             // Load statuses for filter dropdown
             ViewBag.Statuses = await _context.ReservationStatuses
