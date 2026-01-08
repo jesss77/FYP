@@ -1,7 +1,9 @@
+using FYP.Data;
 using FYP.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace FYP.Controllers
@@ -10,10 +12,12 @@ namespace FYP.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -45,6 +49,12 @@ namespace FYP.Controllers
         [HttpGet]
         public IActionResult ContactUs()
         {
+            // Get phone number from settings
+            var phoneNumber = _context.Settings
+                .AsNoTracking()
+                .FirstOrDefault(s => s.Key == "Phone")?.Value ?? "+1 555 123 4567";
+            
+            ViewBag.PhoneNumber = phoneNumber;
             return View();
         }
 

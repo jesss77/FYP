@@ -1,0 +1,368 @@
+@page
+@model FYP.Pages.AboutModel
+@{
+    ViewData["Title"] = "About Us";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-container">
+    <!-- Hero Section -->
+    <section class="page-hero">
+        <div class="page-hero-content">
+            <span class="material-symbols-outlined hero-icon">restaurant</span>
+            <h1>About @Model.BrandName</h1>
+            <p class="hero-lead">Crafting memorable dining experiences with passion, quality ingredients, and warm hospitality.</p>
+        </div>
+    </section>
+
+    <!-- Image Gallery -->
+    <section class="gallery-section">
+        <div class="container-custom">
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="/pics/salad.jpg" alt="Fresh seasonal salads" loading="lazy" />
+                    <div class="gallery-overlay">
+                        <span class="gallery-title">Fresh Ingredients</span>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="/pics/pasta.jpg" alt="Artisan pasta dishes" loading="lazy" />
+                    <div class="gallery-overlay">
+                        <span class="gallery-title">Artisan Cuisine</span>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="/pics/pizza.jpg" alt="Wood-fired pizza" loading="lazy" />
+                    <div class="gallery-overlay">
+                        <span class="gallery-title">Wood-Fired Perfection</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Section -->
+    <section class="content-section">
+        <div class="container-custom">
+            <div class="content-card">
+                <div class="content-header">
+                    <h2>Our Story</h2>
+                    <div class="header-underline"></div>
+                </div>
+                <p class="content-text">Founded with a love for great food, <strong>@Model.BrandName</strong> brings together talented chefs, attentive service, and a welcoming atmosphere. Our menu changes with the seasons so we can showcase the best local ingredients and deliver unforgettable dining experiences.</p>
+
+                <div class="content-header" style="margin-top: var(--spacing-3xl);">
+                    <h2>What We Believe In</h2>
+                    <div class="header-underline"></div>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <span class="material-symbols-outlined feature-icon">restaurant</span>
+                        </div>
+                        <h3>Quality Ingredients</h3>
+                        <p>We source fresh, seasonal produce from trusted local suppliers to ensure every dish meets our high standards.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <span class="material-symbols-outlined feature-icon">room_service</span>
+                        </div>
+                        <h3>Thoughtful Service</h3>
+                        <p>Our dedicated team creates an experience that's both professional and personal, making every visit special.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <span class="material-symbols-outlined feature-icon">eco</span>
+                        </div>
+                        <h3>Community Focus</h3>
+                        <p>We care deeply about our neighborhood and the environment, supporting local producers and sustainable practices.</p>
+                    </div>
+                </div>
+
+                <div class="cta-section">
+                    <div class="cta-content">
+                        <h3>Ready to Experience @Model.BrandName?</h3>
+                        <p>Join us for lunch, dinner, or special events. Reserve your table today.</p>
+                    </div>
+                    <div class="cta-actions">
+                        <a class="btn btn-primary" asp-page="/Contact">Contact Us</a>
+                        <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    .page-container {
+        min-height: calc(100vh - var(--header-height, 80px));
+    }
+
+    /* Hero Section */
+    .page-hero {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(230, 57, 70, 0.05));
+        padding: var(--spacing-3xl) var(--spacing-lg);
+        text-align: center;
+        border-bottom: 1px solid var(--border-primary);
+    }
+
+    [data-bs-theme="dark"] .page-hero {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(230, 57, 70, 0.1));
+    }
+
+    .page-hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-icon {
+        font-size: 72px;
+        color: var(--amber, #D4AF37);
+        display: block;
+        margin: 0 auto var(--spacing-lg);
+    }
+
+    .page-hero h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-md);
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+    }
+
+    .hero-lead {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        color: var(--text-secondary);
+        line-height: 1.6;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Gallery Section */
+    .gallery-section {
+        padding: var(--spacing-3xl) 0;
+        background: var(--bg-secondary);
+    }
+
+    [data-bs-theme="dark"] .gallery-section {
+        background: rgba(33, 37, 41, 0.3);
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-xl);
+    }
+
+    .gallery-item {
+        position: relative;
+        height: 280px;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition-base);
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--transition-base);
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.1);
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+        display: flex;
+        align-items: flex-end;
+        padding: var(--spacing-lg);
+        opacity: 0;
+        transition: opacity var(--transition-base);
+    }
+
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    .gallery-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Content Section */
+    .content-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .content-card {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: var(--bg-card);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-3xl) var(--spacing-2xl);
+        box-shadow: var(--shadow-lg);
+    }
+
+    [data-bs-theme="dark"] .content-card {
+        background: rgba(58, 58, 58, 0.7);
+        backdrop-filter: blur(12px);
+    }
+
+    .content-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .content-header h2 {
+        font-size: clamp(1.75rem, 4vw, 2.25rem);
+        font-weight: 700;
+        color: var(--amber, #D4AF37);
+        margin-bottom: var(--spacing-sm);
+        font-family: var(--font-display);
+    }
+
+    .header-underline {
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--amber, #D4AF37), transparent);
+        margin: 0 auto;
+        border-radius: var(--radius-full);
+    }
+
+    .content-text {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Features Grid */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-xl);
+        margin-top: var(--spacing-2xl);
+    }
+
+    .feature-card {
+        background: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        transition: all var(--transition-base);
+        border: 1px solid var(--border-primary);
+    }
+
+    [data-bs-theme="dark"] .feature-card {
+        background: rgba(45, 45, 45, 0.6);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--amber, #D4AF37);
+    }
+
+    .feature-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--amber, #D4AF37), rgba(212, 175, 55, 0.8));
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--spacing-lg);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    .feature-icon {
+        font-size: 40px;
+        color: white;
+    }
+
+    .feature-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .feature-card p {
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        margin-top: var(--spacing-3xl);
+        padding-top: var(--spacing-3xl);
+        border-top: 2px solid var(--border-primary);
+        text-align: center;
+    }
+
+    .cta-content h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .cta-content p {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .cta-actions {
+        display: flex;
+        gap: var(--spacing-md);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    @@media (max-width: 768px) {
+        .page-hero {
+            padding: var(--spacing-2xl) var(--spacing-md);
+        }
+
+        .content-card {
+            padding: var(--spacing-2xl) var(--spacing-lg);
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .gallery-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cta-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .cta-actions .btn {
+            width: 100%;
+        }
+    }
+</style>

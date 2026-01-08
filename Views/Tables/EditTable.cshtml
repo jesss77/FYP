@@ -4,13 +4,18 @@
 @{
     ViewData["Title"] = L["Edit Table"];
     Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    // Choose back target based on role
+    var backUrl = User.IsInRole("admin") ? Url.Action("Index", "Admin") : Url.Action("Index", "Manager");
 }
 
 <div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 800px; margin: 0 auto;">
-    <div class="card shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-xl);">
-        <div class="card-header" style="border-bottom: 1px solid var(--border-primary); padding: var(--spacing-xl);">
-            <h3 class="mb-0 gold-heading" style="font-size: 1.75rem;">@ViewData["Title"]</h3>
-        </div>
+<partial name="~/Views/Shared/_BackButton.cshtml" model='@Url.Action("Tables", "Tables")' />
+
+<div class="card shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-xl);">
+    <div class="card-header" style="border-bottom: 1px solid var(--border-primary); padding: var(--spacing-xl);">
+        <h3 class="mb-0 gold-heading" style="font-size: 1.75rem;">@ViewData["Title"]</h3>
+    </div>
 
         <div class="card-body" style="padding: var(--spacing-2xl);">
             <form asp-action="EditTable" method="post">

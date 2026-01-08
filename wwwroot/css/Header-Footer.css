@@ -320,11 +320,6 @@
     z-index: 0;
 }
 
-[data-theme="dark"] .footer {
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-primary);
-}
-
 [data-theme="dark"] .footer::before {
     opacity: 0.1;
 }

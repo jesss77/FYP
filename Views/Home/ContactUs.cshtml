@@ -1,60 +1,219 @@
 ﻿@{
     ViewData["Title"] = L["Contact Us Title"];
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var phoneNumber = ViewBag.PhoneNumber as string ?? "+1 555 123 4567";
+    var phoneLink = "tel:" + phoneNumber.Replace(" ", "").Replace("-", "");
 }
 
-<!-- Contact Hero Section -->
-<section class="contact-hero-section">
-    <div class="contact-hero-overlay"></div>
-    <div class="contact-hero-content">
-        <h1 class="contact-hero-title">@L["Contact Us Title"]</h1>
-        <p class="contact-hero-subtitle">@L["We'd love to hear from you. Reach out to us through any of the channels below."]</p>
-    </div>
-</section>
+<div class="page-container">
+    <!-- Hero Section -->
+    <section class="page-hero">
+        <div class="page-hero-content">
+            <span class="material-symbols-outlined hero-icon">mail</span>
+            <h1>@L["Contact Us Title"]</h1>
+            <p class="hero-lead">@L["We'd love to hear from you. Reach out to us through any of the channels below."]</p>
+        </div>
+    </section>
 
-<!-- Contact Information Section -->
-<section class="section section-bg-primary">
-    <div class="container-custom">
-        <div class="contact-grid">
-            <div class="contact-card glassmorphic-card">
-                <div class="contact-icon">
-                    <img src="~/pics/icons/phone.svg" asp-append-version="true" alt="Phone" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/phone.png")'" />
+    <!-- Contact Information Section -->    
+    <section class="contact-section">
+        <div class="container-custom">
+            <div class="contact-grid-modern">
+                <div class="contact-card glassmorphic-card">
+                    <div class="contact-icon-wrapper">
+                        <span class="material-symbols-outlined">call</span>
+                    </div>
+                    <h3 class="contact-card-title">@L["Call us on"]</h3>
+                    <p class="contact-card-text">
+                        <a href="@phoneLink" class="contact-link">@phoneNumber</a>
+                    </p>
+                    <p class="contact-card-note">@L["Mon-Sat: 10:00 AM - 10:00 PM"]</p>
                 </div>
-                <h3 class="contact-card-title">@L["Call us on"]</h3>
-                <p class="contact-card-text">
-                    <a href="tel:+96181468864" class="contact-link">+961 81 468 864</a>
-                </p>
-            </div>
 
-            <div class="contact-card glassmorphic-card">
-                <div class="contact-icon">
-                    <img src="~/pics/icons/mail.svg" asp-append-version="true" alt="Email" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/mail.png")'" />
+                <div class="contact-card glassmorphic-card">
+                    <div class="contact-icon-wrapper">
+                        <span class="material-symbols-outlined">mail</span>
+                    </div>
+                    <h3 class="contact-card-title">@L["E-mail us at"]</h3>
+                    <p class="contact-card-text">
+                        <a href="mailto:fineoodine@gmail.com" class="contact-link">fineoodine@gmail.com</a>
+                    </p>
+                    <p class="contact-card-note">@L["We'll respond within 24 hours"]</p>
                 </div>
-                <h3 class="contact-card-title">@L["E-mail us at"]</h3>
-                <p class="contact-card-text">
-                    <a href="mailto:FineODine@gmail.com" class="contact-link">FineODine@gmail.com</a>
-                </p>
-            </div>
 
-            <div class="contact-card glassmorphic-card">
-                <div class="contact-icon">
-                    <img src="~/pics/icons/insta.svg" asp-append-version="true" alt="Instagram" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/insta.png")'" />
+                <div class="contact-card glassmorphic-card">
+                    <div class="contact-icon-wrapper">
+                        <span class="material-symbols-outlined">photo_camera</span>
+                    </div>
+                    <h3 class="contact-card-title">@L["Follow us on Instagram"]</h3>
+                    <p class="contact-card-text">
+                        <a href="https://www.instagram.com/Fine_O_Dine" target="_blank" rel="noopener noreferrer" class="contact-link">@@Fine_O_Dine</a>
+                    </p>
+                    <p class="contact-card-note">@L["See our latest dishes"]</p>
                 </div>
-                <h3 class="contact-card-title">@L["Follow us on Instagram"]</h3>
-                <p class="contact-card-text">
-                    <a href="https://www.instagram.com/Fine_O_Dine" target="_blank" rel="noopener noreferrer" class="contact-link">@@Fine_O_Dine</a>
-                </p>
-            </div>
 
-            <div class="contact-card glassmorphic-card">
-                <div class="contact-icon">
-                    <img src="~/pics/icons/fb.svg" asp-append-version="true" alt="Facebook" class="contact-icon-img" onerror="this.onerror=null;this.src='@Url.Content("~/pics/icons/fb.png")'" />
+                <div class="contact-card glassmorphic-card">
+                    <div class="contact-icon-wrapper">
+                        <span class="material-symbols-outlined">thumb_up</span>
+                    </div>
+                    <h3 class="contact-card-title">@L["Follow us on Facebook"]</h3>
+                    <p class="contact-card-text">
+                        <a href="https://www.facebook.com/Fine_O_Dine" target="_blank" rel="noopener noreferrer" class="contact-link">Fine_O_Dine</a>
+                    </p>
+                    <p class="contact-card-note">@L["Join our community"]</p>
                 </div>
-                <h3 class="contact-card-title">@L["Follow us on Facebook"]</h3>
-                <p class="contact-card-text">
-                    <a href="https://www.facebook.com/Fine_O_Dine" target="_blank" rel="noopener noreferrer" class="contact-link">Fine_O_Dine</a>
-                </p>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+</div>
+
+<style>
+    .page-container {
+        min-height: calc(100vh - var(--header-height, 80px));
+    }
+
+    /* Hero Section */
+    .page-hero {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(230, 57, 70, 0.05));
+        padding: var(--spacing-3xl) var(--spacing-lg);
+        text-align: center;
+        border-bottom: 1px solid var(--border-primary);
+    }
+
+    [data-bs-theme="dark"] .page-hero {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(230, 57, 70, 0.1));
+    }
+
+    .page-hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-icon {
+        font-size: 72px;
+        color: var(--amber, #D4AF37);
+        display: block;
+        margin: 0 auto var(--spacing-lg);
+    }
+
+    .page-hero h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-md);
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+    }
+
+    .hero-lead {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* Contact Section */
+    .contact-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .contact-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-xl);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .contact-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-primary);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        transition: all var(--transition-base);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    [data-bs-theme="dark"] .contact-card {
+        background: rgba(58, 58, 58, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-color: rgba(85, 85, 85, 0.4);
+    }
+
+    .contact-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--amber, #D4AF37);
+    }
+
+    .contact-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--amber, #D4AF37), rgba(212, 175, 55, 0.8));
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        flex-shrink: 0;
+    }
+
+    .contact-icon-wrapper .material-symbols-outlined {
+        font-size: 40px;
+        color: white;
+    }
+
+    .contact-card-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        font-family: var(--font-display);
+    }
+
+    .contact-card-text {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .contact-card-note {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin: 0;
+        font-style: italic;
+    }
+
+    .contact-link {
+        color: var(--amber, #D4AF37);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all var(--transition-base);
+        display: inline-block;
+    }
+
+    .contact-link:hover {
+        color: var(--color-primary-red, #E63946);
+        text-decoration: underline;
+        transform: translateY(-2px);
+    }
+
+    @@media (max-width: 768px) {
+        .page-hero {
+            padding: var(--spacing-2xl) var(--spacing-md);
+        }
+
+        .contact-grid-modern {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-card {
+            padding: var(--spacing-xl);
+        }
+    }
+</style>

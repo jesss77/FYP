@@ -1,0 +1,530 @@
+@{
+    ViewData["Title"] = "Reservations Calendar";
+    var selectedDate = ViewData["SelectedDate"] as DateTime? ?? DateTime.UtcNow.Date;
+}
+
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1400px; margin: 0 auto;">
+    <!-- Header with View Toggle -->
+    <div style="margin-bottom: var(--spacing-2xl);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md);">
+            <h1 class="gold-heading" style="font-size: 2rem; margin: 0;">
+                Reservations Calendar
+            </h1>
+            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items-center;">
+                <!-- View Toggle -->
+                <div class="btn-group" role="group">
+                    <a asp-controller="Reservations" asp-action="Index" class="btn btn-secondary" style="border-radius: var(--radius-md) 0 0 var(--radius-md);">
+                        <span class="material-symbols-outlined" style="font-size: 1.125rem;">list</span>
+                        List
+                    </a>
+                    <a asp-controller="Reservations" asp-action="Calendar" class="btn btn-primary" style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                        <span class="material-symbols-outlined" style="font-size: 1.125rem;">calendar_view_month</span>
+                        Calendar
+                    </a>
+                </div>
+                <a asp-controller="Reservations" asp-action="CreateWalkIn" class="btn btn-gold">
+                    <span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: var(--spacing-xs);">person_add</span>
+                    New Walk-In
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger" style="margin-bottom: var(--spacing-xl); border-radius: var(--radius-lg);">@TempData["Error"]</div>
+    }
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success" style="margin-bottom: var(--spacing-xl); border-radius: var(--radius-lg);">@TempData["Message"]</div>
+    }
+
+    <!-- Date Picker -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+        <form asp-controller="Reservations" asp-action="Calendar" method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="date" class="form-label" style="font-weight: 600; color: var(--text-primary);">Select Date</label>
+                <input type="date" name="date" id="date" class="form-control" 
+                       style="padding: 0.875rem 1rem; border: 2px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-primary);"
+                       value="@selectedDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">
+                    <span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: var(--spacing-xs);">search</span>
+                    Go
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Status Legend -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-md); align-items: center;">
+            <span style="font-weight: 600; color: var(--text-primary);">Status:</span>
+            <span class="status-badge event-confirmed-badge">Confirmed</span>
+            <span class="status-badge event-seated-badge">Seated</span>
+            <span class="status-badge event-completed-badge">Completed</span>
+            <span class="status-badge event-cancelled-badge">Cancelled</span>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); padding: var(--spacing-lg); box-shadow: var(--shadow-lg);">
+        <div class="calendar-scroll-wrapper">
+            <div id="reservationCalendar"></div>
+        </div>
+    </div>
+
+    <!-- Reservation Detail Modal -->
+    <div class="modal fade reservation-modal" id="reservationDetailModal" tabindex="-1" aria-labelledby="reservationDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reservationDetailModalLabel">Reservation Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Guest</dt>
+                        <dd class="col-sm-8" id="modalGuestName"></dd>
+
+                        <dt class="col-sm-4">Party Size</dt>
+                        <dd class="col-sm-8" id="modalPartySize"></dd>
+
+                        <dt class="col-sm-4">Current Table(s)</dt>
+                        <dd class="col-sm-8" id="modalTable"></dd>
+
+                        <dt class="col-sm-4">Time</dt>
+                        <dd class="col-sm-8" id="modalTime"></dd>
+
+                        <dt class="col-sm-4">Duration</dt>
+                        <dd class="col-sm-8" id="modalDuration"></dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8"><span class="status-badge" id="modalStatusBadge"></span></dd>
+                    </dl>
+
+                    <!-- Action Buttons Section -->
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--border-primary);">
+                        <h6 style="color: var(--text-primary); margin-bottom: 0.75rem; font-weight: 600;">
+                            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.25rem; margin-right: 0.5rem;">settings</span>
+                            Reservation Actions
+                        </h6>
+
+                        <div class="d-grid gap-2">
+                            <!-- Change Table Button (Always Visible) -->
+                            <button type="button" class="btn btn-lg btn-outline-primary" id="btnShowChangeTable">
+                                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.25rem; margin-right: 0.5rem;">swap_horiz</span>
+                                Change Assigned Table
+                            </button>
+
+                            <!-- Status Action Buttons Container -->
+                            <div id="statusActionButtons" class="d-grid gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Change Table Section (Initially Hidden) -->
+                    <div id="changeTableSection" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(212, 175, 55, 0.05); border: 2px dashed var(--color-primary-gold); border-radius: 0.75rem;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0" style="color: var(--color-primary-gold); font-weight: 700;">
+                                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.25rem; margin-right: 0.5rem;">swap_horiz</span>
+                                Select New Table Assignment
+                            </h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCancelChangeTable">
+                                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">close</span>
+                                Cancel
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info d-flex align-items-start mb-3" style="font-size: 0.9rem;">
+                            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.5rem; margin-right: 0.75rem; flex-shrink: 0;">info</span>
+                            <span>Only tables available during this reservation's time slot will be displayed below.</span>
+                        </div>
+
+                        <form id="changeTableForm" method="post" asp-controller="Employee" asp-action="ChangeAssignedTable">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="reservationId" id="changeTableReservationId" />
+                            <input type="hidden" id="reservationDate" />
+                            <input type="hidden" id="reservationTime" />
+                            <input type="hidden" id="reservationDuration" />
+
+                            <div class="mb-3">
+                                <label for="tableSelection" class="form-label fw-bold">
+                                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">table_restaurant</span>
+                                    Select Available Table
+                                </label>
+                                <select name="tableSelection" id="tableSelection" class="form-select form-select-lg" required>
+                                    <option value="">-- Loading available tables... --</option>
+                                </select>
+                                <div class="form-text mt-2">
+                                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem; margin-right: 0.25rem;">schedule</span>
+                                    Tables are filtered based on the reservation's date, time, and duration
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-lg btn-primary">
+                                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.25rem; margin-right: 0.5rem;">check_circle</span>
+                                    Confirm Table Change
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="btnCancelChangeTable2">
+                                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem; margin-right: 0.25rem;">close</span>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="statusUpdateForm" method="post" asp-controller="Employee" asp-action="UpdateStatus" asp-route-returnTo="Calendar">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="reservationId" id="statusReservationId" />
+    <input type="hidden" name="statusId" id="statusIdField" />
+</form>
+
+@* ...existing styles... *@
+<style>
+    /* Event status colors */
+    .event-confirmed { 
+        background-color: #198754 !important; 
+        border-color: #198754 !important; 
+    }
+    .event-seated { 
+        background-color: #0dcaf0 !important; 
+        border-color: #0dcaf0 !important; 
+    }
+    .event-completed { 
+        background-color: #6c757d !important; 
+        border-color: #6c757d !important; 
+    }
+    .event-cancelled { 
+        background-color: #dc3545 !important; 
+        border-color: #dc3545 !important; 
+    }
+
+    /* Legend badges */
+    .event-confirmed-badge { background-color: #198754; color: #fff; }
+    .event-seated-badge { background-color: #0dcaf0; color: #000; }
+    .event-completed-badge { background-color: #6c757d; color: #fff; }
+    .event-cancelled-badge { background-color: #dc3545; color: #fff; }
+
+    /* Modal theming */
+    .reservation-modal .modal-content {
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .reservation-modal .modal-header,
+    .reservation-modal .modal-footer {
+        border-color: var(--border-primary);
+    }
+
+    .reservation-modal .modal-title {
+        color: var(--text-heading);
+    }
+
+    .reservation-modal dt {
+        color: var(--text-secondary);
+    }
+
+    .reservation-modal dd {
+        color: var(--text-primary);
+    }
+
+    /* Horizontal scroll for tables */
+    .calendar-scroll-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    #reservationCalendar .fc-timegrid-cols,
+    #reservationCalendar .fc-timegrid-body,
+    #reservationCalendar .fc-timegrid-slots {
+        min-width: 1600px;
+    }
+
+    #reservationCalendar .fc-timegrid-col {
+        min-width: 220px;
+    }
+
+    #reservationCalendar .fc-timegrid-slot {
+        height: 3rem;
+    }
+
+    #reservationCalendar .fc-event {
+        font-size: 1rem;
+        padding: 6px 10px;
+    }
+
+    #reservationCalendar .fc-col-header-cell-cushion {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.95rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const resourcesJsonString = '@Html.Raw(ViewData["ResourcesJson"])';
+        const eventsJsonString = '@Html.Raw(ViewData["EventsJson"])';
+        const businessDayStart = '@(ViewData["BusinessDayStart"] ?? "09:00:00")';
+        const businessDayEnd = '@(ViewData["BusinessDayEnd"] ?? "22:00:00")';
+        const selectedDateStr = '@selectedDate.ToString("yyyy-MM-dd")';
+
+        let resourcesData, eventsData;
+
+        try {
+            resourcesData = JSON.parse(resourcesJsonString);
+            eventsData = JSON.parse(eventsJsonString);
+        } catch (e) {
+            console.error('JSON parsing error:', e);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('reservationCalendar');
+            const modalElement = document.getElementById('reservationDetailModal');
+            const reservationModal = new bootstrap.Modal(modalElement);
+            let currentReservationId = null;
+            let currentReservationData = null;
+
+            if (!calendarEl) {
+                console.error('Calendar element not found!');
+                return;
+            }
+
+            // Change Table UI Handlers
+            const btnShowChangeTable = document.getElementById('btnShowChangeTable');
+            const btnCancelChangeTable = document.getElementById('btnCancelChangeTable');
+            const btnCancelChangeTable2 = document.getElementById('btnCancelChangeTable2');
+            const changeTableSection = document.getElementById('changeTableSection');
+
+            if (btnShowChangeTable) {
+                btnShowChangeTable.addEventListener('click', function () {
+                    changeTableSection.style.display = 'block';
+                    btnShowChangeTable.style.display = 'none';
+                    loadAvailableTables();
+                });
+            }
+
+            function hideChangeTable() {
+                changeTableSection.style.display = 'none';
+                if (btnShowChangeTable) btnShowChangeTable.style.display = 'block';
+            }
+
+            if (btnCancelChangeTable) {
+                btnCancelChangeTable.addEventListener('click', hideChangeTable);
+            }
+
+            if (btnCancelChangeTable2) {
+                btnCancelChangeTable2.addEventListener('click', hideChangeTable);
+            }
+
+            async function loadAvailableTables() {
+                if (!currentReservationData) return;
+
+                const tableSelect = document.getElementById('tableSelection');
+                tableSelect.innerHTML = '<option value="">Loading available tables...</option>';
+
+                try {
+                    const url = `/ReservationCalendar/GetAvailableTables?date=${encodeURIComponent(currentReservationData.date)}&time=${encodeURIComponent(currentReservationData.time)}&duration=${currentReservationData.duration}&currentReservationId=${currentReservationId}`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        tableSelect.innerHTML = '<option value="">-- Select a table --</option>';
+
+                        if (data.singleTables && data.singleTables.length > 0) {
+                            const singleGroup = document.createElement('optgroup');
+                            singleGroup.label = 'Single Tables';
+                            data.singleTables.forEach(table => {
+                                const option = document.createElement('option');
+                                option.value = `single_${table.id}`;
+                                option.textContent = `Table ${table.number} (Capacity: ${table.capacity})`;
+                                singleGroup.appendChild(option);
+                            });
+                            tableSelect.appendChild(singleGroup);
+                        }
+
+                        if (data.joinedTables && data.joinedTables.length > 0) {
+                            const joinedGroup = document.createElement('optgroup');
+                            joinedGroup.label = 'Joined Tables';
+                            data.joinedTables.forEach(join => {
+                                const option = document.createElement('option');
+                                option.value = `joined_${join.primaryId}_${join.joinedId}`;
+                                option.textContent = `Tables ${join.primaryNumber} + ${join.joinedNumber} (Total Capacity: ${join.totalCapacity})`;
+                                joinedGroup.appendChild(option);
+                            });
+                            tableSelect.appendChild(joinedGroup);
+                        }
+
+                        if ((!data.singleTables || data.singleTables.length === 0) && (!data.joinedTables || data.joinedTables.length === 0)) {
+                            tableSelect.innerHTML = '<option value="">No tables available for this time slot</option>';
+                        }
+                    } else {
+                        tableSelect.innerHTML = '<option value="">Error loading tables</option>';
+                        console.error('Error loading tables:', data.message);
+                    }
+                } catch (error) {
+                    tableSelect.innerHTML = '<option value="">Error loading tables</option>';
+                    console.error('Error fetching available tables:', error);
+                }
+            }
+
+            function onEventClick(info) {
+                var event = info.event;
+                currentReservationId = event.id;
+
+                // For multiple tables (if you use resources), adapt as needed
+                var tableDisplay = event.extendedProps.tableDisplay || 'N/A';
+
+                // Calculate duration in minutes
+                var durationMinutes = Math.round((event.end - event.start) / (1000 * 60));
+
+                currentReservationData = {
+                    date: event.start.toISOString().split('T')[0],
+                    time: event.start.toTimeString().split(' ')[0].substring(0, 5),
+                    duration: durationMinutes
+                };
+
+                document.getElementById('reservationDate').value = currentReservationData.date;
+                document.getElementById('reservationTime').value = currentReservationData.time;
+                document.getElementById('reservationDuration').value = currentReservationData.duration;
+
+                document.getElementById('modalGuestName').textContent = event.title;
+                document.getElementById('modalPartySize').textContent = event.extendedProps.partySize || '';
+                document.getElementById('modalTable').textContent = tableDisplay;
+                document.getElementById('modalTime').textContent =
+                    event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+                    ' - ' +
+                    event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('modalDuration').textContent = durationMinutes + ' minutes';
+                document.getElementById('modalStatusBadge').textContent = event.extendedProps.status || '';
+
+                document.getElementById('changeTableReservationId').value = currentReservationId;
+                hideChangeTable();
+                document.getElementById('tableSelection').innerHTML = '<option value="">-- Select a table --</option>';
+
+                renderStatusButtons(event.extendedProps.status, event.extendedProps.isWalkIn);
+                reservationModal.show();
+            }
+
+            function renderStatusButtons(status, isWalkIn) {
+                const container = document.getElementById('statusActionButtons');
+                container.innerHTML = '';
+
+                const actions = [];
+
+                if (status === 'Confirmed') {
+                    actions.push({
+                        label: 'Mark as Seated',
+                        icon: 'event_seat',
+                        statusId: 3,
+                        confirmText: 'Are you sure the table is seated?',
+                        variant: 'success'
+                    });
+                }
+
+                if (status === 'Seated') {
+                    actions.push({
+                        label: 'Mark as Completed',
+                        icon: 'check_circle',
+                        statusId: 4,
+                        confirmText: 'Are you sure the reservation is completed?',
+                        variant: 'info'
+                    });
+                }
+
+                if (status === 'Confirmed') {
+                    actions.push({
+                        label: 'Cancel Reservation',
+                        icon: 'cancel',
+                        statusId: 5,
+                        confirmText: 'Are you sure you want to cancel this reservation?',
+                        variant: 'danger'
+                    });
+                }
+
+                if (actions.length === 0) {
+                    container.innerHTML = '<p class="text-muted mb-0 text-center" style="font-size: 0.875rem; font-style: italic;">No status changes available for this reservation.</p>';
+                    return;
+                }
+
+                actions.forEach(action => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `btn btn-${action.variant || 'primary'}`;
+                    btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.25rem; margin-right: 0.5rem;">${action.icon}</span>${action.label}`;
+                    btn.addEventListener('click', function () {
+                        if (confirm(action.confirmText)) {
+                            document.getElementById('statusReservationId').value = currentReservationId;
+                            document.getElementById('statusIdField').value = action.statusId;
+                            document.getElementById('statusUpdateForm').submit();
+                        }
+                    });
+                    container.appendChild(btn);
+                });
+            }
+
+            // Initialize FullCalendar
+            try {
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+                    initialView: 'resourceTimeGridDay',
+                    initialDate: selectedDateStr,
+
+                    resources: resourcesData,
+                    events: eventsData,
+
+                    headerToolbar: {
+                        left: 'today',
+                        center: 'title',
+                        right: ''
+                    },
+                    customButtons: {
+                        today: {
+                            text: 'Today',
+                            click: function() { calendar.today(); }
+                        }
+                    },
+                    resourceLabelDidMount: function(info) {
+                        var capacity = info.resource.extendedProps.capacity;
+                        if (capacity) {
+                            info.el.setAttribute('title', 'Capacity: ' + capacity);
+                        }
+                    },
+
+                    slotMinTime: businessDayStart,
+                    slotMaxTime: businessDayEnd,
+                    slotDuration: '00:30:00',
+                    height: 700,
+                    allDaySlot: false,
+                    resourceOrder: 'order',
+
+                    eventClick: onEventClick,
+
+                    eventDidMount: function(info) {
+                        var className = info.event.extendedProps.className || info.event.classNames[0];
+                        if (className) {
+                            info.el.classList.add(className);
+                        }
+                    }
+                });
+
+                calendar.render();
+                console.log('Calendar rendered successfully');
+
+            } catch (e) {
+                console.error('Calendar initialization error:', e);
+                calendarEl.innerHTML = '<div class="alert alert-danger">Error loading calendar: ' + e.message + '</div>';
+            }
+        });
+    </script>
+}

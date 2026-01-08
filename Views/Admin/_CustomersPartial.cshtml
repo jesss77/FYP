@@ -50,6 +50,20 @@
                                         <span class="material-symbols-outlined">edit</span>
                                         @L["Edit"]
                                     </a>
+                                    @if (c.IsActive)
+                                    {
+                                        <a class="action-btn action-deactivate" href="@Url.Action("ToggleCustomerStatus", "Admin", new { id = c.CustomerID })" title="@L["Deactivate"]">
+                                            <span class="material-symbols-outlined">block</span>
+                                            @L["Deactivate"]
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="action-btn action-activate" href="@Url.Action("ToggleCustomerStatus", "Admin", new { id = c.CustomerID })" title="@L["Activate"]">
+                                            <span class="material-symbols-outlined">check_circle</span>
+                                            @L["Activate"]
+                                        </a>
+                                    }
                                     <button class="action-btn action-delete" 
                                             onclick="if(confirm('@L["Are you sure you want to delete {0} {1}? This action cannot be undone.", c.FirstName, c.LastName]')) window.location.href='@Url.Action("DeleteUser", "Admin", new { id = c.CustomerID, role = "customer" })'"
                                             title="@L["Delete"]">

@@ -1,0 +1,422 @@
+@model FYP.Models.Employee
+@{
+    ViewData["Title"] = "Reservations";
+    var todayReservations = ViewBag.TodayReservations as IEnumerable<FYP.Models.Reservation>;
+    var todayDate = ViewBag.TodayDate as DateTime? ?? DateTime.UtcNow.Date;
+    var allReservations = ViewBag.AllReservations as IEnumerable<FYP.Models.Reservation>;
+    var sortBy = ViewBag.SortBy as string ?? "date";
+    var sortDir = ViewBag.SortDir as string ?? "desc";
+    var search = ViewBag.Search as string ?? "";
+    var fromDate = ViewBag.FromDate as DateTime?;
+    var toDate = ViewBag.ToDate as DateTime?;
+    var isManager = User.IsInRole("manager");
+}
+
+<div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1200px; margin: 0 auto;">
+    @if (isManager)
+    {
+        <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index", "Manager")" />
+    }
+    else
+    {
+        <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index", "Employee")" />
+    }
+    
+    <!-- Header with View Toggle -->
+    <div style="margin-bottom: var(--spacing-2xl);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md);">
+            <h1 class="gold-heading" style="font-size: 2rem; margin: 0;">
+                Reservations Dashboard
+            </h1>
+            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                <!-- View Toggle -->
+                <div class="btn-group" role="group">
+                    <a asp-controller="Reservations" asp-action="Index" class="btn btn-primary" style="border-radius: var(--radius-md) 0 0 var(--radius-md);">
+                        <span class="material-symbols-outlined" style="font-size: 1.125rem;">list</span>
+                        List
+                    </a>
+                    <a asp-controller="Reservations" asp-action="Calendar" class="btn btn-secondary" style="border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                        <span class="material-symbols-outlined" style="font-size: 1.125rem;">calendar_view_month</span>
+                        Calendar
+                    </a>
+                </div>
+                <a asp-controller="Reservations" asp-action="CreateWalkIn" class="btn btn-gold">
+                    <span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: var(--spacing-xs);">person_add</span>
+                    New Walk-In
+                </a>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 1rem; margin-top: var(--spacing-sm);">
+            Welcome, @Model.FirstName @Model.LastName
+        </p>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger" style="margin-bottom: var(--spacing-xl); border-radius: var(--radius-lg);">@TempData["Error"]</div>
+    }
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success" style="margin-bottom: var(--spacing-xl); border-radius: var(--radius-lg);">@TempData["Message"]</div>
+    }
+
+    <!-- Quick Stats Row -->
+    <div class="stats-row-container" style="margin-bottom: var(--spacing-3xl);">
+        <div class="stat-cube-inline stat-cube-blue">
+            <div class="stat-cube-icon">
+                <span class="material-symbols-outlined">upcoming</span>
+            </div>
+            <div class="stat-cube-content">
+                <h3 class="stat-cube-number">@(ViewBag.UpcomingCount ?? 0)</h3>
+                <p class="stat-cube-label">Upcoming Reservations</p>
+            </div>
+        </div>
+
+        <div class="stat-cube-inline stat-cube-gold">
+            <div class="stat-cube-icon">
+                <span class="material-symbols-outlined">today</span>
+            </div>
+            <div class="stat-cube-content">
+                <h3 class="stat-cube-number">@(ViewBag.TodayCount ?? 0)</h3>
+                <p class="stat-cube-label">Today's Reservations</p>
+            </div>
+        </div>
+
+        <div class="stat-cube-inline stat-cube-red">
+            <div class="stat-cube-icon">
+                <span class="material-symbols-outlined">person_add</span>
+            </div>
+            <div class="stat-cube-content">
+                <h3 class="stat-cube-number">@(ViewBag.TodayWalkInsCount ?? 0)</h3>
+                <p class="stat-cube-label">Today's Walk-Ins</p>
+            </div>
+        </div>
+
+        @if (isManager)
+        {
+            <a href="@Url.Action("Tables", "Tables")" class="stat-cube-inline stat-cube-clickable stat-cube-green">
+                <div class="stat-cube-icon">
+                    <span class="material-symbols-outlined">table_restaurant</span>
+                </div>
+                <div class="stat-cube-content">
+                    <h3 class="stat-cube-number">@(ViewBag.TableCount ?? 0)</h3>
+                    <p class="stat-cube-label">Tables</p>
+                </div>
+            </a>
+        }
+    </div>
+
+    <!-- Stats Row -->
+    @if (todayReservations != null && todayReservations.Any())
+    {
+        var totalReservations = todayReservations.Count();
+        var pending = todayReservations.Count(r => r.ReservationStatus.StatusName == "Pending");
+        var confirmed = todayReservations.Count(r => r.ReservationStatus.StatusName == "Confirmed");
+        var seated = todayReservations.Count(r => r.ReservationStatus.StatusName == "Seated");
+        var completed = todayReservations.Count(r => r.ReservationStatus.StatusName == "Completed");
+
+        <div class="stats-row" style="margin-bottom: var(--spacing-2xl);">
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #3498DB, #2980B9);">
+                    <span class="material-symbols-outlined">event</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">@totalReservations</div>
+                    <div class="stat-label">Total Today</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #F39C12, #D68910);">
+                    <span class="material-symbols-outlined">schedule</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">@pending</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #2ECC71, #27AE60);">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">@confirmed</div>
+                    <div class="stat-label">Confirmed</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #0dcaf0, #0aa1c7);">
+                    <span class="material-symbols-outlined">chair</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">@seated</div>
+                    <div class="stat-label">Seated</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #6c757d, #5a6268);">
+                    <span class="material-symbols-outlined">done_all</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">@completed</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Today's Reservations -->
+    <div style="margin-bottom: var(--spacing-3xl);">
+        <h2 class="gold-heading" style="font-size: 1.5rem; margin-bottom: var(--spacing-md);">
+            Today's Reservations (@todayDate.ToString("MMMM dd, yyyy"))
+        </h2>
+
+        @if (todayReservations != null && todayReservations.Any())
+        {
+            <div class="users-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Customer/Guest</th>
+                            <th>Party</th>
+                            <th>Table</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reservation in todayReservations)
+                        {
+                            var statusBadge = reservation.ReservationStatus.StatusName switch
+                            {
+                                "Pending" => "status-badge status-inactive",
+                                "Confirmed" => "status-badge status-active",
+                                "Seated" => "status-badge status-active",
+                                "Completed" => "status-badge",
+                                "Cancelled" => "status-badge",
+                                _ => "status-badge"
+                            };
+
+                            var typeBadge = reservation.ReservationType ? "status-badge status-active" : "status-badge";
+                            var typeText = reservation.ReservationType ? "Pre-booked" : "Walk-in";
+
+                            var customerName = reservation.Guest != null
+                            ? $"{reservation.Guest.FirstName} {reservation.Guest.LastName}"
+                            : reservation.Customer != null
+                            ? $"{reservation.Customer.FirstName} {reservation.Customer.LastName}"
+                            : "Unknown";
+
+                            <tr>
+                                <td><strong>@reservation.ReservationTime.ToString(@"hh\:mm")</strong></td>
+                                <td><span class="@typeBadge">@typeText</span></td>
+                                <td class="user-name">@customerName</td>
+                                <td>@reservation.PartySize</td>
+                                <td>
+                                    @if (reservation.ReservationTables != null && reservation.ReservationTables.Any())
+                                    {
+                                        var tableNumbers = string.Join(", ", reservation.ReservationTables.Select(rt => rt.Table.TableNumber));
+                                        <span>Table @tableNumbers</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: var(--text-muted);">-</span>
+                                    }
+                                </td>
+                                <td><span class="@statusBadge">@reservation.ReservationStatus.StatusName</span></td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="action-btn action-edit dropdown-toggle" 
+                                                data-bs-toggle="dropdown" style="background: transparent; border: none; padding: 0.375rem 0.75rem;">
+                                            <span class="material-symbols-outlined" style="font-size: 1.125rem;">more_vert</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <form asp-controller="Reservations" asp-action="UpdateStatus" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="reservationId" value="@reservation.ReservationID" />
+                                                    <input type="hidden" name="statusId" value="2" />
+                                                    <button type="submit" class="dropdown-item">Confirmed</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form asp-controller="Reservations" asp-action="UpdateStatus" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="reservationId" value="@reservation.ReservationID" />
+                                                    <input type="hidden" name="statusId" value="3" />
+                                                    <button type="submit" class="dropdown-item">Seated</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form asp-controller="Reservations" asp-action="UpdateStatus" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="reservationId" value="@reservation.ReservationID" />
+                                                    <input type="hidden" name="statusId" value="4" />
+                                                    <button type="submit" class="dropdown-item">Completed</button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form asp-controller="Reservations" asp-action="UpdateStatus" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="reservationId" value="@reservation.ReservationID" />
+                                                    <input type="hidden" name="statusId" value="5" />
+                                                    <button type="submit" class="dropdown-item text-danger">Cancelled</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <span class="empty-state-icon material-symbols-outlined">event_busy</span>
+                <h3>No Reservations Today</h3>
+                <p>There are no reservations scheduled for today.</p>
+            </div>
+        }
+    </div>
+
+    <!-- All Reservations -->
+    <div id="all-reservations">
+        <h2 class="gold-heading" style="font-size: 1.5rem; margin-bottom: var(--spacing-md);">
+            All Reservations
+        </h2>
+
+        <form asp-controller="Reservations" asp-action="Index" asp-fragment="all-reservations" method="get" class="filter-compact" style="margin-bottom: var(--spacing-xl); padding: var(--spacing-lg); background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg);">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control form-control-sm" value="@search" placeholder="name/email/phone" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">From date</label>
+                    <input type="date" name="fromDate" class="form-control form-control-sm" value="@(fromDate.HasValue ? fromDate.Value.ToString("yyyy-MM-dd") : "")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">To date</label>
+                    <input type="date" name="toDate" class="form-control form-control-sm" value="@(toDate.HasValue ? toDate.Value.ToString("yyyy-MM-dd") : "")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Sort by</label>
+                    <select name="sortBy" class="form-select form-select-sm">
+                        @if (sortBy == "date") { <option value="date" selected>Date</option> } else { <option value="date">Date</option> }
+                        @if (sortBy == "name") { <option value="name" selected>Name</option> } else { <option value="name">Name</option> }
+                        @if (sortBy == "party") { <option value="party" selected>Party Size</option> } else { <option value="party">Party Size</option> }
+                        @if (sortBy == "table") { <option value="table" selected>Table</option> } else { <option value="table">Table</option> }
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">Order</label>
+                    <select name="sortDir" class="form-select form-select-sm">
+                        @if (sortDir == "asc") { <option value="asc" selected>Asc</option> } else { <option value="asc">Asc</option> }
+                        @if (sortDir == "desc") { <option value="desc" selected>Desc</option> } else { <option value="desc">Desc</option> }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    @{
+                        var statuses = ViewBag.Statuses as IEnumerable<FYP.Models.ReservationStatus>;
+                        var currentStatus = ViewBag.Status as string ?? "";
+                    }
+                    <select name="status" class="form-select form-select-sm">
+                        @if (string.IsNullOrEmpty(currentStatus)) { <option value="" selected>All Statuses</option> } else { <option value="">All Statuses</option> }
+                        @if (statuses != null)
+                        {
+                            foreach (var st in statuses)
+                            {
+                                if (string.Equals(currentStatus, st.StatusName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <option value="@st.StatusName" selected>@st.StatusName</option>
+                                }
+                                else
+                                {
+                                    <option value="@st.StatusName">@st.StatusName</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                </div>
+            </div>
+        </form>
+
+        @if (allReservations != null && allReservations.Any())
+        {
+            <div class="users-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Customer/Guest</th>
+                            <th>Party</th>
+                            <th>Table</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reservation in allReservations)
+                        {
+                            var statusBadge = reservation.ReservationStatus.StatusName switch
+                            {
+                                "Pending" => "status-badge status-inactive",
+                                "Confirmed" => "status-badge status-active",
+                                "Seated" => "status-badge status-active",
+                                "Completed" => "status-badge",
+                                "Cancelled" => "status-badge",
+                                _ => "status-badge"
+                            };
+
+                            var typeBadge = reservation.ReservationType ? "status-badge status-active" : "status-badge";
+                            var typeText = reservation.ReservationType ? "Pre-booked" : "Walk-in";
+
+                            var customerName = reservation.Guest != null
+                                ? $"{reservation.Guest.FirstName} {reservation.Guest.LastName}"
+                                : reservation.Customer != null
+                                    ? $"{reservation.Customer.FirstName} {reservation.Customer.LastName}"
+                                    : "Unknown";
+
+                            <tr>
+                                <td>@reservation.ReservedFor.ToString("yyyy-MM-dd")</td>
+                                <td><strong>@reservation.ReservationTime.ToString(@"hh\:mm")</strong></td>
+                                <td><span class="@typeBadge">@typeText</span></td>
+                                <td class="user-name">@customerName</td>
+                                <td>@reservation.PartySize</td>
+                                <td>
+                                    @if (reservation.ReservationTables != null && reservation.ReservationTables.Any())
+                                    {
+                                        var tableNumbers = string.Join(", ", reservation.ReservationTables.Select(rt => rt.Table.TableNumber));
+                                        <span>Table @tableNumbers</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: var(--text-muted);">-</span>
+                                    }
+                                </td>
+                                <td><span class="@statusBadge">@reservation.ReservationStatus.StatusName</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <span class="empty-state-icon material-symbols-outlined">search_off</span>
+                <h3>No Reservations Found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+            </div>
+        }
+    </div>
+</div>

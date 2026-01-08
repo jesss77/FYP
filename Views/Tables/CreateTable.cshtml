@@ -4,10 +4,13 @@
 @{
     ViewData["Title"] = L["Create Table"];
     Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    // Choose back target based on role
+    var backUrl = User.IsInRole("admin") ? Url.Action("Index", "Admin") : Url.Action("Index", "Manager");
 }
 
 <div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 800px; margin: 0 auto;">
-    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Tables","Manager")" />
+<partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Tables","Tables")" />
 
     @if (TempData["Success"] != null)
     {
@@ -61,7 +64,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between gap-3">
-                    <a class="btn btn-secondary flex-fill" href="@Url.Action("SeatingLayouts", "Manager")">
+                    <a class="btn btn-secondary flex-fill" href="@Url.Action("Tables", "Tables")">
                         <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">arrow_back</span>
                         @L["Cancel"]
                     </a>

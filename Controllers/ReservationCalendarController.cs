@@ -73,7 +73,8 @@ namespace FYP.Controllers
             {
                 "confirmed",
                 "seated",
-                "completed"
+                "completed",
+                "cancelled"
             };
 
             foreach (var r in reservations)
@@ -129,7 +130,130 @@ namespace FYP.Controllers
             ViewData["BusinessDayEnd"] = $"{businessDayEnd.Hours:D2}:{businessDayEnd.Minutes:D2}:00";
             ViewData["SelectedDate"] = selectedDate;
 
+            // Get all tables for dropdown (for changing assigned tables)
+            var allTables = await _context.Tables
+                .Where(t => t.IsAvailable)
+                .OrderBy(t => t.TableNumber)
+                .ToListAsync();
+            
+            // Get joined tables
+            var joinedTables = await _context.TablesJoins
+                .Include(tj => tj.PrimaryTable)
+                .Include(tj => tj.JoinedTable)
+                .ToListAsync();
+            
+            ViewData["AllTables"] = allTables;
+            ViewData["JoinedTables"] = joinedTables;
+
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableTables(DateTime date, string time, int duration, int currentReservationId)
+        {
+            try
+            {
+                // Parse time
+                if (!TimeSpan.TryParse(time, out var reservationTime))
+                {
+                    return BadRequest(new { success = false, message = "Invalid time format" });
+                }
+
+                // Build time window for the reservation
+                var startUtc = new DateTime(date.Year, date.Month, date.Day, reservationTime.Hours, reservationTime.Minutes, 0, DateTimeKind.Utc);
+                var endUtc = startUtc.AddMinutes(duration);
+
+                // Get all available tables
+                var allTables = await _context.Tables
+                    .Where(t => t.IsAvailable)
+                    .OrderBy(t => t.TableNumber)
+                    .ToListAsync();
+
+                // Get all reservations for the same date (excluding current reservation)
+                var existingReservations = await _context.Reservations
+                    .Include(r => r.ReservationTables)
+                    .Where(r => r.ReservedFor.Date == date.Date && r.ReservationID != currentReservationId)
+                    .Select(r => new
+                    {
+                        r.ReservationID,
+                        r.ReservedFor,
+                        r.ReservationTime,
+                        r.Duration,
+                        TableIds = r.ReservationTables.Select(rt => rt.TableID).ToList()
+                    })
+                    .ToListAsync();
+
+                // Find available tables (no time overlap)
+                var availableTables = new List<object>();
+                var availableTableIds = new HashSet<int>();
+
+                foreach (var table in allTables)
+                {
+                    bool hasOverlap = false;
+
+                    foreach (var existing in existingReservations)
+                    {
+                        if (existing.TableIds.Contains(table.TableID))
+                        {
+                            var existingStart = new DateTime(
+                                existing.ReservedFor.Year,
+                                existing.ReservedFor.Month,
+                                existing.ReservedFor.Day,
+                                existing.ReservationTime.Hours,
+                                existing.ReservationTime.Minutes, 0, DateTimeKind.Utc);
+                            var existingEnd = existingStart.AddMinutes(existing.Duration);
+
+                            // Check for time overlap
+                            if (startUtc < existingEnd && existingStart < endUtc)
+                            {
+                                hasOverlap = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!hasOverlap)
+                    {
+                        availableTables.Add(new
+                        {
+                            id = table.TableID,
+                            number = table.TableNumber,
+                            capacity = table.Capacity,
+                            isJoinable = table.IsJoinable
+                        });
+                        availableTableIds.Add(table.TableID);
+                    }
+                }
+
+                // Get available joined table pairs
+                var joinedTables = await _context.TablesJoins
+                    .Include(tj => tj.PrimaryTable)
+                    .Include(tj => tj.JoinedTable)
+                    .ToListAsync();
+
+                var availableJoinedTables = joinedTables
+                    .Where(tj => availableTableIds.Contains(tj.PrimaryTableID) && availableTableIds.Contains(tj.JoinedTableID))
+                    .Select(tj => new
+                    {
+                        primaryId = tj.PrimaryTableID,
+                        joinedId = tj.JoinedTableID,
+                        primaryNumber = tj.PrimaryTable.TableNumber,
+                        joinedNumber = tj.JoinedTable.TableNumber,
+                        totalCapacity = tj.TotalCapacity
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    singleTables = availableTables,
+                    joinedTables = availableJoinedTables
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
     }
 }

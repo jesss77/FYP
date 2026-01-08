@@ -141,7 +141,7 @@ namespace FYP.Controllers
             return View(employee);
         }
 
-        // Index should act as the main dashboard: go straight to Reservations list view
+        // Index should redirect to Reservations
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -151,137 +151,124 @@ namespace FYP.Controllers
             {
                 return RedirectToAction("Create");
             }
-            return RedirectToAction(nameof(Reservations));
+            return RedirectToAction("Index", "Reservations");
         }
 
-        // Reservations list view (simple single-date filter)
-        public async Task<IActionResult> Reservations(DateTime? filterDate)
+        // Reservations - redirects to Reservations controller
+        public IActionResult Reservations()
         {
-            var date = filterDate ?? DateTime.UtcNow.Date;
-
-            var reservations = await _context.Reservations
-                .Include(r => r.Customer)
-                .Include(r => r.Guest)
-                .Include(r => r.ReservationStatus)
-                .Include(r => r.ReservationTables)
-                    .ThenInclude(rt => rt.Table)
-                .Where(r => r.ReservedFor >= date && r.ReservedFor < date.AddDays(1))
-                .OrderBy(r => r.ReservationTime)
-                .ToListAsync();
-
-            ViewBag.FilterDate = date;
-            return View(reservations);
+            return RedirectToAction("Index", "Reservations");
         }
 
-        // Create walk-in reservation
+        // Create walk-in reservation - redirects to Reservations controller
         public IActionResult CreateWalkIn()
         {
-            return View();
+            return RedirectToAction("CreateWalkIn", "Reservations");
         }
 
+        // Change assigned table for a reservation
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateWalkIn(int PartySize, string? Notes, int? Duration, string? GuestName, string? GuestPhone)
+        public async Task<IActionResult> ChangeAssignedTable(int reservationId, string tableSelection)
         {
             var user = await _userManager.GetUserAsync(User);
+
+            var reservation = await _context.Reservations
+                .Include(r => r.ReservationTables)
+                .FirstOrDefaultAsync(r => r.ReservationID == reservationId);
+
+            if (reservation == null)
+            {
+                TempData["Error"] = "Reservation not found.";
+                return RedirectToAction("Calendar", "Reservations", new { date = DateTime.UtcNow.Date });
+            }
+
+            // Store the reservation date for redirect
+            var reservationDate = reservation.ReservedFor.Date;
+
+            // Parse table selection (format: "single_5" or "joined_3_7")
+            var parts = tableSelection.Split('_');
+            if (parts.Length < 2)
+            {
+                TempData["Error"] = "Invalid table selection.";
+                return RedirectToAction("Calendar", "Reservations", new { date = reservationDate });
+            }
+
+            var selectionType = parts[0]; // "single" or "joined"
             
-            if (PartySize < 1)
+            // Remove old table assignments
+            if (reservation.ReservationTables != null && reservation.ReservationTables.Any())
             {
-                TempData["Error"] = "Please select a valid party size.";
-                return RedirectToAction("CreateWalkIn");
+                _context.ReservationTables.RemoveRange(reservation.ReservationTables);
             }
 
-            // Auto-confirm walk-ins
-            var confirmedStatus = await _context.ReservationStatuses
-                .FirstOrDefaultAsync(s => s.StatusName == "Confirmed");
-
-            var restaurant = await _context.Restaurants.FirstOrDefaultAsync();
-            if (restaurant == null)
+            if (selectionType == "single")
             {
-                TempData["Error"] = "Restaurant not configured.";
-                return RedirectToAction("CreateWalkIn");
-            }
-
-            var effectiveDuration = Duration ?? 90;
-            // Use local time for walk-in creation so calendar reflects actual local time
-            var now = DateTime.Now;
-
-            // Use allocation service to find best table assignment
-            var allocation = await _allocationService.FindBestAllocationAsync(
-                restaurant.RestaurantID,
-                now.Date,
-                new TimeSpan(now.Hour, now.Minute, 0),
-                effectiveDuration,
-                PartySize);
-
-            if (!allocation.Success)
-            {
-                TempData["Error"] = allocation.ErrorMessage;
-                return RedirectToAction("CreateWalkIn");
-            }
-
-            try
-            {
-                int? customerId = null;
-                int? guestId = null;
-                bool isGuest = !string.IsNullOrWhiteSpace(GuestName);
-
-                if (isGuest)
+                // Assign single table
+                var tableId = int.Parse(parts[1]);
+                var table = await _context.Tables.FindAsync(tableId);
+                
+                if (table == null || !table.IsAvailable)
                 {
-                    // Create or get guest record for walk-in
-                    var nameParts = GuestName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-                    var firstName = nameParts.Length > 0 ? nameParts[0] : "Walk-in";
-                    var lastName = nameParts.Length > 1 ? nameParts[1] : "Guest";
-
-                    var guest = new Guest
-                    {
-                        Email = $"walkin_{Guid.NewGuid():N}@system.local", // Unique email for walk-ins
-                        FirstName = firstName,
-                        LastName = lastName,
-                        PhoneNumber = GuestPhone,
-                        IsActive = true,
-                        CreatedBy = user.Id,
-                        UpdatedBy = user.Id,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Guests.Add(guest);
-                    await _context.SaveChangesAsync();
-                    guestId = guest.GuestID;
-                }
-                else
-                {
-                    // Use walk-in customer ID for anonymous walk-ins
-                    customerId = await WalkInCustomerSeeder.EnsureWalkInCustomerAsync(HttpContext.RequestServices);
+                    TempData["Error"] = "Selected table is not available.";
+                    return RedirectToAction("Calendar", "Reservations", new { date = reservationDate });
                 }
 
-                // Create reservation with allocated tables
-                var reservation = await _allocationService.CreateReservationAsync(
-                    allocation,
-                    customerId,
-                    guestId,
-                    restaurant.RestaurantID,
-                    now.Date,
-                    new TimeSpan(now.Hour, now.Minute, 0),
-                    effectiveDuration,
-                    PartySize,
-                    Notes,
-                    confirmedStatus.ReservationStatusID,
-                    true,
-                    user.Id);
+                var newAssignment = new ReservationTables
+                {
+                    ReservationID = reservationId,
+                    TableID = tableId,
+                    CreatedBy = user?.Id ?? "employee",
+                    UpdatedBy = user?.Id ?? "employee",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.ReservationTables.Add(newAssignment);
 
-                var tableInfo = allocation.AllocatedTableIds.Count > 1
-                    ? $"{allocation.AllocatedTableIds.Count} joined tables ({string.Join(", ", allocation.AllocatedTableIds)})"
-                    : $"Table {allocation.AllocatedTableIds[0]}";
-
-                TempData["Message"] = $"Walk-in reservation created! {tableInfo} assigned. {allocation.AllocationStrategy}";
-                return RedirectToAction("Reservations");
+                await _context.SaveChangesAsync();
+                TempData["Message"] = $"Table changed to Table {table.TableNumber} successfully!";
             }
-            catch (Exception ex)
+            else if (selectionType == "joined")
             {
-                TempData["Error"] = $"Failed to create walk-in: {ex.Message}";
-                return RedirectToAction("CreateWalkIn");
+                // Assign joined tables
+                var table1Id = int.Parse(parts[1]);
+                var table2Id = int.Parse(parts[2]);
+
+                var table1 = await _context.Tables.FindAsync(table1Id);
+                var table2 = await _context.Tables.FindAsync(table2Id);
+
+                if (table1 == null || table2 == null || !table1.IsAvailable || !table2.IsAvailable)
+                {
+                    TempData["Error"] = "One or more selected tables are not available.";
+                    return RedirectToAction("Calendar", "Reservations", new { date = reservationDate });
+                }
+
+                // Add both tables to reservation
+                _context.ReservationTables.Add(new ReservationTables
+                {
+                    ReservationID = reservationId,
+                    TableID = table1Id,
+                    CreatedBy = user?.Id ?? "employee",
+                    UpdatedBy = user?.Id ?? "employee",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+
+                _context.ReservationTables.Add(new ReservationTables
+                {
+                    ReservationID = reservationId,
+                    TableID = table2Id,
+                    CreatedBy = user?.Id ?? "employee",
+                    UpdatedBy = user?.Id ?? "employee",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+
+                await _context.SaveChangesAsync();
+                TempData["Message"] = $"Tables changed to Tables {table1.TableNumber} + {table2.TableNumber} successfully!";
             }
+
+            return RedirectToAction("Calendar", "Reservations", new { date = reservationDate });
         }
 
         // Update reservation status
@@ -290,7 +277,7 @@ namespace FYP.Controllers
         public async Task<IActionResult> UpdateStatus(int reservationId, int statusId, string? returnTo = null)
         {
             var user = await _userManager.GetUserAsync(User);
-            
+
             var reservation = await _context.Reservations
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Customer)
@@ -300,90 +287,41 @@ namespace FYP.Controllers
             if (reservation == null)
             {
                 TempData["Error"] = "Reservation not found.";
-                return RedirectAfterStatusChange(returnTo);
+                return RedirectAfterStatusChange(returnTo, reservation?.ReservedFor);
             }
 
             var newStatus = await _context.ReservationStatuses.FindAsync(statusId);
             if (newStatus == null)
             {
                 TempData["Error"] = "Invalid status.";
-                return RedirectAfterStatusChange(returnTo);
+                return RedirectAfterStatusChange(returnTo, reservation?.ReservedFor);
             }
 
             var oldStatus = reservation.ReservationStatus.StatusName;
             reservation.ReservationStatusID = statusId;
-            reservation.UpdatedBy = user?.Id ?? User.Identity?.Name ?? reservation.UpdatedBy;
+            reservation.UpdatedBy = user?.Id ?? User.Identity?.Name ?? "employee";
             reservation.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
-            await LogReservationAction(reservationId, "StatusChanged", $"From {oldStatus} to {newStatus.StatusName}", user.Id);
-            // Do not send notification emails when staff change reservation status (operations performed by staff)
+            await LogReservationActionAsync(reservationId, "StatusChanged", $"From {oldStatus} to {newStatus.StatusName}", user?.Id ?? "employee");
+
             TempData["Message"] = $"Reservation status updated to {newStatus.StatusName}.";
-            return RedirectAfterStatusChange(returnTo);
+            return RedirectAfterStatusChange(returnTo, reservation.ReservedFor);
         }
 
-        private IActionResult RedirectAfterStatusChange(string? returnTo)
+        private IActionResult RedirectAfterStatusChange(string? returnTo, DateTime? reservationDate)
         {
+            var date = reservationDate?.Date ?? DateTime.UtcNow.Date;
+            
             if (string.Equals(returnTo, "Calendar", StringComparison.OrdinalIgnoreCase))
             {
-                return RedirectToAction("Index", "ReservationCalendar");
+                return RedirectToAction("Calendar", "Reservations", new { date });
             }
 
-            return RedirectToAction("Reservations");
+            return RedirectToAction("Index", "Reservations");
         }
 
-        // Override table assignment
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> OverrideTable(int reservationId, int newTableId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            
-            var reservation = await _context.Reservations
-                .Include(r => r.ReservationTables)
-                .FirstOrDefaultAsync(r => r.ReservationID == reservationId);
-
-            if (reservation == null)
-            {
-                TempData["Error"] = "Reservation not found.";
-                return RedirectToAction("Reservations");
-            }
-
-            var newTable = await _context.Tables.FindAsync(newTableId);
-            if (newTable == null || !newTable.IsAvailable)
-            {
-                TempData["Error"] = "Table not available.";
-                return RedirectToAction("Reservations");
-            }
-
-            // Remove old table assignment
-            var oldAssignment = reservation.ReservationTables.FirstOrDefault();
-            if (oldAssignment != null)
-            {
-                _context.ReservationTables.Remove(oldAssignment);
-            }
-
-            // Add new table assignment
-            var newAssignment = new ReservationTables
-            {
-                ReservationID = reservationId,
-                TableID = newTableId,
-                CreatedBy = user.Id,
-                UpdatedBy = user.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            _context.ReservationTables.Add(newAssignment);
-
-            await _context.SaveChangesAsync();
-            await LogReservationAction(reservationId, "TableChanged", $"To Table {newTable.TableNumber}", user.Id);
-
-            TempData["Message"] = $"Table changed to {newTable.TableNumber}.";
-            return RedirectToAction("Reservations");
-        }
-
-        // Helper: Log reservation actions
-        private async Task LogReservationAction(int reservationId, string actionName, string? oldValue, string userId)
+        private async Task LogReservationActionAsync(int reservationId, string actionName, string? oldValue, string userId)
         {
             var actionType = await _context.ActionTypes.FirstOrDefaultAsync(a => a.ActionTypeName == actionName);
             if (actionType == null)

@@ -89,6 +89,39 @@ namespace FYP.Services
             await SendEmailAsync(user.Email, "Confirm your email", message);
         }
 
+        public async Task SendPasswordResetEmailAsync(string email, string callbackUrl)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentNullException(nameof(email));
+
+            if (string.IsNullOrWhiteSpace(callbackUrl))
+                throw new ArgumentNullException(nameof(callbackUrl));
+
+            var brand = _db.Settings.FirstOrDefault(s => s.Key == "Name")?.Value ?? _emailSettings.SenderName ?? "Fine O Dine";
+            var year = DateTime.Now.Year;
+            string message = $@"
+                <html>
+                <body>
+                    <h2>Password Reset Request</h2>
+                    <p>We received a request to reset the password for your account at <strong>{brand}</strong>.</p>
+                    <p>If you requested a password reset, click the button below to set a new password:</p>
+                    <br>
+                    <p><a href='{HtmlEncode(callbackUrl)}' style='padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;'>Reset Password</a></p>
+                    <br>
+                    <p>If you did not request a password reset, please ignore this email.</p>
+                    <br><br>
+                    <p style='color:#888;font-size:0.9em;'>© {year} {brand}. All Rights Reserved</p>
+                </body>
+                </html>";
+
+            await SendEmailAsync(email, "Reset your password", message);
+        }
+
+        private string HtmlEncode(string value)
+        {
+            return System.Net.WebUtility.HtmlEncode(value);
+        }
+
         public async Task SendTableAllocationEmailAsync(string email, string customerName, DateTime reservationDate, TimeSpan reservationTime, int partySize, string tableInfo)
         {
             if (string.IsNullOrWhiteSpace(email))

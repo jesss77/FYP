@@ -5,7 +5,70 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    .admin-cubes-container {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .admin-cube {
+        flex: 1 1 300px;
+        max-width: 360px;
+        background: var(--card-bg, #ffffff);
+        border-radius: 16px;
+        padding: 24px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+        .admin-cube:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+        }
+
+    .admin-cube-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        color: white;
+        font-size: 28px;
+    }
+
+    .admin-cube-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        min-height: 3rem;
+    }
+
+    .admin-cube-description {
+        color: var(--text-secondary, #666);
+        font-size: 0.95rem;
+        margin-bottom: auto;
+    }
+
+    .admin-cube-link {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 20px;
+        font-weight: 600;
+        color: var(--primary-color, #C9A227);
+    }
+</style>
+
 <div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1200px; margin: 0 auto;">
+
     <!-- Header -->
     <div style="margin-bottom: var(--spacing-3xl); text-align: center;">
         <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">
@@ -18,39 +81,60 @@
 
     <!-- Action Cubes -->
     <div class="admin-cubes-container">
-        <div class="admin-cube" onclick="location.href='@Url.Action("Reservations", "Manager")'" role="button" tabindex="0">
+
+        <div class="admin-cube"
+             onclick="location.href='@Url.Action("Index", "Reservations")'"
+             role="button"
+             tabindex="0">
+
             <div class="admin-cube-icon" style="background: linear-gradient(135deg, #3498DB, #2980B9);">
-                <span class="material-symbols-outlined">table_restaurant</span>
+                <span class="material-symbols-outlined">event</span>
             </div>
+
             <h3 class="admin-cube-title">@L["Reservation Management"]</h3>
             <p class="admin-cube-description">@L["View and manage reservations"]</p>
+
             <div class="admin-cube-link">
                 @L["Manage Reservations"]
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </div>
-        <div class="admin-cube" onclick="location.href='@Url.Action("Tables", "Manager")'" role="button" tabindex="0">
+
+        <div class="admin-cube"
+             onclick="location.href='@Url.Action("Tables", "Manager")'"
+             role="button"
+             tabindex="0">
+
             <div class="admin-cube-icon" style="background: linear-gradient(135deg, #D4AF37, #B8941E);">
                 <span class="material-symbols-outlined">table_restaurant</span>
             </div>
+
             <h3 class="admin-cube-title">@L["Table Management"]</h3>
             <p class="admin-cube-description">@L["View and manage restaurant tables"]</p>
+
             <div class="admin-cube-link">
                 @L["Manage Tables"]
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </div>
 
-        <div class="admin-cube" onclick="location.href='@Url.Action("Index", "Reports")'" role="button" tabindex="0">
+        <div class="admin-cube"
+             onclick="location.href='@Url.Action("Index", "Reports")'"
+             role="button"
+             tabindex="0">
+
             <div class="admin-cube-icon" style="background: linear-gradient(135deg, #9B59B6, #8E44AD);">
                 <span class="material-symbols-outlined">assessment</span>
             </div>
+
             <h3 class="admin-cube-title">@L["Reports"]</h3>
             <p class="admin-cube-description">@L["View analytics and export reports"]</p>
+
             <div class="admin-cube-link">
                 @L["Reports"]
                 <span class="material-symbols-outlined">arrow_forward</span>
             </div>
         </div>
+
     </div>
 </div>

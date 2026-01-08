@@ -7,7 +7,10 @@
 }
 
 <div class="container-custom" style="padding: var(--spacing-2xl) var(--spacing-lg); max-width: 1400px; margin: 0 auto;">
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index", "Customer")" />
+
     <div class="d-flex justify-content-between align-items-center mb-4">
+
         <div>
             <h1 class="gold-heading" style="font-size: 2.5rem; margin-bottom: var(--spacing-sm);">
                 @L["My Reservations"]
@@ -218,7 +221,7 @@
                                     <strong>@reservation.ReservedFor.ToString("dd/MM/yyyy")</strong>
                                 </td>
                                 <td data-label="@L["Time"]">
-                                    @reservation.ReservationTime.ToString(@"HH\:mm")
+                                    @reservation.ReservationTime.ToString(@"hh\:mm")
                                 </td>
                                 <td data-label="@L["Party Size"]">
                                     <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">groups</span>
@@ -592,5 +595,4 @@
         font-weight: 600;
         color: var(--text-primary);
     }
-}
-</style>
+}</style>

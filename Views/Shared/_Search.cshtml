@@ -5,40 +5,34 @@
     var inputId = ViewBag.SearchInputId ?? "AdminSearchInput";
 }
 <div class="settings-header-actions">
-    <div class="admin-search-wrapper">
-        <form method="get" class="d-inline-block" role="search">
+    <form method="get" class="admin-search-form" role="search" id="@inputId-form">
+        <div class="admin-search-wrapper">
             <input id="@inputId" name="search" value="@ViewBag.Search" class="form-control search-input" placeholder="@placeholder" />
             @if (!string.IsNullOrEmpty(category))
             {
                 <input type="hidden" name="category" value="@category" />
             }
-        </form>
-        <button id="@inputId-ctrl" type="button" class="search-toggle btn btn-outline-secondary" aria-expanded="false" aria-controls="@inputId" style="display:flex; align-items:center; gap:6px;">
-            <span class="material-symbols-outlined">search</span>
-            <span class="d-none d-md-inline">Search</span>
-        </button>
-    </div>
+            <button type="submit" class="btn btn-outline-secondary search-submit-btn">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+        </div>
+    </form>
 </div>
-
-
 
 @section Scripts {
     <script>
         (function(){
-            var toggle = document.getElementById('@inputId-ctrl');
+            var form = document.getElementById('@inputId-form');
             var input = document.getElementById('@inputId');
-            if(!toggle || !input) return;
-            // Auto-show if search value present
-            if (input.value && input.value.length > 0) {
-                input.classList.add('show');
-                toggle.setAttribute('aria-expanded', 'true');
-            }
-            toggle.addEventListener('click', function(){
-                var expanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', String(!expanded));
-                input.classList.toggle('show');
-                if(!expanded){ setTimeout(function(){ input.focus(); }, 150); }
-                else { input.blur(); }
+            
+            if(!input || !form) return;
+            
+            // Submit form on Enter key
+            input.addEventListener('keypress', function(e){
+                if(e.key === 'Enter'){
+                    e.preventDefault();
+                    form.submit();
+                }
             });
         })();
     </script>

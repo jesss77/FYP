@@ -484,11 +484,50 @@ namespace FYP.Controllers
 
             if (role == "customer")
             {
-                var customer = await _context.Customers.FindAsync(id);
+                var customer = await _context.Customers
+                    .Include(c => c.Reservations)
+                        .ThenInclude(r => r.ReservationTables)
+                    .Include(c => c.Reservations)
+                        .ThenInclude(r => r.ReservationLogs)
+                    .FirstOrDefaultAsync(c => c.CustomerID == id);
+
                 if (customer == null) return NotFound();
 
+                // Check if customer has any reservations
+                if (customer.Reservations != null && customer.Reservations.Any())
+                {
+                    // Delete all related reservation tables first
+                    foreach (var reservation in customer.Reservations)
+                    {
+                        if (reservation.ReservationTables != null)
+                        {
+                            _context.ReservationTables.RemoveRange(reservation.ReservationTables);
+                        }
+
+                        // Delete reservation logs
+                        if (reservation.ReservationLogs != null)
+                        {
+                            _context.ReservationLogs.RemoveRange(reservation.ReservationLogs);
+                        }
+                    }
+
+                    // Delete all reservations
+                    _context.Reservations.RemoveRange(customer.Reservations);
+                }
+
+                // Delete the customer and their ApplicationUser if exists
+                var userId = customer.ApplicationUserId;
                 _context.Customers.Remove(customer);
                 await _context.SaveChangesAsync();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var user = await _userManager.FindByIdAsync(userId);
+                    if (user != null)
+                    {
+                        await _userManager.DeleteAsync(user);
+                    }
+                }
 
                 TempData["Success"] = "Customer deleted successfully!";
                 return RedirectToAction(nameof(ManageUsers), new { category = "customers" });
@@ -511,6 +550,118 @@ namespace FYP.Controllers
 
             TempData["Success"] = "Customer status updated!";
             return RedirectToAction(nameof(ManageUsers), new { category = "customers" });
+        }
+
+        // GET: /Admin/EditCustomer
+        public async Task<IActionResult> EditCustomer(int id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null) return NotFound();
+
+            return View(customer);
+        }
+
+        // POST: /Admin/EditCustomer
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCustomer(int id, Customer model)
+        {
+            if (id != model.CustomerID) return BadRequest();
+
+            // Remove properties we don't want to validate/update
+            ModelState.Remove("ApplicationUserId");
+            ModelState.Remove("PictureBytes");
+            ModelState.Remove("CreatedBy");
+            ModelState.Remove("CreatedAt");
+            ModelState.Remove("UpdatedBy");
+            ModelState.Remove("UpdatedAt");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null) return NotFound();
+
+            // Check if email is being changed and if it's already in use
+            if (!string.Equals(customer.Email, model.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailExists = await _context.Customers
+                    .AnyAsync(c => c.Email == model.Email && c.CustomerID != id);
+
+                if (emailExists)
+                {
+                    ModelState.AddModelError("Email", "This email is already in use by another customer.");
+                    return View(model);
+                }
+            }
+
+            // Update all editable fields including email
+            customer.Email = model.Email;
+            customer.FirstName = model.FirstName;
+            customer.LastName = model.LastName;
+            customer.PhoneNumber = model.PhoneNumber;
+            customer.PreferredLanguage = model.PreferredLanguage;
+            customer.UpdatedBy = User.Identity?.Name ?? "admin";
+            customer.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Customer updated successfully!";
+            return RedirectToAction(nameof(ManageUsers), new { category = "customers" });
+        }
+
+        // GET: /Admin/EditUser
+        public async Task<IActionResult> EditUser(int id, string role)
+        {
+            role = (role ?? "").ToLowerInvariant();
+            if (role != "manager" && role != "employee") return BadRequest();
+
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee == null) return NotFound();
+
+            var vm = new EditEmployeeViewModel
+            {
+                EmployeeID = employee.EmployeeID,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                PhoneNumber = employee.PhoneNumber
+            };
+
+            ViewBag.Role = role;
+            return View(vm);
+        }
+
+        // POST: /Admin/EditUser
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(int id, string role, EditEmployeeViewModel model)
+        {
+            role = (role ?? "").ToLowerInvariant();
+            if (role != "manager" && role != "employee") return BadRequest();
+
+            if (id != model.EmployeeID) return BadRequest();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Role = role;
+                return View(model);
+            }
+
+            var employee = await _context.Employees.FindAsync(id);
+            if (employee == null) return NotFound();
+
+            employee.FirstName = model.FirstName;
+            employee.LastName = model.LastName;
+            employee.PhoneNumber = model.PhoneNumber;
+            employee.UpdatedBy = User.Identity?.Name ?? "admin";
+            employee.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"{role.ToUpper()} updated successfully!";
+            return RedirectToAction(nameof(ManageUsers), new { category = role + "s" });
         }
 
         // ================== DASHBOARD ==================

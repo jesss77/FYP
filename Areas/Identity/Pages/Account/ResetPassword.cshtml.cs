@@ -6,6 +6,8 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Threading.Tasks;
+using FYP.Data;
+using FYP.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,62 +18,39 @@ namespace FYP.Areas.Identity.Pages.Account
 {
     public class ResetPasswordModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _db;
 
-        public ResetPasswordModel(UserManager<IdentityUser> userManager)
+        public ResetPasswordModel(UserManager<ApplicationUser> userManager, ApplicationDbContext db)
         {
             _userManager = userManager;
+            _db = db;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [EmailAddress]
             public string Email { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             public string Password { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             public string Code { get; set; }
-
         }
 
-        public IActionResult OnGet(string code = null)
+        public IActionResult OnGet(string code = null, string email = null)
         {
             if (code == null)
             {
@@ -81,7 +60,8 @@ namespace FYP.Areas.Identity.Pages.Account
             {
                 Input = new InputModel
                 {
-                    Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code))
+                    Code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code)),
+                    Email = email
                 };
                 return Page();
             }
@@ -98,13 +78,65 @@ namespace FYP.Areas.Identity.Pages.Account
             if (user == null)
             {
                 // Don't reveal that the user does not exist
-                return RedirectToPage("./ResetPasswordConfirmation");
+                ModelState.AddModelError(string.Empty, "Invalid password reset attempt.");
+                return Page();
+            }
+
+            // Check if email is confirmed
+            var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+            if (!isEmailConfirmed)
+            {
+                ModelState.AddModelError(string.Empty, "Your email address has not been confirmed yet. Please confirm your email before resetting your password.");
+                return Page();
+            }
+
+            // Verify the reset token is valid (this also checks expiration)
+            var tokenProvider = _userManager.Options.Tokens.PasswordResetTokenProvider;
+            var isValidToken = await _userManager.VerifyUserTokenAsync(
+                user, 
+                tokenProvider, 
+                "ResetPassword", 
+                Input.Code);
+
+            if (!isValidToken)
+            {
+                ModelState.AddModelError(string.Empty, "The password reset link has expired or is invalid. Please request a new password reset link.");
+                return Page();
+            }
+
+            // Check if the new password is the same as the current password
+            var isSamePassword = await _userManager.CheckPasswordAsync(user, Input.Password);
+            if (isSamePassword)
+            {
+                ModelState.AddModelError(string.Empty, "Your new password cannot be the same as your current password. Please choose a different password.");
+                return Page();
             }
 
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
-                return RedirectToPage("./ResetPasswordConfirmation");
+                try
+                {
+                    // If the user is linked to a Customer record, activate the customer account
+                    if (user.CustomerID.HasValue)
+                    {
+                        var customer = await _db.Customers.FindAsync(user.CustomerID.Value);
+                        if (customer != null)
+                        {
+                            customer.IsActive = true;
+                            customer.UpdatedAt = DateTime.UtcNow;
+                            customer.UpdatedBy = user.Id ?? "system";
+                            await _db.SaveChangesAsync();
+                        }
+                    }
+                }
+                catch
+                {
+                    // Don't block password reset completion if database update fails; log could be added
+                }
+
+                TempData["SuccessMessage"] = "Your password has been successfully reset. Please log in with your new password.";
+                return RedirectToPage("./Login");
             }
 
             foreach (var error in result.Errors)

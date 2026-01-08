@@ -163,4 +163,41 @@
   <data name="New Table" xml:space="preserve"><value>Nouvelle Table</value></data>
   <data name="No Reservations Yet" xml:space="preserve"><value>Aucune Réservation</value></data>
   <data name="Make Your First Reservation" xml:space="preserve"><value>Faire Votre Première Réservation</value></data>
+  <data name="AboutUsParagraph1" xml:space="preserve"><value>Fondé avec une passion pour la cuisine exceptionnelle et l'hospitalité chaleureuse, nous nous sommes consacrés à créer des expériences culinaires inoubliables. Notre équipe talentueuse de chefs réunit diverses traditions culinaires, créant des plats qui célèbrent à la fois l'innovation et les techniques intemporelles. Chaque ingrédient est soigneusement sélectionné auprès d'agriculteurs locaux et de fournisseurs de confiance qui partagent notre engagement envers la qualité et la durabilité.</value></data>
+  <data name="AboutUsParagraph2" xml:space="preserve"><value>Des dîners intimes aux grandes célébrations, notre atmosphère élégante offre le cadre parfait pour les moments spéciaux de la vie. Nous croyons que dîner est plus qu'un simple repas—c'est une expérience qui engage tous les sens. Notre personnel attentionné est fier d'offrir un service personnalisé qui fait que chaque invité se sent vraiment le bienvenu. Que vous nous rejoigniez pour un déjeuner rapide ou une soirée tranquille, nous promettons une expérience qui vous donnera envie de revenir.</value></data>
+  <data name="Contact Us Title" xml:space="preserve"><value>Nous Contacter</value></data>
+  <data name="We'd love to hear from you. Reach out to us through any of the channels below." xml:space="preserve"><value>Nous serions ravis de vous entendre. Contactez-nous par l'un des canaux ci-dessous.</value></data>
+  <data name="Call us on" xml:space="preserve"><value>Appelez-nous au</value></data>
+  <data name="E-mail us at" xml:space="preserve"><value>Écrivez-nous à</value></data>
+  <data name="Follow us on Instagram" xml:space="preserve"><value>Suivez-nous sur Instagram</value></data>
+  <data name="Follow us on Facebook" xml:space="preserve"><value>Suivez-nous sur Facebook</value></data>
+  <data name="We'll respond within 24 hours" xml:space="preserve"><value>Nous répondrons dans les 24 heures</value></data>
+  <data name="See our latest dishes" xml:space="preserve"><value>Découvrez nos derniers plats</value></data>
+  <data name="Join our community" xml:space="preserve"><value>Rejoignez notre communauté</value></data>
+  <data name="Our Story" xml:space="preserve"><value>Notre Histoire</value></data>
+  <data name="Discover the passion and philosophy behind our culinary excellence." xml:space="preserve"><value>Découvrez la passion et la philosophie derrière notre excellence culinaire.</value></data>
+  <data name="A Legacy of Flavor" xml:space="preserve"><value>Un Héritage de Saveur</value></data>
+  <data name="Cuisine is a story. We tell ours with every plate we serve." xml:space="preserve"><value>La cuisine est une histoire. Nous racontons la nôtre avec chaque assiette que nous servons.</value></data>
+  <data name="Our Mission &amp; Values" xml:space="preserve"><value>Notre Mission &amp; Valeurs</value></data>
+  <data name="The principles that guide every decision we make." xml:space="preserve"><value>Les principes qui guident chaque décision que nous prenons.</value></data>
+  <data name="Quality" xml:space="preserve"><value>Qualité</value></data>
+  <data name="Sourcing only the finest, local, and sustainable ingredients to ensure peak freshness and flavor in every dish." xml:space="preserve"><value>Sélectionner uniquement les ingrédients les plus fins, locaux et durables pour garantir une fraîcheur et une saveur optimales dans chaque plat.</value></data>
+  <data name="Service" xml:space="preserve"><value>Service</value></data>
+  <data name="Providing warm, intuitive, and impeccable service to make every guest feel welcomed and cherished." xml:space="preserve"><value>Offrir un service chaleureux, intuitif et impeccable pour que chaque invité se sente accueilli et choyé.</value></data>
+  <data name="Innovation" xml:space="preserve"><value>Innovation</value></data>
+  <data name="Continuously pushing culinary boundaries and exploring new techniques to create a unique and modern dining experience." xml:space="preserve"><value>Repousser continuellement les limites culinaires et explorer de nouvelles techniques pour créer une expérience gastronomique unique et moderne.</value></data>
+  <data name="Accolades &amp; Awards" xml:space="preserve"><value>Distinctions &amp; Récompenses</value></data>
+  <data name="We are honored to be recognized for our dedication to culinary excellence." xml:space="preserve"><value>Nous sommes honorés d'être reconnus pour notre dévouement à l'excellence culinaire.</value></data>
+  <data name="Gourmet Guide" xml:space="preserve"><value>Guide Gourmet</value></data>
+  <data name="Epicurean Award" xml:space="preserve"><value>Prix Épicurien</value></data>
+  <data name="Five Star Alliance" xml:space="preserve"><value>Alliance Cinq Étoiles</value></data>
+  <data name="Best Wine List" xml:space="preserve"><value>Meilleure Carte des Vins</value></data>
+  <data name="Guest Reservation" xml:space="preserve"><value>Réservation Invité</value></data>
+  <data name="We look forward to welcoming you. Please provide the following details to secure your reservation." xml:space="preserve"><value>Nous avons hâte de vous accueillir. Veuillez fournir les détails suivants pour confirmer votre réservation.</value></data>
+  <data name="Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="More" xml:space="preserve"><value>Plus</value></data>
+  <data name="Opening Hours" xml:space="preserve"><value>Heures d'Ouverture</value></data>
+  <data name="Phone" xml:space="preserve"><value>Téléphone</value></data>
+  <data name="Mon-Sat: 10:00 AM - 10:00 PM" xml:space="preserve"><value>Lun-Sam: 10h00 - 22h00</value></data>
+  <data name="Select Language" xml:space="preserve"><value>Sélectionner la Langue</value></data>
 </root>

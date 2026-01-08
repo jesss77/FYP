@@ -19,10 +19,23 @@ namespace FYP.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Tables()
+        public async Task<IActionResult> Tables(string search)
         {
-            var tables = await _context.Tables
+            var query = _context.Tables
                 .Include(t => t.Restaurant)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                query = query.Where(t => 
+                    t.TableNumber.ToString().Contains(s) ||
+                    t.Capacity.ToString().Contains(s)
+                );
+                ViewBag.Search = s;
+            }
+
+            var tables = await query
                 .OrderBy(t => t.TableNumber)
                 .ToListAsync();
 

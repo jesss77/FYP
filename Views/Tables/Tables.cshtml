@@ -17,14 +17,12 @@
     ViewBag.SearchPlaceholder = "Search tables...";
     ViewBag.SearchInputId = "TablesSearchInput";
 
-    // Choose back target based on role so admins don't hit manager-only routes
-    var backController = User.IsInRole("admin") ? "Admin" : "Manager";
+    // Choose back target based on role
+    var backUrl = User.IsInRole("admin") ? Url.Action("Index", "Admin") : Url.Action("Index", "Manager");
 }
 
 <div class="container-custom" style="padding: var(--spacing-3xl) var(--spacing-2xl); max-width: 1400px; margin: 0 auto;">
-    <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index", backController)" />
-
-    @if (TempData["Success"] != null)
+    <partial name="~/Views/Shared/_BackButton.cshtml" model="@backUrl" />   @if (TempData["Success"] != null)
     {
         { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
         <partial name="~/Views/Shared/_AlertMessage.cshtml" />
@@ -63,8 +61,12 @@
             }
         </div>
 
-        <div style="padding: 0 var(--spacing-md); margin-bottom: var(--spacing-xl);">
-            <a asp-controller="Tables" asp-action="TableJoins" class="btn btn-gold" role="button" style="margin-bottom: var(--spacing-sm);">
+        <div style="padding: 0 var(--spacing-md); margin-bottom: var(--spacing-xl); display: flex; gap: var(--spacing-md);">
+            <a asp-controller="Tables" asp-action="CreateTable" class="btn btn-primary" role="button">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.4rem;">add_circle</span>
+                Add Table
+            </a>
+            <a asp-controller="Tables" asp-action="TableJoins" class="btn btn-gold" role="button">
                 <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.4rem;">link</span>
                 Join Tables
             </a>

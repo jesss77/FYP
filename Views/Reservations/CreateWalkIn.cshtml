@@ -1,0 +1,246 @@
+@{
+    ViewData["Title"] = "Create Walk-In Reservation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="center-container">
+    <div class="register-form" style="max-width: 700px;">
+        <partial name="~/Views/Shared/_BackButton.cshtml" model="@Url.Action("Index","Reservations")" />
+
+        @if (TempData["Success"] != null)
+        {
+            { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Success"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            { ViewData["Type"] = "error"; ViewData["Message"] = TempData["Error"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
+
+        @if (TempData["Message"] != null)
+        {
+            { ViewData["Type"] = "success"; ViewData["Message"] = TempData["Message"]; }
+            <partial name="~/Views/Shared/_AlertMessage.cshtml" />
+        }
+
+        <!-- Header -->
+        <div style="margin-bottom: var(--spacing-xl); text-align: center;">
+            <h1 class="gold-heading" style="font-size: 2rem; margin-bottom: var(--spacing-xs);">
+                New Walk-In Reservation
+            </h1>
+            <p style="color: var(--text-secondary);">
+                Create a walk-in reservation for a customer who has just arrived at the restaurant.
+            </p>
+        </div>
+
+        <hr class="gold-hr" />
+
+        <form asp-controller="Reservations" asp-action="CreateWalkIn" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="row g-3 mb-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            First Name <span style="color: var(--color-primary-red);">*</span>
+                        </label>
+                        <input name="FirstName" type="text" class="form-control" placeholder="First Name" required value="@ViewBag.FirstName" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            Last Name <span style="color: var(--color-primary-red);">*</span>
+                        </label>
+                        <input name="LastName" type="text" class="form-control" placeholder="Last Name" required value="@ViewBag.LastName" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">email</span>
+                        Email
+                    </label>
+                    <input name="GuestEmail" type="email" class="form-control" placeholder="your.email@example.com" value="@ViewBag.GuestEmail" />
+                    <small style="color: var(--text-secondary);">Optional - for sending confirmation</small>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">phone</span>
+                        Phone Number <span style="color: var(--color-primary-red);">*</span>
+                    </label>
+                    <input name="GuestPhone" type="tel" class="form-control" placeholder="+1 555 123 4567" value="@ViewBag.GuestPhone" required />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">calendar_today</span>
+                        Reservation Date <span style="color: var(--color-primary-red);">*</span>
+                    </label>
+                    <input name="ReservationDate" type="date" class="form-control" required 
+                           value="@(ViewBag.ReservationDate != null ? ((DateTime)ViewBag.ReservationDate).ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd"))" 
+                           min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">schedule</span>
+                        Reservation Time <span style="color: var(--color-primary-red);">*</span>
+                    </label>
+                    <input name="ReservationTime" type="time" class="form-control" required 
+                           value="@(ViewBag.ReservationTime ?? DateTime.Now.ToString("HH:mm"))" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">groups</span>
+                        Party Size <span style="color: var(--color-primary-red);">*</span>
+                    </label>
+                    <input name="PartySize" type="number" class="form-control" min="1" max="20" required value="@ViewBag.PartySize" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">event_note</span>
+                    Special Requests
+                </label>
+                <textarea name="Notes" class="form-control" rows="4" 
+                          placeholder="Any dietary restrictions or special occasions?">@ViewBag.Notes</textarea>
+            </div>
+
+            <!-- More Options (Collapsible) -->
+            <div class="mb-4">
+                <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#moreOptions" aria-expanded="false" aria-controls="moreOptions" style="color: var(--color-primary-gold); font-weight: 600;">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">expand_more</span>
+                    More
+                </button>
+                <div class="collapse mt-3" id="moreOptions">
+                    <div class="card card-body" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.125rem; margin-right: 0.25rem;">timer</span>
+                                    Duration (minutes)
+                                </label>
+                                <select name="Duration" class="form-control">
+                                    <option value="90">90 minutes (Standard)</option>
+                                    <option value="120">120 minutes</option>
+                                    <option value="150">150 minutes</option>
+                                    <option value="180">180 minutes</option>
+                                </select>
+                            </div>
+                        </div>
+                     
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mt-4">
+                <a asp-action="Index" asp-controller="Reservations" class="btn btn-secondary flex-fill">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">cancel</span>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-confirm flex-fill">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem;">person_add</span>
+                    Create Walk-In
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle icon rotation for collapsible section
+    const moreOptionsBtn = document.querySelector('[data-bs-target="#moreOptions"]');
+    if (moreOptionsBtn) {
+        const moreOptionsCollapse = document.getElementById('moreOptions');
+        moreOptionsCollapse.addEventListener('shown.bs.collapse', function () {
+            moreOptionsBtn.querySelector('.material-symbols-outlined').textContent = 'expand_less';
+        });
+        moreOptionsCollapse.addEventListener('hidden.bs.collapse', function () {
+            moreOptionsBtn.querySelector('.material-symbols-outlined').textContent = 'expand_more';
+        });
+    }
+
+    // Business hours validation
+    const dateInput = document.querySelector('input[name="ReservationDate"]');
+    const timeInput = document.querySelector('input[name="ReservationTime"]');
+    const form = document.querySelector('form');
+
+    // Business hours: 10:00 - 22:00 (default, should match server-side)
+    const businessOpen = '10:00';
+    const businessClose = '22:00';
+
+    function validateDateTime() {
+        if (!dateInput || !timeInput || !dateInput.value || !timeInput.value) {
+            return true; // Skip validation if fields are empty
+        }
+
+        const selectedDate = new Date(dateInput.value + 'T00:00:00');
+        const selectedTime = timeInput.value;
+        const now = new Date();
+
+        // Check if date/time is in the past
+        const [hours, minutes] = selectedTime.split(':').map(Number);
+        const selectedDateTime = new Date(selectedDate);
+        selectedDateTime.setHours(hours, minutes, 0, 0);
+
+        if (selectedDateTime < now) {
+            timeInput.setCustomValidity('Reservation date and time cannot be in the past.');
+            return false;
+        }
+
+        // Check if time is within business hours
+        if (selectedTime < businessOpen || selectedTime > businessClose) {
+            timeInput.setCustomValidity(`Selected time is outside business hours (${businessOpen} - ${businessClose}).`);
+            return false;
+        }
+
+        timeInput.setCustomValidity('');
+        return true;
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener('change', validateDateTime);
+    }
+
+    if (timeInput) {
+        timeInput.addEventListener('change', validateDateTime);
+        timeInput.addEventListener('blur', validateDateTime);
+    }
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateDateTime()) {
+                e.preventDefault();
+                timeInput.reportValidity();
+                return false;
+            }
+        });
+    }
+
+    // Initial validation on page load
+    validateDateTime();
+});
+</script>
+
+<style>
+/* More Options collapse styling */
+#moreOptions .material-symbols-outlined {
+    transition: transform 0.3s ease;
+}
+
+[data-bs-target="#moreOptions"] .material-symbols-outlined {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+[data-bs-target="#moreOptions"]:hover {
+    color: var(--color-primary-gold) !important;
+    opacity: 0.8;
+}
+</style>

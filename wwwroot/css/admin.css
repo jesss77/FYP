@@ -113,41 +113,67 @@
     .container-custom .admin-settings-grid > .col-md-4 { flex: 0 0 33.333333% !important; max-width: 33.333333% !important; }
 }
 
-/* Search toggle styles for admin settings */
-.admin-search-wrapper {
-    display:flex;
-    align-items:center;
-    gap:var(--spacing-sm);
+/* Search form styles */
+.admin-search-form {
+    width: 100%;
+    max-width: 400px;
 }
-.admin-search-toggle {
-    background: transparent;
-    border: 2px solid var(--border-primary);
-    color: var(--text-primary);
-    width: 2.5rem;
-    height: 2.5rem;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:var(--radius-md);
-    cursor:pointer;
-}
-.admin-search-toggle .material-symbols-outlined { font-size:1.125rem; }
 
-.admin-search-input {
-    display:none; /* toggled via JS */
-    transition: width 200ms ease, opacity 200ms ease;
-    width: 0;
-    opacity: 0;
+.admin-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    width: 100%;
+}
+
+/* Search input styling - used by _Search.cshtml partial */
+.search-input {
+    flex: 1;
+    min-width: 200px;
     border: 2px solid var(--border-primary);
     background: var(--bg-secondary);
     color: var(--text-primary);
     padding: 0.5rem 0.75rem;
     border-radius: var(--radius-md);
+    transition: border-color var(--transition-base);
+    font-size: 0.875rem;
 }
-.admin-search-input.show {
-    display:inline-block;
-    width: 320px;
-    opacity: 1;
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color-primary-gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.search-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 2px solid var(--border-primary);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+}
+
+.search-submit-btn:hover {
+    border-color: var(--color-primary-gold);
+    background: var(--bg-hover);
+    color: var(--color-primary-gold);
+}
+
+.search-submit-btn .material-symbols-outlined {
+    font-size: 1.25rem;
 }
 
 /* Right-align search in header */
@@ -196,7 +222,8 @@
 }
 
 @media (max-width: 768px) {
-    .admin-search-input.show { width: 100%; }
+    .admin-search-form { max-width: 100%; }
+    .search-input { min-width: 150px; }
     .stat-cube-inline { min-width: 100%; }
 }
 

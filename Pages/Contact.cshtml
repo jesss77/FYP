@@ -1,0 +1,146 @@
+@page
+@model FYP.Pages.ContactModel
+@{
+    ViewData["Title"] = "Contact Us";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="contact-hero">
+    <div class="contact-hero-inner">
+        <span class="material-symbols-outlined hero-icon">mail</span>
+        <h1>Get In Touch</h1>
+        <p class="lead">Have questions or need assistance? We'd love to hear from you.</p>
+    </div>
+</section>
+
+<div class="content-container">
+    <div class="themed-card">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" role="alert">
+                <span class="material-symbols-outlined">check_circle</span>
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <div class="contact-grid">
+            <div class="contact-info-section">
+                <h2>Contact Information</h2>
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <span class="material-symbols-outlined method-icon">call</span>
+                        <div>
+                            <h4>Phone</h4>
+                            <p>+1 555 123 4567</p>
+                        </div>
+                    </div>
+                    <div class="contact-method">
+                        <span class="material-symbols-outlined method-icon">mail</span>
+                        <div>
+                            <h4>Email</h4>
+                            <p>info@finodine.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-method">
+                        <span class="material-symbols-outlined method-icon">location_on</span>
+                        <div>
+                            <h4>Location</h4>
+                            <p>123 Main Street<br/>City, State 12345</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-form-section">
+                <h2>Send Us a Message</h2>
+                <form method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Name" class="form-control" placeholder="Your name" />
+                        <label asp-for="Input.Name">Name</label>
+                        <span asp-validation-for="Input.Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Email" class="form-control" placeholder="name@example.com" />
+                        <label asp-for="Input.Email">Email</label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <textarea asp-for="Input.Message" class="form-control" placeholder="Your message" style="height:140px"></textarea>
+                        <label asp-for="Input.Message">Message</label>
+                        <span asp-validation-for="Input.Message" class="text-danger"></span>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined">send</span>
+                            Send Message
+                        </button>
+                        <a class="btn btn-secondary" asp-page="/Index">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .contact-hero { background:linear-gradient(135deg, #f7f3ee, #fff); padding:4rem 1rem; text-align:center; }
+    .contact-hero-inner { max-width:800px; margin:0 auto; }
+    .hero-icon { font-size:72px; color:var(--amber, #d4af37); display:block; margin:0 auto 1rem; }
+    .contact-hero h1 { font-size:2.5rem; font-weight:700; color:var(--text-primary); margin-bottom:0.75rem; }
+    .contact-hero .lead { font-size:1.125rem; color:var(--text-secondary); }
+
+    .content-container { display:flex; justify-content:center; padding:3rem 1rem; }
+    .themed-card { max-width:1100px; width:100%; background:var(--bg-card); border-radius:12px; padding:3rem 2rem; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+    [data-theme="dark"] .themed-card { background:rgba(58,58,58,0.7); }
+
+    .alert { padding:1rem; border-radius:8px; margin-bottom:2rem; display:flex; align-items:center; gap:0.75rem; }
+    .alert-success { background:rgba(46,204,113,0.1); border:1px solid #2ECC71; color:#27AE60; }
+    .alert .material-symbols-outlined { font-size:1.5rem; }
+
+    .contact-grid { display:grid; grid-template-columns:1fr; gap:3rem; }
+    @@media (min-width: 768px) { .contact-grid { grid-template-columns:1fr 1.2fr; } }
+
+    .contact-info-section h2,
+    .contact-form-section h2 { font-size:1.5rem; font-weight:700; color:var(--amber, #d4af37); margin-bottom:1.5rem; text-align:center; }
+
+    .contact-methods { display:flex; flex-direction:column; gap:1.5rem; }
+    .contact-method { display:flex; align-items:start; gap:1rem; padding:1.25rem; background:var(--bg-secondary); border-radius:10px; transition:transform 0.3s ease, box-shadow 0.3s ease; }
+    .contact-method:hover { transform:translateY(-4px); box-shadow:0 6px 20px rgba(212,175,55,0.15); }
+    [data-theme="dark"] .contact-method { background:rgba(45,45,45,0.6); }
+    .method-icon { font-size:36px; color:var(--amber, #d4af37); flex-shrink:0; }
+    .contact-method h4 { font-size:1rem; font-weight:700; color:var(--text-primary); margin:0 0 0.25rem; }
+    .contact-method p { font-size:0.875rem; color:var(--text-secondary); margin:0; line-height:1.6; }
+
+    .contact-form-section form { display:flex; flex-direction:column; gap:0; }
+    .form-floating { margin-bottom:1rem; }
+    .form-control { background:var(--bg-secondary); border:2px solid var(--border-primary); border-radius:8px; color:var(--text-primary); }
+    [data-theme="dark"] .form-control { background:rgba(45,45,45,0.6); border-color:rgba(85,85,85,0.6); }
+    .form-control:focus { border-color:var(--amber, #d4af37); box-shadow:0 0 0 3px rgba(212,175,55,0.2); background:var(--bg-card); }
+    .form-floating label { color:rgba(0,0,0,0.65); }
+    [data-theme="dark"] .form-floating label { color:rgba(255,255,255,0.7); }
+
+    .actions { display:flex; gap:1rem; justify-content:center; margin-top:1rem; }
+    .btn { display:inline-flex; align-items:center; gap:0.5rem; padding:0.875rem 2rem; border-radius:8px; font-weight:600; transition:all 0.3s ease; }
+    .btn .material-symbols-outlined { font-size:1.25rem; }
+    .btn-primary { background:linear-gradient(135deg, var(--color-primary-red, #e63946), var(--color-primary-red-dark, #c41e3a)); color:#fff; border:none; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(230,57,70,0.4); color:#fff; }
+    .btn-secondary { background:var(--bg-card); color:var(--text-primary); border:2px solid var(--border-primary); }
+    .btn-secondary:hover { border-color:var(--amber, #d4af37); }
+
+    @@media (max-width: 767px) {
+        .contact-hero h1 { font-size:2rem; }
+        .themed-card { padding:2rem 1.5rem; }
+        .contact-grid { gap:2rem; }
+        .actions { flex-direction:column; }
+        .btn { width:100%; justify-content:center; }
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -3,90 +3,427 @@
     ViewData["Title"] = L["About Us"];
 }
 
-<!-- Hero Section -->
-<section class="about-hero-section">
-    <div class="about-hero-overlay"></div>
-    <div class="about-hero-content">
-        <h1 class="about-hero-title">@L["Our Story"]</h1>
-        <p class="about-hero-subtitle">@L["Discover the passion and philosophy behind our culinary excellence."]</p>
-    </div>
-</section>
+<div class="page-container">
+    <!-- Hero Section -->
+    <section class="page-hero">
+        <div class="page-hero-content">
+            <span class="material-symbols-outlined hero-icon">restaurant</span>
+            <h1>@L["Our Story"]</h1>
+            <p class="hero-lead">@L["Discover the passion and philosophy behind our culinary excellence."]</p>
+        </div>
+    </section>
 
-<!-- Story Section -->
-<section class="section">
-    <div class="container-custom">
-        <div class="story-grid">
-            <div class="story-content">
-                <h2 class="section-heading text-left">@L["A Legacy of Flavor"]</h2>
-                <div class="story-text">
-                    <p>@L["AboutUsParagraph1"]</p>
-                    <p>@L["AboutUsParagraph2"]</p>
+    <!-- Story Section -->
+    <section class="story-section">
+        <div class="container-custom">
+            <div class="story-card">
+                <div class="story-header">
+                    <h2>@L["A Legacy of Flavor"]</h2>
+                    <div class="header-underline"></div>
+                </div>
+                <div class="story-content-grid">
+                    <div class="story-text">
+                        <p>@L["AboutUsParagraph1"]</p>
+                        <p>@L["AboutUsParagraph2"]</p>
+                    </div>
+                    <div class="story-quote-wrapper">
+                        <blockquote class="quote-block">
+                            <span class="quote-icon material-symbols-outlined">format_quote</span>
+                            <p class="quote-text">@L["Cuisine is a story. We tell ours with every plate we serve."]</p>
+                        </blockquote>
+                    </div>
                 </div>
             </div>
-            <div class="story-quote">
-                <blockquote class="quote-block">
-                    <p class="quote-text">@L["Cuisine is a story. We tell ours with every plate we serve."]</p>
-                </blockquote>
-            </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Mission & Values Section -->
-<section class="section">
-    <div class="container-custom">
-        <div class="text-center mb-5">
-            <h2 class="section-heading">@L["Our Mission & Values"]</h2>
-            <p class="section-subheading">@L["The principles that guide every decision we make."]</p>
+    <!-- Mission & Values Section -->
+    <section class="values-section">
+        <div class="container-custom">
+            <div class="section-header">
+                <h2>@L["Our Mission &amp; Values"]</h2>
+                <div class="header-underline"></div>
+                <p class="section-subheading">@L["The principles that guide every decision we make."]</p>
+            </div>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon-wrapper">
+                        <span class="material-symbols-outlined">restaurant_menu</span>
+                    </div>
+                    <h3>@L["Quality"]</h3>
+                    <p>@L["Sourcing only the finest, local, and sustainable ingredients to ensure peak freshness and flavor in every dish."]</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon-wrapper">
+                        <span class="material-symbols-outlined">volunteer_activism</span>
+                    </div>
+                    <h3>@L["Service"]</h3>
+                    <p>@L["Providing warm, intuitive, and impeccable service to make every guest feel welcomed and cherished."]</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon-wrapper">
+                        <span class="material-symbols-outlined">emoji_objects</span>
+                    </div>
+                    <h3>@L["Innovation"]</h3>
+                    <p>@L["Continuously pushing culinary boundaries and exploring new techniques to create a unique and modern dining experience."]</p>
+                </div>
+            </div>
         </div>
-        <div class="values-grid">
-            <div class="value-card">
-                <span class="material-symbols-outlined value-icon">restaurant_menu</span>
-                <h3 class="value-title">@L["Quality"]</h3>
-                <p class="value-description">@L["Sourcing only the finest, local, and sustainable ingredients to ensure peak freshness and flavor in every dish."]</p>
-            </div>
-            <div class="value-card">
-                <span class="material-symbols-outlined value-icon">volunteer_activism</span>
-                <h3 class="value-title">@L["Service"]</h3>
-                <p class="value-description">@L["Providing warm, intuitive, and impeccable service to make every guest feel welcomed and cherished."]</p>
-            </div>
-            <div class="value-card">
-                <span class="material-symbols-outlined value-icon">emoji_objects</span>
-                <h3 class="value-title">@L["Innovation"]</h3>
-                <p class="value-description">@L["Continuously pushing culinary boundaries and exploring new techniques to create a unique and modern dining experience."]</p>
-            </div>
-        </div>
-    </div>
-</section>
+    </section>
 
-<!-- Accolades & Awards Section -->
-<section class="section section-bg-secondary">
-    <div class="container-custom">
-        <div class="text-center mb-5">
-            <h2 class="section-heading">@L["Accolades & Awards"]</h2>
-            <p class="section-subheading">@L["We are honored to be recognized for our dedication to culinary excellence."]</p>
+    <!-- Accolades & Awards Section -->
+    <section class="awards-section">
+        <div class="container-custom">
+            <div class="section-header">
+                <h2>@L["Accolades &amp; Awards"]</h2>
+                <div class="header-underline"></div>
+                <p class="section-subheading">@L["We are honored to be recognized for our dedication to culinary excellence."]</p>
+            </div>
+            <div class="awards-grid">
+                <div class="award-card">
+                    <div class="award-icon-wrapper">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                    </div>
+                    <h4>@L["Gourmet Guide"]</h4>
+                    <p class="award-year">2023</p>
+                </div>
+                <div class="award-card">
+                    <div class="award-icon-wrapper">
+                        <span class="material-symbols-outlined">military_tech</span>
+                    </div>
+                    <h4>@L["Epicurean Award"]</h4>
+                    <p class="award-year">2022</p>
+                </div>
+                <div class="award-card">
+                    <div class="award-icon-wrapper">
+                        <span class="material-symbols-outlined">stars</span>
+                    </div>
+                    <h4>@L["Five Star Alliance"]</h4>
+                    <p class="award-year">2021, 2022</p>
+                </div>
+                <div class="award-card">
+                    <div class="award-icon-wrapper">
+                        <span class="material-symbols-outlined">local_bar</span>
+                    </div>
+                    <h4>@L["Best Wine List"]</h4>
+                    <p class="award-year">2020</p>
+                </div>
+            </div>
         </div>
-        <div class="awards-grid">
-            <div class="award-card">
-                <span class="material-symbols-outlined award-icon">workspace_premium</span>
-                <h4 class="award-title">@L["Gourmet Guide"]</h4>
-                <p class="award-year">2023</p>
-            </div>
-            <div class="award-card">
-                <span class="material-symbols-outlined award-icon">military_tech</span>
-                <h4 class="award-title">@L["Epicurean Award"]</h4>
-                <p class="award-year">2022</p>
-            </div>
-            <div class="award-card">
-                <span class="material-symbols-outlined award-icon">stars</span>
-                <h4 class="award-title">@L["Five Star Alliance"]</h4>
-                <p class="award-year">2021, 2022</p>
-            </div>
-            <div class="award-card">
-                <span class="material-symbols-outlined award-icon">local_bar</span>
-                <h4 class="award-title">@L["Best Wine List"]</h4>
-                <p class="award-year">2020</p>
-            </div>
-        </div>
-    </div>
-</section>
+    </section>
+</div>
+
+<style>
+    .page-container {
+        min-height: calc(100vh - var(--header-height, 80px));
+    }
+
+    /* Hero Section */
+    .page-hero {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(230, 57, 70, 0.05));
+        padding: var(--spacing-3xl) var(--spacing-lg);
+        text-align: center;
+        border-bottom: 1px solid var(--border-primary);
+    }
+
+    [data-bs-theme="dark"] .page-hero {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(230, 57, 70, 0.1));
+    }
+
+    .page-hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-icon {
+        font-size: 72px;
+        color: var(--amber, #D4AF37);
+        display: block;
+        margin: 0 auto var(--spacing-lg);
+    }
+
+    .page-hero h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-md);
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+    }
+
+    .hero-lead {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    /* Story Section */
+    .story-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .story-card {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: var(--bg-card);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-3xl) var(--spacing-2xl);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-primary);
+    }
+
+    [data-bs-theme="dark"] .story-card {
+        background: rgba(58, 58, 58, 0.7);
+        backdrop-filter: blur(12px);
+        border-color: rgba(85, 85, 85, 0.4);
+    }
+
+    .story-header {
+        text-align: center;
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .story-header h2 {
+        font-size: clamp(1.75rem, 4vw, 2.25rem);
+        font-weight: 700;
+        color: var(--amber, #D4AF37);
+        margin-bottom: var(--spacing-sm);
+        font-family: var(--font-display);
+    }
+
+    .header-underline {
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--amber, #D4AF37), transparent);
+        margin: 0 auto;
+        border-radius: var(--radius-full);
+    }
+
+    .story-content-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-2xl);
+    }
+
+    @@media (min-width: 992px) {
+        .story-content-grid {
+            grid-template-columns: 1.5fr 1fr;
+        }
+    }
+
+    .story-text p {
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .story-text p:last-child {
+        margin-bottom: 0;
+    }
+
+    .story-quote-wrapper {
+        display: flex;
+        align-items: center;
+    }
+
+    .quote-block {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(230, 57, 70, 0.05));
+        border-left: 4px solid var(--amber, #D4AF37);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        margin: 0;
+        position: relative;
+    }
+
+    [data-bs-theme="dark"] .quote-block {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(230, 57, 70, 0.1));
+    }
+
+    .quote-icon {
+        font-size: 3rem;
+        color: var(--amber, #D4AF37);
+        opacity: 0.3;
+        position: absolute;
+        top: -10px;
+        left: var(--spacing-md);
+    }
+
+    .quote-text {
+        font-size: 1.25rem;
+        font-style: italic;
+        color: var(--text-primary);
+        line-height: 1.7;
+        margin: var(--spacing-lg) 0 0 0;
+        font-weight: 500;
+    }
+
+    /* Values Section */
+    .values-section {
+        padding: var(--spacing-3xl) 0;
+        background: var(--bg-secondary);
+    }
+
+    [data-bs-theme="dark"] .values-section {
+        background: rgba(33, 37, 41, 0.3);
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .section-header h2 {
+        font-size: clamp(1.75rem, 4vw, 2.25rem);
+        font-weight: 700;
+        color: var(--amber, #D4AF37);
+        margin-bottom: var(--spacing-sm);
+        font-family: var(--font-display);
+    }
+
+    .section-subheading {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        margin-top: var(--spacing-md);
+    }
+
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-xl);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .value-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-primary);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        transition: all var(--transition-base);
+    }
+
+    [data-bs-theme="dark"] .value-card {
+        background: rgba(58, 58, 58, 0.6);
+    }
+
+    .value-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--amber, #D4AF37);
+    }
+
+    .value-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--amber, #D4AF37), rgba(212, 175, 55, 0.8));
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--spacing-lg);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    .value-icon-wrapper .material-symbols-outlined {
+        font-size: 40px;
+        color: white;
+    }
+
+    .value-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .value-card p {
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    /* Awards Section */
+    .awards-section {
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .awards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .award-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-primary);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        text-align: center;
+        transition: all var(--transition-base);
+    }
+
+    [data-bs-theme="dark"] .award-card {
+        background: rgba(58, 58, 58, 0.6);
+    }
+
+    .award-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--amber, #D4AF37);
+    }
+
+    .award-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, var(--amber, #D4AF37), rgba(212, 175, 55, 0.8));
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--spacing-md);
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    .award-icon-wrapper .material-symbols-outlined {
+        font-size: 32px;
+        color: white;
+    }
+
+    .award-card h4 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--spacing-xs) 0;
+    }
+
+    .award-year {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .page-hero {
+            padding: var(--spacing-2xl) var(--spacing-md);
+        }
+
+        .story-card {
+            padding: var(--spacing-2xl) var(--spacing-lg);
+        }
+
+        .story-content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .values-grid,
+        .awards-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
