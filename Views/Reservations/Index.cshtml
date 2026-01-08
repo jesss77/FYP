@@ -105,65 +105,6 @@
             </a>
         }
     </div>
-
-    <!-- Stats Row -->
-    @if (todayReservations != null && todayReservations.Any())
-    {
-        var totalReservations = todayReservations.Count();
-        var pending = todayReservations.Count(r => r.ReservationStatus.StatusName == "Pending");
-        var confirmed = todayReservations.Count(r => r.ReservationStatus.StatusName == "Confirmed");
-        var seated = todayReservations.Count(r => r.ReservationStatus.StatusName == "Seated");
-        var completed = todayReservations.Count(r => r.ReservationStatus.StatusName == "Completed");
-
-        <div class="stats-row" style="margin-bottom: var(--spacing-2xl);">
-            <div class="stat-item">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #3498DB, #2980B9);">
-                    <span class="material-symbols-outlined">event</span>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">@totalReservations</div>
-                    <div class="stat-label">Total Today</div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #F39C12, #D68910);">
-                    <span class="material-symbols-outlined">schedule</span>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">@pending</div>
-                    <div class="stat-label">Pending</div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #2ECC71, #27AE60);">
-                    <span class="material-symbols-outlined">check_circle</span>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">@confirmed</div>
-                    <div class="stat-label">Confirmed</div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #0dcaf0, #0aa1c7);">
-                    <span class="material-symbols-outlined">chair</span>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">@seated</div>
-                    <div class="stat-label">Seated</div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #6c757d, #5a6268);">
-                    <span class="material-symbols-outlined">done_all</span>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number">@completed</div>
-                    <div class="stat-label">Completed</div>
-                </div>
-            </div>
-        </div>
-    }
-
     <!-- Today's Reservations -->
     <div style="margin-bottom: var(--spacing-3xl);">
         <h2 class="gold-heading" style="font-size: 1.5rem; margin-bottom: var(--spacing-md);">
